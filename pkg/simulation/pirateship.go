@@ -2,7 +2,7 @@ package simulation
 
 import (
 	"fmt"
-	"image"
+	"simulationPirate/pkg/engine"
 	"simulationPirate/pkg/engine/grid"
 	"simulationPirate/pkg/engine/sprite"
 )
@@ -11,9 +11,9 @@ type Pirateship struct {
 	sprite.Sprite
 }
 
-func NewPirateship(position image.Point) *Pirateship {
+func NewPirateship(position engine.Position) *Pirateship {
 
-	sprite, err := sprite.NewSprite(position, sprite.Right, 1, "assets/bateau.png")
+	sprite, err := sprite.NewSprite(position, sprite.Right, 1, engine.ShipImage)
 	if err != nil {
 		fmt.Printf("création de PirateShip impossible : %s", err)
 	}
@@ -22,7 +22,9 @@ func NewPirateship(position image.Point) *Pirateship {
 }
 
 func (p *Pirateship) Update() {
-	next := grid.ToPos(grid.GetInstance().GetNeighbor(p.Position, p.Direction))
-	p.Position = next
-	fmt.Print(next)
+	grid.GetInstance().MoveNext(p, p.Direction)
+}
+
+func (p *Pirateship) ToString() string {
+	return "this is the pirateship!"
 }

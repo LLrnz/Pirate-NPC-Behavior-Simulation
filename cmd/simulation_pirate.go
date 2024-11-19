@@ -8,31 +8,43 @@ import (
 	"simulationPirate/pkg/engine"
 	"simulationPirate/pkg/engine/grid"
 	"simulationPirate/pkg/engine/sprite"
+	"simulationPirate/pkg/engine/ui"
 	"simulationPirate/pkg/simulation"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type Game struct {
-	fond *sprite.Sprite
+	fond   *sprite.Sprite
+	ticker *time.Ticker
 }
 
 func (g *Game) LoadContent() {
 	var err error
-	g.fond, err = sprite.NewSprite(image.Point{0, 0}, sprite.Right, 4, "assets/mapMonde.png")
+	g.fond, err = sprite.NewSprite(engine.Position{Point: image.Point{0, 0}}, sprite.Right, 4, engine.MapImage)
 	if err != nil {
 		log.Fatal(err)
 	}
-	grid.GetInstance().Init(engine.ScreenHeight, engine.ScreenWidth)
+	gridSize := grid.ToCoor(engine.Position{Point: image.Point{engine.ScreenHeight, engine.ScreenWidth}})
+	grid.GetInstance().Init(gridSize.X, gridSize.Y)
 
-	shipPos := image.Point{0, 0}
-	grid.GetInstance().Grid[shipPos] = simulation.NewPirateship(shipPos)
+	shipPos := engine.Position{Point: image.Point{0, 0}}
+	grid.GetInstance().SetObjectAtPos(shipPos, simulation.NewPirateship(shipPos))
+
+	g.ticker = time.NewTicker(time.Second * 2)
 
 }
 
 func (g *Game) Update() error {
-	grid.GetInstance().Update()
-	time.Sleep(time.Duration(2 * time.Second))
+	go func() {
+		select {
+		case <-g.ticker.C:
+			grid.GetInstance().Update()
+
+			break
+		}
+	}()
+	ui.Update()
 	return nil
 }
 
