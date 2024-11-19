@@ -26,7 +26,7 @@ func (g *Game) LoadContent() {
 	grid.GetInstance().Init(engine.ScreenHeight, engine.ScreenWidth)
 
 	shipPos := image.Point{0, 0}
-	grid.GetInstance().Grid[shipPos] = simulation.NewPirateship(shipPos)
+	grid.GetInstance().Grid[shipPos] = simulation.NewBrigantin(shipPos)
 
 }
 
