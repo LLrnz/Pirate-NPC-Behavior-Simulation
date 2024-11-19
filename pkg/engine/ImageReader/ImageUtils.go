@@ -2,6 +2,7 @@ package imagereader
 
 import (
 	"image"
+	_ "image/png"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -24,4 +25,3 @@ func NewImageFromPath(filePath string) (*ebiten.Image, error) {
 	}
 	return ebiten.NewImageFromImage(im), err
 }
-

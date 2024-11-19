@@ -1,24 +1,28 @@
 package simulation
 
-import(
-    "simulationPirate/pkg/engine"
+import (
+	"fmt"
+	"image"
+	"simulationPirate/pkg/engine/grid"
+	"simulationPirate/pkg/engine/sprite"
 )
 
-
-type Pirateship struct{
-	engine.TexturedObject
+type Pirateship struct {
+	sprite.Sprite
 }
 
-//static var équivalent pour load le sprite ?
+func NewPirateship(position image.Point) *Pirateship {
 
-func NewPirateship &Pirateship{
-    return
+	sprite, err := sprite.NewSprite(position, sprite.Right, 1, "assets/bateau.png")
+	if err != nil {
+		fmt.Printf("création de PirateShip impossible : %s", err)
+	}
+
+	return &Pirateship{*sprite}
 }
 
-func (*p Pirateship) Update(){
-
-}
-
-func (*p Pirateship) Draw(){
-    
+func (p *Pirateship) Update() {
+	next := grid.ToPos(grid.GetInstance().GetNeighbor(p.Position, p.Direction))
+	p.Position = next
+	fmt.Print(next)
 }
