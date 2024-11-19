@@ -16,6 +16,7 @@ func NewGoelette(position image.Point) *Goelette {
 	sprite, err := sprite.NewSprite(position, sprite.Right, 1, "assets/bateau.png")
 	if err != nil {
 		fmt.Printf("création de Goelette impossible : %s", err)
+		return nil
 	}
 
 	return &Goelette{*sprite}

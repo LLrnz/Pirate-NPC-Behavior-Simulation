@@ -16,6 +16,7 @@ func NewTroisMatesCarre(position image.Point) *TroisMatesCarre {
 	sprite, err := sprite.NewSprite(position, sprite.Right, 1, "assets/bateau.png")
 	if err != nil {
 		fmt.Printf("création de TroisMatesCarre impossible : %s", err)
+		return nil
 	}
 
 	return &TroisMatesCarre{*sprite}

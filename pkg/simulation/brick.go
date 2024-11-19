@@ -16,6 +16,7 @@ func NewBrick(position image.Point) *Brick {
 	sprite, err := sprite.NewSprite(position, sprite.Right, 1, "assets/bateau.png")
 	if err != nil {
 		fmt.Printf("création de Brick impossible : %s", err)
+		return nil
 	}
 
 	return &Brick{*sprite}

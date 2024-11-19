@@ -16,6 +16,7 @@ func NewKraken(position image.Point) *Kraken {
 	sprite, err := sprite.NewSprite(position, sprite.Right, 1, "assets/bateau.png")
 	if err != nil {
 		fmt.Printf("création de Kraken impossible : %s", err)
+		return nil
 	}
 
 	return &Kraken{*sprite}
