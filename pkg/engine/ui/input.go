@@ -10,9 +10,20 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-func Update() {
+type UserInterface struct {
+	infoPanel InfoPanel
+}
+
+func NewUserInterface() *UserInterface {
+	return &UserInterface{InfoPanel{engine.Position{Point: image.Point{150, 50}}, nil, false}}
+}
+
+func (ui *UserInterface) Update() {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		obj, ok := GetObjectAtCursor()
+		obj, ok := ui.GetObjectAtCursor()
+
+		ui.infoPanel.ChangeFocus(obj, ok)
+
 		if ok && *obj != nil {
 			fmt.Print((*obj).ToString())
 		} else {
@@ -20,11 +31,24 @@ func Update() {
 		}
 
 	}
+	ui.infoPanel.Update()
 }
 
-func GetObjectAtCursor() (*engine.Object, bool) {
+func (ui *UserInterface) GetObjectAtCursor() (*engine.Object, bool) {
 	x, y := ebiten.CursorPosition()
 	cursorPosition := engine.Position{Point: image.Point{x, y}}
 
 	return grid.GetInstance().GetObjectAtPos(cursorPosition)
+}
+
+func (ui *UserInterface) Draw(screen *ebiten.Image) {
+	ui.infoPanel.Draw(screen)
+}
+
+func (ui *UserInterface) Position() engine.Position {
+	return ui.infoPanel.Position()
+}
+
+func (ui *UserInterface) SetPosition(pos engine.Position) {
+	ui.infoPanel.SetPosition(pos)
 }

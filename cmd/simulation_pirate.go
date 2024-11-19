@@ -3,7 +3,6 @@ package main
 import (
 	"image"
 	"log"
-	"time"
 
 	"simulationPirate/pkg/engine"
 	"simulationPirate/pkg/engine/grid"
@@ -14,9 +13,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+const maxTick int = 2 * 60
+
 type Game struct {
 	fond   *sprite.Sprite
-	ticker *time.Ticker
+	ticker int
+	ui     ui.UserInterface
 }
 
 func (g *Game) LoadContent() {
@@ -31,26 +33,27 @@ func (g *Game) LoadContent() {
 	shipPos := engine.Position{Point: image.Point{0, 0}}
 	grid.GetInstance().SetObjectAtPos(shipPos, simulation.NewPirateship(shipPos))
 
-	g.ticker = time.NewTicker(time.Second * 2)
+	g.ticker = 0 // time.NewTicker(time.Second * 2)
 
+	g.ui = ui.UserInterface{}
 }
 
 func (g *Game) Update() error {
-	go func() {
-		select {
-		case <-g.ticker.C:
-			grid.GetInstance().Update()
+	if g.ticker >= maxTick {
+		grid.GetInstance().Update()
+		g.ticker = 0
 
-			break
-		}
-	}()
-	ui.Update()
+	}
+	g.ticker++
+
+	g.ui.Update()
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
 
 	g.fond.Draw(screen)
+	g.ui.Draw(screen)
 
 	grid.GetInstance().Draw(screen)
 }

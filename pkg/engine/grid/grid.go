@@ -162,7 +162,7 @@ func (g *Grid) RemoveObject(key engine.Position, value engine.Object) {
 }
 
 func (g *Grid) applyChanges() {
-	for key, _ := range g.toRemove {
+	for key := range g.toRemove {
 		g.Grid[key] = nil
 	}
 
