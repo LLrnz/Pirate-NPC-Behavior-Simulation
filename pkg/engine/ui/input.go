@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"image"
 	"simulationPirate/pkg/engine"
 	"simulationPirate/pkg/engine/grid"
@@ -15,7 +14,7 @@ type UserInterface struct {
 }
 
 func NewUserInterface() *UserInterface {
-	return &UserInterface{InfoPanel{engine.Position{Point: image.Point{150, 50}}, nil, false}}
+	return &UserInterface{InfoPanel{engine.Position{Point: image.Point{0, engine.GameHeight - engine.InfoPanelHeight}}, nil, false}}
 }
 
 func (ui *UserInterface) Update() {
@@ -23,12 +22,6 @@ func (ui *UserInterface) Update() {
 		obj, ok := ui.GetObjectAtCursor()
 
 		ui.infoPanel.ChangeFocus(obj, ok)
-
-		if ok && *obj != nil {
-			fmt.Print((*obj).ToString())
-		} else {
-			fmt.Print("this cell is empty")
-		}
 
 	}
 	ui.infoPanel.Update()

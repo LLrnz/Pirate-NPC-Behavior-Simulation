@@ -10,7 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-var font, _ = text.NewGoTextFaceSource(bytes.NewReader(fonts.PressStart2P_ttf))
+var font, _ = text.NewGoTextFaceSource(bytes.NewReader(fonts.MPlus1pRegular_ttf))
 
 type InfoPanel struct {
 	position      engine.Position
@@ -40,7 +40,7 @@ func (i *InfoPanel) Draw(screen *ebiten.Image) {
 		opt := &text.DrawOptions{}
 		opt.GeoM.Translate(float64(i.position.X), float64(i.position.Y))
 		opt.ColorScale.ScaleWithColor(color.White)
-		rectangle := ebiten.NewImage(100, 100)
+		rectangle := ebiten.NewImage(engine.InfoPanelWidth, engine.InfoPanelHeight)
 		rectangle.Fill(color.Black)
 
 		//text

@@ -27,7 +27,7 @@ func (g *Game) LoadContent() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	gridSize := grid.ToCoor(engine.Position{Point: image.Point{engine.ScreenHeight, engine.ScreenWidth}})
+	gridSize := grid.ToCoor(engine.Position{Point: image.Point{engine.GameHeight, engine.GameWidth}})
 	grid.GetInstance().Init(gridSize.X, gridSize.Y)
 
 	shipPos := engine.Position{Point: image.Point{0, 0}}
@@ -35,7 +35,7 @@ func (g *Game) LoadContent() {
 
 	g.ticker = 0 // time.NewTicker(time.Second * 2)
 
-	g.ui = ui.UserInterface{}
+	g.ui = *ui.NewUserInterface()
 }
 
 func (g *Game) Update() error {
@@ -59,11 +59,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 256, 144
+	return engine.GameWidth, engine.GameHeight
 }
 
 func main() {
-	ebiten.SetWindowSize(1024, 576)
+	ebiten.SetWindowSize(engine.WindowWidth, engine.WindowHeight)
 	ebiten.SetWindowTitle("Hello, World!")
 	g := &Game{}
 	g.LoadContent()
