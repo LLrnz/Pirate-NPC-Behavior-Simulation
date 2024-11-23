@@ -11,9 +11,9 @@ type Brick struct {
 	sprite.Sprite
 }
 
-func NewBrick(position image.Point) *Brick {
+func NewBrick(position engine.Position) *Brick {
 
-	sprite, err := sprite.NewSprite(position, sprite.Right, 1, engine.ShipImage)
+	sprite, err := sprite.NewSprite(position, sprite.Right, 1, "assets/bateau.png")
 	if err != nil {
 		fmt.Printf("création de Brick impossible : %s", err)
 		return nil
@@ -23,7 +23,9 @@ func NewBrick(position image.Point) *Brick {
 }
 
 func (p *Brick) Update() {
-	next := grid.ToPos(grid.GetInstance().GetNeighbor(p.Position, p.Direction))
-	p.Position = next
-	fmt.Print(next)
+	grid.GetInstance().MoveNext(p, p.Direction)
+}
+
+func (p *Brick) ToString() string {
+	return "this is the Brick!"
 }

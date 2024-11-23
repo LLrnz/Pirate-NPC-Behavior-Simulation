@@ -2,7 +2,7 @@ package simulation
 
 import (
 	"fmt"
-	"image"
+	"simulationPirate/pkg/engine"
 	"simulationPirate/pkg/engine/grid"
 	"simulationPirate/pkg/engine/sprite"
 )
@@ -11,7 +11,7 @@ type Brigantin struct {
 	sprite.Sprite
 }
 
-func NewBrigantin(position image.Point) *Brigantin {
+func NewBrigantin(position engine.Position) *Brigantin {
 
 	sprite, err := sprite.NewSprite(position, sprite.Right, 1, "assets/bateau.png")
 	if err != nil {
@@ -23,7 +23,9 @@ func NewBrigantin(position image.Point) *Brigantin {
 }
 
 func (p *Brigantin) Update() {
-	next := grid.ToPos(grid.GetInstance().GetNeighbor(p.Position, p.Direction))
-	p.Position = next
-	fmt.Print(next)
+	grid.GetInstance().MoveNext(p, p.Direction)
+}
+
+func (p *Brigantin) ToString() string {
+	return "this is the Brigantin!"
 }

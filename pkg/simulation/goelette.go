@@ -2,7 +2,7 @@ package simulation
 
 import (
 	"fmt"
-	"image"
+	"simulationPirate/pkg/engine"
 	"simulationPirate/pkg/engine/grid"
 	"simulationPirate/pkg/engine/sprite"
 )
@@ -11,7 +11,7 @@ type Goelette struct {
 	sprite.Sprite
 }
 
-func NewGoelette(position image.Point) *Goelette {
+func NewGoelette(position engine.Position) *Goelette {
 
 	sprite, err := sprite.NewSprite(position, sprite.Right, 1, "assets/bateau.png")
 	if err != nil {
@@ -23,7 +23,9 @@ func NewGoelette(position image.Point) *Goelette {
 }
 
 func (p *Goelette) Update() {
-	next := grid.ToPos(grid.GetInstance().GetNeighbor(p.Position, p.Direction))
-	p.Position = next
-	fmt.Print(next)
+	grid.GetInstance().MoveNext(p, p.Direction)
+}
+
+func (p *Goelette) ToString() string {
+	return "this is the Goelette!"
 }

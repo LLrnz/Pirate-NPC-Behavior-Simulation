@@ -31,7 +31,7 @@ func (g *Game) LoadContent() {
 	grid.GetInstance().Init(gridSize.X, gridSize.Y)
 
 	shipPos := engine.Position{Point: image.Point{0, 0}}
-	grid.GetInstance().SetObjectAtPos(shipPos, simulation.NewPirateship(shipPos))
+	grid.GetInstance().SetObjectAtPos(shipPos, simulation.NewBrick(shipPos))
 
 	g.ticker = 0 // time.NewTicker(time.Second * 2)
 

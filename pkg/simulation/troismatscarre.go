@@ -2,28 +2,30 @@ package simulation
 
 import (
 	"fmt"
-	"image"
+	"simulationPirate/pkg/engine"
 	"simulationPirate/pkg/engine/grid"
 	"simulationPirate/pkg/engine/sprite"
 )
 
-type TroisMatesCarre struct {
+type TroisMatsCarre struct {
 	sprite.Sprite
 }
 
-func NewTroisMatesCarre(position image.Point) *TroisMatesCarre {
+func NewTroisMatsCarre(position engine.Position) *TroisMatsCarre {
 
 	sprite, err := sprite.NewSprite(position, sprite.Right, 1, "assets/bateau.png")
 	if err != nil {
-		fmt.Printf("création de TroisMatesCarre impossible : %s", err)
+		fmt.Printf("création de TroisMatsCarre impossible : %s", err)
 		return nil
 	}
 
-	return &TroisMatesCarre{*sprite}
+	return &TroisMatsCarre{*sprite}
 }
 
-func (p *TroisMatesCarre) Update() {
-	next := grid.ToPos(grid.GetInstance().GetNeighbor(p.Position, p.Direction))
-	p.Position = next
-	fmt.Print(next)
+func (p *TroisMatsCarre) Update() {
+	grid.GetInstance().MoveNext(p, p.Direction)
+}
+
+func (p *TroisMatsCarre) ToString() string {
+	return "this is the TroisMatsCarre!"
 }

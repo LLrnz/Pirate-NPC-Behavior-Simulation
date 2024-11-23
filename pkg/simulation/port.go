@@ -2,7 +2,7 @@ package simulation
 
 import (
 	"fmt"
-	"image"
+	"simulationPirate/pkg/engine"
 	"simulationPirate/pkg/engine/grid"
 	"simulationPirate/pkg/engine/sprite"
 )
@@ -11,7 +11,7 @@ type Port struct {
 	sprite.Sprite
 }
 
-func NewPort(position image.Point) *Port {
+func NewPort(position engine.Position) *Port {
 
 	sprite, err := sprite.NewSprite(position, sprite.Right, 1, "assets/bateau.png")
 	if err != nil {
@@ -23,7 +23,9 @@ func NewPort(position image.Point) *Port {
 }
 
 func (p *Port) Update() {
-	next := grid.ToPos(grid.GetInstance().GetNeighbor(p.Position, p.Direction))
-	p.Position = next
-	fmt.Print(next)
+	grid.GetInstance().MoveNext(p, p.Direction)
+}
+
+func (p *Port) ToString() string {
+	return "this is the Port!"
 }
