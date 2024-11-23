@@ -1,6 +1,10 @@
 package engine
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	"image"
+
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
 type Updatable interface {
 	Update()
@@ -17,6 +21,17 @@ type Drawable interface {
 type Object interface {
 	Draw(*ebiten.Image)
 	Update()
+	ToString() string
+	Position() Position
+	SetPosition(Position)
+}
+
+type Position struct {
+	image.Point
+}
+
+type Coordinates struct {
+	image.Point
 }
 
 // type Object struct {

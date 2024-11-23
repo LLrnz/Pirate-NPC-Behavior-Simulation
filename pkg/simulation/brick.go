@@ -2,7 +2,7 @@ package simulation
 
 import (
 	"fmt"
-	"image"
+	"simulationPirate/pkg/engine"
 	"simulationPirate/pkg/engine/grid"
 	"simulationPirate/pkg/engine/sprite"
 )
@@ -13,7 +13,7 @@ type Brick struct {
 
 func NewBrick(position image.Point) *Brick {
 
-	sprite, err := sprite.NewSprite(position, sprite.Right, 1, "assets/bateau.png")
+	sprite, err := sprite.NewSprite(position, sprite.Right, 1, engine.ShipImage)
 	if err != nil {
 		fmt.Printf("création de Brick impossible : %s", err)
 		return nil
