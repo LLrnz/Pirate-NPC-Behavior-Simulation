@@ -70,21 +70,23 @@ class Navire {
     BehaviourEquipage : BehaviourEquipage
     statsNavire : StatsNavire
     Ressources : []Ressource
+    VieMax : int
+    Attaque : int
+    Defense : int
+    Niveau : int
 
     isVieBasse()
 }
 
 class StatsNavire {
     navire : * Navire
-    VieMax : int
-    Attaque : int
-    Defense : int
-    Niveau : int
+    type : string
 
     LevelUp()
 }
 
 class StatsNavire_Brick {
+    initStat()
 }
 
 class StatsNavire_Brigantin {
