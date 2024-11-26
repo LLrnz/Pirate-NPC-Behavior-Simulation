@@ -141,12 +141,10 @@ Objet *-- Simulation
 Objet *-- Environnement
 Objet <|-- Agent
 Objet <|-- Port
-Objet <|-- Ressources
 
 Agent *-- Simulation
 Agent <|-- Kraken
 Agent <|-- Navire
-Agent <|-- Market
 
 Navire <-- BehaviourEquipage
 Navire <-- StatsNavire
