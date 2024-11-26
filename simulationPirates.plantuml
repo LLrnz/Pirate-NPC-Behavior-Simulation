@@ -1,0 +1,167 @@
+@startuml ^Simulation Pirates^
+
+class Simulation {
+    env : Environnement
+    objets : []Objet
+    agents : []Agent
+
+    Start()
+}
+
+class Environnement {
+    objets : []Objet
+    agents : []Agent
+    pirates : []Navire
+    corsaire : []Navire
+    marchand : []Navire
+    armee : []Navire
+    flibustiers : []Navire
+    zoro : []Navire
+    ports : []Port
+}
+
+class Objet {
+    pos : Position
+}
+
+class Port {
+    marchandises : []Marchandise
+}
+
+class Ressource {
+    type : RessourceType
+    quantite : int
+}
+
+enum RessourceType {
+    Or
+    Epices
+    Sucre
+    Alcool
+    Armes
+    Vivre
+    Thé
+    Café
+    Tipiak
+}
+
+class Market {
+    
+}
+
+class Agent {
+    env : * Environnement
+    acuité : int
+    vie : int
+
+    Percept()
+    Act()
+    Deliberate()
+    SeDeplacerVers(Objet)
+}
+
+
+class Kraken {
+    
+    Attaquer()
+}
+
+class Navire {
+    BehaviourEquipage : BehaviourEquipage
+    statsNavire : StatsNavire
+    Ressources : []Ressource
+
+    isVieBasse()
+}
+
+class StatsNavire {
+    navire : * Navire
+    VieMax : int
+    Attaque : int
+    Defense : int
+    Niveau : int
+
+    LevelUp()
+}
+
+class StatsNavire_Brick {
+}
+
+class StatsNavire_Brigantin {
+}
+
+class StatsNavire_Goelette {
+}
+
+class StatsNavire_TroisMatsCarres {
+}
+
+class BehaviourEquipage {
+    navire : *Navire
+
+    Percept()
+    Act()
+    Deliberate()
+    Attaquer()
+    RecevoirAttaque()
+    AcheterRessources()
+    VendreRessources()
+    ReparerNavire()
+}
+
+class BehaviourEquipage_Pirate {
+}
+
+class BehaviourEquipage_Corsaire {
+}
+
+class BehaviourEquipage_Marchand {
+}
+
+class BehaviourEquipage_Armee {
+}
+
+class BehaviourEquipage_Flibustier {
+}
+
+class BehaviourEquipage_ChasseurPirates {
+}
+
+class BehaviourEquipage_Zoro {
+}
+
+
+
+
+
+
+Objet *-- Simulation
+Objet *-- Environnement
+Objet <|-- Agent
+Objet <|-- Port
+Objet <|-- Ressources
+
+Agent *-- Simulation
+Agent <|-- Kraken
+Agent <|-- Navire
+Agent <|-- Market
+
+Navire <-- BehaviourEquipage
+Navire <-- StatsNavire
+
+BehaviourEquipage o-- Navire
+BehaviourEquipage <|--  BehaviourEquipage_Armee
+BehaviourEquipage <|--  BehaviourEquipage_ChasseurPirates
+BehaviourEquipage <|--  BehaviourEquipage_Corsaire
+BehaviourEquipage <|--  BehaviourEquipage_Flibustier
+BehaviourEquipage <|--  BehaviourEquipage_Marchand
+BehaviourEquipage <|--  BehaviourEquipage_Pirate
+BehaviourEquipage <|--  BehaviourEquipage_Zoro
+
+StatsNavire o-- Navire
+StatsNavire <|-- StatsNavire_Brick
+StatsNavire <|-- StatsNavire_Brigantin
+StatsNavire <|-- StatsNavire_Goelette
+StatsNavire <|-- StatsNavire_TroisMatsCarres
+
+@enduml
