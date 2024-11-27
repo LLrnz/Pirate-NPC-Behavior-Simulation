@@ -1,47 +1,47 @@
 @startuml ^Simulation Pirates^
 
 class Simulation {
-    env : Environnement
-    objets : []Objet
+    env : Environment
+    object : []Object
     agents : []Agent
 
     Start()
 }
 
-class Environnement {
-    objets : []Objet
+class Environment {
+    objects : []Object
     agents : []Agent
-    pirates : []Navire
-    corsaire : []Navire
-    marchand : []Navire
-    armee : []Navire
-    flibustiers : []Navire
-    zoro : []Navire
+    pirates : []Ship
+    privateer : []Ship
+    merchant : []Ship
+    army : []Ship
+    filibuster : []Ship
+    zoro : []Ship
     ports : []Port
 }
 
-class Objet {
+class Object {
     pos : Position
 }
 
 class Port {
-    marchandises : []Marchandise
+    merchandises : []Resource
 }
 
-class Ressource {
-    type : RessourceType
-    quantite : int
+class Resource {
+    type : ResourceType
+    quantity : int
 }
 
-enum RessourceType {
-    Or
-    Epices
-    Sucre
-    Alcool
-    Armes
-    Vivre
-    Thé
-    Café
+enum ResourceType {
+    Gold
+    Spice
+    Sugar
+    Alcohol
+    Weapons
+    Provisions 
+    Tea
+    Coffee
     Tipiak
 }
 
@@ -50,118 +50,120 @@ class Market {
 }
 
 class Agent {
-    env : * Environnement
-    acuité : int
-    vie : int
+    env : * Environment
+    acuity : int
+    health : int
 
     Percept()
     Act()
     Deliberate()
-    SeDeplacerVers(Objet)
+    MoveTowards(Object)
 }
 
 
 class Kraken {
-    
-    Attaquer()
-}
-
-class Navire {
-    BehaviourEquipage : BehaviourEquipage
-    statsNavire : StatsNavire
-    Ressources : []Ressource
-    VieMax : int
-    Attaque : int
-    Defense : int
-    Niveau : int
-
-    isVieBasse()
-}
-
-class StatsNavire {
-    navire : * Navire
+    attack : int
+    speed : int
     type : string
 
+    Attack()
+}
+
+class Ship {
+    behaviourCrew : BehaviourCrew
+    statsShip : StatsShip
+    resources : []Resource
+    lifeMax : int
+    attack : int
+    defense : int
+    speed : int
+    level : int
+    type : string
+
+    IsLowLife()
+}
+
+class StatsShip {
+    Ship : * Ship
+
     LevelUp()
+    initStatsShip(*Ship)
 }
 
-class StatsNavire_Brick {
-    initStat()
+class StatsShip_Brick {
 }
 
-class StatsNavire_Brigantin {
+class StatsShip_Brigantin {
 }
 
-class StatsNavire_Goelette {
+class StatsShip_Goelette {
 }
 
-class StatsNavire_TroisMatsCarres {
+class StatsShip_TroisMatsCarres {
 }
 
-class BehaviourEquipage {
-    navire : *Navire
+class BehaviourCrew {
+    Ship : *Ship
 
     Percept()
     Act()
     Deliberate()
-    Attaquer()
-    RecevoirAttaque()
-    AcheterRessources()
-    VendreRessources()
-    ReparerNavire()
+    Attack()
+    ReceiveAttack()
+    BuyResource()
+    SellResource()
+    FixShip()
 }
 
-class BehaviourEquipage_Pirate {
+class BehaviourCrew_Pirate {
 }
 
-class BehaviourEquipage_Corsaire {
+class BehaviourCrew_Privateer {
 }
 
-class BehaviourEquipage_Marchand {
+class BehaviourCrew_Merchant {
 }
 
-class BehaviourEquipage_Armee {
+class BehaviourCrew_Army {
 }
 
-class BehaviourEquipage_Flibustier {
+class BehaviourCrew_Filibusteer {
 }
 
-class BehaviourEquipage_ChasseurPirates {
+class BehaviourCrew_PirateHunter {
 }
 
-class BehaviourEquipage_Zoro {
+class BehaviourCrew_Zoro {
 }
 
 
+Environment *-- Simulation
 
-
-
-
-Objet *-- Simulation
-Objet *-- Environnement
-Objet <|-- Agent
-Objet <|-- Port
+Object *-- Simulation
+Object *-- Environment
+Object <|-- Agent
+Object <|-- Port
 
 Agent *-- Simulation
 Agent <|-- Kraken
-Agent <|-- Navire
+Agent <|-- Ship
 
-Navire <-- BehaviourEquipage
-Navire <-- StatsNavire
+Ship <-- BehaviourCrew
+Ship <-- StatsShip
 
-BehaviourEquipage o-- Navire
-BehaviourEquipage <|--  BehaviourEquipage_Armee
-BehaviourEquipage <|--  BehaviourEquipage_ChasseurPirates
-BehaviourEquipage <|--  BehaviourEquipage_Corsaire
-BehaviourEquipage <|--  BehaviourEquipage_Flibustier
-BehaviourEquipage <|--  BehaviourEquipage_Marchand
-BehaviourEquipage <|--  BehaviourEquipage_Pirate
-BehaviourEquipage <|--  BehaviourEquipage_Zoro
+BehaviourCrew o-- Ship
+BehaviourCrew <|--  BehaviourCrew_Army
+BehaviourCrew <|--  BehaviourCrew_PirateHunter
+BehaviourCrew <|--  BehaviourCrew_Privateer
+BehaviourCrew <|--  BehaviourCrew_Filibusteer
+BehaviourCrew <|--  BehaviourCrew_Merchant
+BehaviourCrew <|--  BehaviourCrew_Pirate
+BehaviourCrew <|--  BehaviourCrew_Zoro
 
-StatsNavire o-- Navire
-StatsNavire <|-- StatsNavire_Brick
-StatsNavire <|-- StatsNavire_Brigantin
-StatsNavire <|-- StatsNavire_Goelette
-StatsNavire <|-- StatsNavire_TroisMatsCarres
+StatsShip o-- Ship
+StatsShip <|-- StatsShip_Brick
+StatsShip <|-- StatsShip_Brigantin
+StatsShip <|-- StatsShip_Goelette
+StatsShip <|-- StatsShip_TroisMatsCarres
 
 @enduml
