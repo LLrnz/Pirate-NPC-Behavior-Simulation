@@ -62,7 +62,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 		// création de l'agent
 		id := fmt.Sprintf("Ship #%d", i)
 		coor := NewRandomCoordinates()
-		ship := NewShip(id, 10, coor, docked, &simu.env)
+		ship := NewShipMerchant(id, 10, coor, docked, &simu.env)
 		simu.agents = append(simu.agents, ship)
 		simu.env.AddAgent(ship)
 		docked = false

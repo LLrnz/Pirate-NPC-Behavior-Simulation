@@ -80,13 +80,24 @@ func (agt *BaseAgent) Act(env *Environment) {
 
 type Ship struct {
 	*BaseAgent
-	speed      int
-	ressources map[string]int
-	money      float32
-	docked     bool
+	speed               int
+	ressources          map[string]int
+	money               float32
+	docked              bool
+	shipType            string
+	capacity            int
+	attack              int
+	behaviourPercept    func(*Ship, *Environment)
+	behaviourDeliberate func(*Ship)
+	behaviourAct        func(*Ship, *Environment)
+	behaviourLevelUp    func(*Ship, *Environment)
 }
 
-func NewShip(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+// Different types of ships
+// Pirate, Merchant, Privateer, Army, Filibusteer, PirateHunter, Zoro
+
+// Pirate ship
+func NewShipPirate(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: cor},
@@ -94,8 +105,139 @@ func NewShip(id string, fov int, cor Coordinates, docked bool, env *Environment)
 			fov:        fov,
 			agtType:    "ship",
 		},
-		docked: docked,
-		speed:  1,
+		docked:              docked,
+		speed:               1,
+		shipType:            "pirates",
+		capacity:            10,
+		attack:              20,
+		behaviourPercept:    pirateShipPercept,
+		behaviourDeliberate: pirateShipDeliberate,
+		behaviourAct:        pirateShipAct,
+		behaviourLevelUp:    pirateShipLevelUp,
+	}
+}
+
+// Merchant ship
+func NewShipMerchant(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+	return &Ship{
+		BaseAgent: &BaseAgent{
+			BaseObject: BaseObject{coordinates: cor},
+			id:         id,
+			fov:        fov,
+			agtType:    "ship",
+		},
+		docked:              docked,
+		speed:               1,
+		shipType:            "merchant",
+		capacity:            100,
+		attack:              2,
+		behaviourPercept:    merchantShipPercept,
+		behaviourDeliberate: merchantShipDeliberate,
+		behaviourAct:        merchantShipAct,
+		behaviourLevelUp:    merchantShipLevelUp,
+	}
+}
+
+// Privateer ship
+func NewShipPrivateer(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+	return &Ship{
+		BaseAgent: &BaseAgent{
+			BaseObject: BaseObject{coordinates: cor},
+			id:         id,
+			fov:        fov,
+			agtType:    "ship",
+		},
+		docked:              docked,
+		speed:               1,
+		shipType:            "privateer",
+		capacity:            10,
+		attack:              20,
+		behaviourPercept:    privateerShipPercept,
+		behaviourDeliberate: privateerShipDeliberate,
+		behaviourAct:        privateerShipAct,
+		behaviourLevelUp:    privateerShipLevelUp,
+	}
+}
+
+// Army ship
+func NewShipArmy(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+	return &Ship{
+		BaseAgent: &BaseAgent{
+			BaseObject: BaseObject{coordinates: cor},
+			id:         id,
+			fov:        fov,
+			agtType:    "ship",
+		},
+		docked:              docked,
+		speed:               1,
+		shipType:            "army",
+		behaviourPercept:    armyShipPercept,
+		behaviourDeliberate: armyShipDeliberate,
+		behaviourAct:        armyShipAct,
+		behaviourLevelUp:    armyShipLevelUp,
+	}
+}
+
+// Filibusteer ship
+func NewShipFilibusteer(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+	return &Ship{
+		BaseAgent: &BaseAgent{
+			BaseObject: BaseObject{coordinates: cor},
+			id:         id,
+			fov:        fov,
+			agtType:    "ship",
+		},
+		docked:              docked,
+		speed:               1,
+		shipType:            "filibusteer",
+		capacity:            30,
+		attack:              6,
+		behaviourPercept:    filibusteerShipPercept,
+		behaviourDeliberate: filibusteerShipDeliberate,
+		behaviourAct:        filibusteerShipAct,
+		behaviourLevelUp:    filibusteerShipLevelUp,
+	}
+}
+
+// Pirate hunter ship
+func NewShipPirateHunter(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+	return &Ship{
+		BaseAgent: &BaseAgent{
+			BaseObject: BaseObject{coordinates: cor},
+			id:         id,
+			fov:        fov,
+			agtType:    "ship",
+		},
+		docked:              docked,
+		speed:               1,
+		shipType:            "piratehunter",
+		capacity:            10,
+		attack:              30,
+		behaviourPercept:    piratehunterShipPercept,
+		behaviourDeliberate: piratehunterShipDeliberate,
+		behaviourAct:        piratehunterShipAct,
+		behaviourLevelUp:    piratehunterShipLevelUp,
+	}
+}
+
+// Zoro ship
+func NewShipZoro(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+	return &Ship{
+		BaseAgent: &BaseAgent{
+			BaseObject: BaseObject{coordinates: cor},
+			id:         id,
+			fov:        fov,
+			agtType:    "ship",
+		},
+		docked:              docked,
+		speed:               1,
+		shipType:            "zoro",
+		capacity:            10,
+		attack:              200,
+		behaviourPercept:    zoroShipPercept,
+		behaviourDeliberate: zoroShipDeliberate,
+		behaviourAct:        zoroShipAct,
+		behaviourLevelUp:    zoroShipLevelUp,
 	}
 }
 
@@ -122,13 +264,19 @@ func (ag *Ship) MoveTowards(targetCoords Coordinates) {
 }
 
 func (ag *Ship) Percept(env *Environment) {
+	ag.behaviourPercept(ag, env)
 }
 
 func (ag *Ship) Deliberate() {
+	ag.behaviourDeliberate(ag)
 }
 
 func (ag *Ship) Act(env *Environment) {
+	ag.behaviourAct(ag, env)
+}
 
+func (ag *Ship) LevelUp(env *Environment) {
+	ag.behaviourLevelUp(ag, env)
 }
 
 func (ag *Ship) Docked() bool {
