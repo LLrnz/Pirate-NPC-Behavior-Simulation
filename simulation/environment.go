@@ -96,6 +96,37 @@ func (env *Environment) AgentsNearby(agt Agent) []Agent {
 	return nearbyAgents
 }
 
+// KrakenNearby returns true if the kraken is within the field of view of the ship
+func (env *Environment) KrakenNearby(agt Agent) Agent {
+	// Get the coordinates and FOV of the agent
+	agtCoord := agt.Coordinates()
+	agtFov := agt.Fov()
+
+	// Loop on all agents in the environment
+	for _, otherAgent := range env.agents {
+
+		// Skip the current agent
+		if otherAgent == agt {
+			continue
+		}
+
+		// If kraken agent
+		if otherAgent.AgtType() == "kraken" {
+			// Calculate the distance between the agents
+			otherAgtCoord := otherAgent.Coordinates()
+			distance := CalculateDistance(otherAgtCoord, agtCoord)
+
+			// Check if the other agent is within the field of view
+			if int(distance) <= agtFov {
+				return otherAgent
+			}
+		}
+
+	}
+
+	return nil
+}
+
 // ArmyNearby returns true if the army is within the field of view of the ship
 func (env *Environment) ArmyNearby(agt Agent) Agent {
 	// Get the coordinates and FOV of the agent
@@ -113,7 +144,7 @@ func (env *Environment) ArmyNearby(agt Agent) Agent {
 		if otherAgent.AgtType() == "ship" {
 			// check if the ship is docked and if it is an army ship
 			if ship, ok := otherAgent.(*Ship); ok && !ship.Docked() {
-				if ship.shipType() == "army" {
+				if ship.ShipType() == "army" {
 					// Calculate the distance between the agents
 					otherAgtCoord := otherAgent.Coordinates()
 					distance := CalculateDistance(otherAgtCoord, agtCoord)
@@ -147,7 +178,7 @@ func (env *Environment) PirateNearby(agt Agent) Agent {
 		if otherAgent.AgtType() == "ship" {
 			// check if the ship is docked and if it is an pirate ship
 			if ship, ok := otherAgent.(*Ship); ok && !ship.Docked() {
-				if ship.shipType() == "pirate" {
+				if ship.ShipType() == "pirate" {
 					// Calculate the distance between the agents
 					otherAgtCoord := otherAgent.Coordinates()
 					distance := CalculateDistance(otherAgtCoord, agtCoord)
@@ -181,7 +212,7 @@ func (env *Environment) ZoroNearby(agt Agent) Agent {
 		if otherAgent.AgtType() == "ship" {
 			// check if the ship is docked and if it is an zoro ship
 			if ship, ok := otherAgent.(*Ship); ok && !ship.Docked() {
-				if ship.shipType() == "zoro" {
+				if ship.ShipType() == "zoro" {
 					// Calculate the distance between the agents
 					otherAgtCoord := otherAgent.Coordinates()
 					distance := CalculateDistance(otherAgtCoord, agtCoord)
@@ -215,7 +246,7 @@ func (env *Environment) MerchantNearby(agt Agent) Agent {
 		if otherAgent.AgtType() == "ship" {
 			// check if the ship is docked and if it is an merchant ship
 			if ship, ok := otherAgent.(*Ship); ok && !ship.Docked() {
-				if ship.shipType() == "merchant" {
+				if ship.ShipType() == "merchant" {
 					// Calculate the distance between the agents
 					otherAgtCoord := otherAgent.Coordinates()
 					distance := CalculateDistance(otherAgtCoord, agtCoord)
