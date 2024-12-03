@@ -288,7 +288,7 @@ func (ag *Ship) ShipType() string {
 }
 
 func (ag *Ship) SetDanger(danger Agent) {
-	ag.danger = danger
+	ag.x = danger
 }
 
 /*

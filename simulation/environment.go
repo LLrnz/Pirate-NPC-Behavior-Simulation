@@ -157,8 +157,9 @@ func (env *Environment) ArmyNearby(agt Agent) Agent {
 				}
 			}
 		}
-		return nil
+
 	}
+	return nil
 }
 
 // PirateNearby returns true if the pirate is within the field of view of the ship
@@ -191,8 +192,9 @@ func (env *Environment) PirateNearby(agt Agent) Agent {
 				}
 			}
 		}
-		return nil
+
 	}
+	return nil
 }
 
 // ZoroNearby returns true if the Zoro is within the field of view of the ship
@@ -225,8 +227,9 @@ func (env *Environment) ZoroNearby(agt Agent) Agent {
 				}
 			}
 		}
-		return nil
+
 	}
+	return nil
 }
 
 // MerchantNearby returns true if the army is within the field of view of the ship
@@ -259,8 +262,9 @@ func (env *Environment) MerchantNearby(agt Agent) Agent {
 				}
 			}
 		}
-		return nil
+
 	}
+	return nil
 }
 
 // ClosestAgent returns the closest agent to the given agent that is not docked within it's fov
