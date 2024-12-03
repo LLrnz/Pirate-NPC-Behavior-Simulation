@@ -15,7 +15,7 @@ func pirateShipPercept(ship *Ship, env *Environment) {
 	// If army nearby set danger to pirate
 	army := env.ArmyNearby(ship)
 	if army != nil {
-		ship.SetDanger(army)
+		ship.SetDanger(army) //problème car je reçois une liste d'agents et pas un seul
 	} else {
 		ship.SetDanger(nil)
 	}
