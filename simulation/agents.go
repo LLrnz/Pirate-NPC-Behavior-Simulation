@@ -283,6 +283,14 @@ func (ag *Ship) Docked() bool {
 	return ag.docked
 }
 
+func (ag *Ship) ShipType() string {
+	return ag.shipType
+}
+
+func (ag *Ship) SetDanger(danger Agent) {
+	ag.danger = danger
+}
+
 /*
 --------------------------------------
 *********** Kraken Agent *************

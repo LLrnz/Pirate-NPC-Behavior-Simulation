@@ -3,9 +3,22 @@ package simulation
 import "fmt"
 
 func pirateShipPercept(ship *Ship, env *Environment) {
-	fmt.Println("Pirate ship percept...")
+	// If kraken nearby set danger to kraken
+	kraken := env.KrakenNearby(ship)
+	if kraken != nil {
+		ship.SetDanger(kraken)
+	} else {
+		ship.SetDanger(nil)
 
-	// fmt.Println(AgentsNearby(ag.ship)) // AgentsNearby is a function that returns the agents nearby
+	}
+
+	// If army nearby set danger to pirate
+	army := env.ArmyNearby(ship)
+	if army != nil {
+		ship.SetDanger(army)
+	} else {
+		ship.SetDanger(nil)
+	}
 
 }
 
