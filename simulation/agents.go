@@ -22,7 +22,7 @@ type Agent interface {
 	Object
 
 	Percept(env *Environment)
-	Deliberate()
+	Deliberate(env *Environment)
 	Act(env *Environment)
 
 	Fov() int
@@ -39,9 +39,10 @@ type Agent interface {
 
 type BaseAgent struct {
 	BaseObject
-	id      string
-	fov     int
-	agtType string
+	id        string
+	fov       int
+	agtType   string
+	itinerary []Coordinates
 }
 
 // Getter Field of view
@@ -80,17 +81,20 @@ func (agt *BaseAgent) Act(env *Environment) {
 
 type Ship struct {
 	*BaseAgent
+	level               int
 	speed               int
 	ressources          map[string]int
 	money               float32
-	docked              bool
+	health              int
+	docked              *Harbour
 	shipType            string
 	capacity            int
 	attack              int
-	target              Agent
-	danger              Agent
+	target              *Agent
+	action              string
+	danger              *Agent
 	behaviourPercept    func(*Ship, *Environment)
-	behaviourDeliberate func(*Ship)
+	behaviourDeliberate func(*Ship, *Environment)
 	behaviourAct        func(*Ship, *Environment)
 	behaviourLevelUp    func(*Ship, *Environment)
 }
@@ -99,7 +103,7 @@ type Ship struct {
 // Pirate, Merchant, Privateer, Army, Filibusteer, PirateHunter, Zoro
 
 // Pirate ship
-func NewShipPirate(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+func NewShipPirate(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: cor},
@@ -120,7 +124,7 @@ func NewShipPirate(id string, fov int, cor Coordinates, docked bool, env *Enviro
 }
 
 // Merchant ship
-func NewShipMerchant(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+func NewShipMerchant(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: cor},
@@ -141,7 +145,7 @@ func NewShipMerchant(id string, fov int, cor Coordinates, docked bool, env *Envi
 }
 
 // Privateer ship
-func NewShipPrivateer(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+func NewShipPrivateer(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: cor},
@@ -162,7 +166,7 @@ func NewShipPrivateer(id string, fov int, cor Coordinates, docked bool, env *Env
 }
 
 // Army ship
-func NewShipArmy(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+func NewShipArmy(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: cor},
@@ -181,7 +185,7 @@ func NewShipArmy(id string, fov int, cor Coordinates, docked bool, env *Environm
 }
 
 // Filibusteer ship
-func NewShipFilibusteer(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+func NewShipFilibusteer(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: cor},
@@ -202,7 +206,7 @@ func NewShipFilibusteer(id string, fov int, cor Coordinates, docked bool, env *E
 }
 
 // Pirate hunter ship
-func NewShipPirateHunter(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+func NewShipPirateHunter(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: cor},
@@ -223,7 +227,7 @@ func NewShipPirateHunter(id string, fov int, cor Coordinates, docked bool, env *
 }
 
 // Zoro ship
-func NewShipZoro(id string, fov int, cor Coordinates, docked bool, env *Environment) *Ship {
+func NewShipZoro(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: cor},
@@ -269,8 +273,8 @@ func (ag *Ship) Percept(env *Environment) {
 	ag.behaviourPercept(ag, env)
 }
 
-func (ag *Ship) Deliberate() {
-	ag.behaviourDeliberate(ag)
+func (ag *Ship) Deliberate(env *Environment) {
+	ag.behaviourDeliberate(ag, env)
 }
 
 func (ag *Ship) Act(env *Environment) {
@@ -281,12 +285,23 @@ func (ag *Ship) LevelUp(env *Environment) {
 	ag.behaviourLevelUp(ag, env)
 }
 
-func (ag *Ship) Docked() bool {
+func (ag *Ship) Docked() *Harbour {
 	return ag.docked
 }
 
-func (ag *Ship) SetDanger(danger Agent) {
+func (ag *Ship) Health() int {
+	return ag.health
+}
+
+func (ag *Ship) SetDanger(danger *Agent) {
 	ag.danger = danger
+}
+func (ag *Ship) SetAction(action string) {
+	ag.action = action
+}
+
+func (ag *Ship) Ressources() map[string]int {
+	return ag.ressources
 }
 
 /*
@@ -301,7 +316,7 @@ type Kraken struct {
 	health int
 	attack int
 	speed  int
-	target Agent
+	target *Agent
 	action string
 }
 
@@ -351,13 +366,13 @@ func (ag *Kraken) Percept(env *Environment) {
 
 	// Check if there is a closest agent
 	if closest != nil {
-		ag.target = closest
+		ag.target = &closest
 	} else {
 		ag.target = nil
 	}
 }
 
-func (ag *Kraken) Deliberate() {
+func (ag *Kraken) Deliberate(env *Environment) {
 
 	//If the Kraken is low life or has no target = rest to gain PV
 	if ag.health <= 20 || ag.target == nil {
@@ -366,7 +381,7 @@ func (ag *Kraken) Deliberate() {
 	}
 
 	// Calculate the distance to the target agent
-	distance := CalculateDistance(ag.Coordinates(), ag.target.Coordinates())
+	distance := CalculateDistance(ag.Coordinates(), (*ag.target).Coordinates())
 
 	// If the Kraken can attack, it should attack the ship
 	// Else it should follow the nearest agent as a target
@@ -386,10 +401,10 @@ func (ag *Kraken) Act(env *Environment) {
 	switch ag.action {
 	case "attack":
 		// Remove the target from the environment (we should only remove health points)
-		env.RemoveAgent(ag.target)
+		env.RemoveAgent(*ag.target)
 	case "follow":
 		// Move towards target
-		ag.MoveTowards(ag.target.Coordinates())
+		ag.MoveTowards((*ag.target).Coordinates())
 	case "rest":
 		// Regain 10% of health points
 		ag.RestAndGainHealth()

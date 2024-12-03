@@ -16,6 +16,7 @@ type Environment struct {
 	sync.RWMutex
 	agents    []Agent
 	objects   []Object
+	harbours  []Harbour
 	market    Market
 	agentLock sync.RWMutex
 }
@@ -144,7 +145,7 @@ func (env *Environment) ClosestAgent(agt Agent) Agent {
 
 		// Skip docked ships because they are safe
 		if otherAgent.AgtType() == "ship" {
-			if ship, ok := otherAgent.(*Ship); ok && ship.Docked() {
+			if ship, ok := otherAgent.(*Ship); ok && ship.Docked() != nil {
 				continue
 			}
 		}
@@ -166,4 +167,27 @@ func (env *Environment) ClosestAgent(agt Agent) Agent {
 	}
 
 	return closestAgent
+}
+
+// Get harbours in the environment
+func (env *Environment) Harbours() []Harbour {
+	return env.harbours
+}
+
+// HasRessourcesToSellAtHarbour returns true if ship has ressources to sell else false
+func (env *Environment) HasRessourcesToSellAtHarbour(agt *Ship) bool {
+	// Get Harbour where the ship is docked
+	harbour := agt.Docked()
+
+	// Get the ressources the ship has
+	agtRessources := agt.Ressources()
+
+	// For each ressource of the ship, check if it can be sold
+	for ressource := range agtRessources {
+		if harbour.IsRessourcesSellable(ressource) {
+			return true
+		}
+	}
+
+	return false
 }

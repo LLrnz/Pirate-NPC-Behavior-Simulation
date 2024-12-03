@@ -56,7 +56,8 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 		timeSpeed:   1,
 	}
 
-	docked := false
+	docked := NewHarbour("Port à Coutollenc", Coordinates{0, 0})
+
 	// création des agents
 	for i := 0; i < 200; i++ {
 		// création de l'agent
@@ -65,7 +66,6 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 		ship := NewShipMerchant(id, 10, coor, docked, &simu.env)
 		simu.agents = append(simu.agents, ship)
 		simu.env.AddAgent(ship)
-		docked = false
 	}
 
 	// Kraken
@@ -99,7 +99,7 @@ Loop:
 			go func(agt Agent) { // workers
 				defer wg.Done()
 				agt.Percept(&simu.env)
-				agt.Deliberate()
+				agt.Deliberate(&simu.env)
 				agt.Act(&simu.env)
 
 			}(agt)

@@ -95,3 +95,42 @@ func NewHarbour(name string, coor Coordinates) *Harbour {
 		BaseObject: BaseObject{coordinates: coor},
 	}
 }
+
+func (h *Harbour) IsAgentDocked(ag Agent) bool {
+	// Check length of docked
+	if len(h.dockedAgents) == 0 {
+		return false
+	}
+
+	// Loop over the dockedAgents
+	for _, otherAgent := range h.dockedAgents {
+
+		// If the agent docked is the agent we want to check return true
+		if otherAgent == ag {
+			return true
+		}
+
+		// Else continue to iterate
+	}
+
+	// If agent not found, is not docked
+	return false
+}
+
+// Getter
+func (h *Harbour) SellableRessources() map[string]bool {
+	return h.sellableRessources
+}
+
+// IsRessourcesSellable checks if a ressource is sellable in a Harbour
+func (h *Harbour) IsRessourcesSellable(ressource string) bool {
+
+	// Get all sellable ressources
+	sellableRessources := h.SellableRessources()
+
+	// Check if the ressource given by agent is sellable
+	if sellableRessources[ressource] {
+		return true
+	}
+	return false
+}

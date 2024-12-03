@@ -9,7 +9,7 @@ func pirateShipPercept(ship *Ship, env *Environment) {
 
 }
 
-func pirateShipDeliberate(ship *Ship) {
+func pirateShipDeliberate(ship *Ship, env *Environment) {
 	fmt.Println("Pirate ship deliberate...")
 	// ClosestAgentForPirate(ship) //regarde si elle est good pour choisir la cible
 }
@@ -20,6 +20,7 @@ func pirateShipAct(ship *Ship, env *Environment) {
 }
 
 func pirateShipLevelUp(ship *Ship, env *Environment) {
+	//
 	fmt.Println("Pirate ship level up...")
 	// pirateShipLevelUp(ship *Ship, env *Environment) //regarde si elle est good pour level up
 }
@@ -32,7 +33,7 @@ func merchantShipPercept(ship *Ship, env *Environment) {
 
 	if kraken != nil {
 		//If nearby we set danger
-		ship.SetDanger(kraken)
+		ship.SetDanger(&kraken)
 	} else {
 		//Else danger is nil
 		ship.SetDanger(nil)
@@ -40,15 +41,45 @@ func merchantShipPercept(ship *Ship, env *Environment) {
 
 }
 
-func merchantShipDeliberate(ship *Ship) {
+func merchantShipDeliberate(ship *Ship, env *Environment) {
 	// If kraken nearby, get away as priority
+	if ship.danger != nil {
+		ship.SetAction("flee")
+		return
+	}
 
 	// Else if path to follow not finished, follow it
+	if len(ship.itinerary) != 0 {
+		ship.SetAction("follow")
+		return
+	}
 
-	// Else if docked at a harbour, transaction
+	// Else if docked at a harbour, either transaction if ressources or fix ship or get to other port
+	if ship.Docked() != nil {
 
-	// Else deliberate where to go to get ressources based on distance and price of market
-	fmt.Println("Merchant ship deliberate...")
+		// If not max health, repair ship
+		if ship.Health() != maxHealth {
+			ship.SetAction("repair")
+			return
+		}
+
+		// If ressources in ship that can be sold at harbour, sell
+		if env.HasRessourcesToSellAtHarbour(ship) {
+			ship.SetAction("sell")
+			return
+		} else {
+			//Find harbour that is good for money ching ching
+			//pathfinding
+
+			ship.SetAction("follow")
+			return
+		}
+
+	}
+
+	ship.SetAction("follow")
+	return
+
 }
 
 func merchantShipAct(ship *Ship, env *Environment) {
@@ -69,7 +100,7 @@ func privateerShipPercept(ship *Ship, env *Environment) {
 
 }
 
-func privateerShipDeliberate(ship *Ship) {
+func privateerShipDeliberate(ship *Ship, env *Environment) {
 	fmt.Println("Privateer ship deliberate...")
 }
 
@@ -91,7 +122,7 @@ func armyShipPercept(ship *Ship, env *Environment) {
 
 }
 
-func armyShipDeliberate(ship *Ship) {
+func armyShipDeliberate(ship *Ship, env *Environment) {
 	fmt.Println("Army ship deliberate...")
 }
 
@@ -114,7 +145,7 @@ func filibusteerShipPercept(ship *Ship, env *Environment) {
 
 }
 
-func filibusteerShipDeliberate(ship *Ship) {
+func filibusteerShipDeliberate(ship *Ship, env *Environment) {
 	fmt.Println("Filibusteer ship deliberate...")
 }
 
@@ -135,7 +166,7 @@ func piratehunterShipPercept(ship *Ship, env *Environment) {
 
 }
 
-func piratehunterShipDeliberate(ship *Ship) {
+func piratehunterShipDeliberate(ship *Ship, env *Environment) {
 	fmt.Println("PirateHunter ship deliberate...")
 }
 
@@ -157,7 +188,7 @@ func zoroShipPercept(ship *Ship, env *Environment) {
 	// fmt.Println(AgentsNearby(ag.ship)) // AgentsNearby is a function that returns the agents nearby
 }
 
-func zoroShipDeliberate(ship *Ship) {
+func zoroShipDeliberate(ship *Ship, env *Environment) {
 	fmt.Println("Zoro ship deliberate...")
 }
 
