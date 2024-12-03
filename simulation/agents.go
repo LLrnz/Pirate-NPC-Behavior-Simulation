@@ -292,8 +292,6 @@ func (ag *Ship) SetDanger(danger Agent) {
 	ag.danger = danger
 }
 
-func (ag *Ship) Danger() Agent {
-
 /*
 --------------------------------------
 *********** Kraken Agent *************

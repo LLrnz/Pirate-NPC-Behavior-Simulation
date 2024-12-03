@@ -128,7 +128,7 @@ func (env *Environment) KrakenNearby(agt Agent) Agent {
 }
 
 // ArmyNearby returns true if the army is within the field of view of the ship
-func (env *Environment) ArmyNearby(agt Agent) Agent {
+func (env *Environment) ArmyNearby(agt Agent) []Agent {
 	// Get the coordinates and FOV of the agent
 	agtCoord := agt.Coordinates()
 	agtFov := agt.Fov()
@@ -165,7 +165,7 @@ func (env *Environment) ArmyNearby(agt Agent) Agent {
 }
 
 // PirateNearby returns true if the pirate is within the field of view of the ship
-func (env *Environment) PirateNearby(agt Agent) Agent {
+func (env *Environment) PirateNearby(agt Agent) []Agent {
 	// Get the coordinates and FOV of the agent
 	agtCoord := agt.Coordinates()
 	agtFov := agt.Fov()
@@ -201,7 +201,7 @@ func (env *Environment) PirateNearby(agt Agent) Agent {
 }
 
 // ZoroNearby returns true if the Zoro is within the field of view of the ship
-func (env *Environment) ZoroNearby(agt Agent) Agent {
+func (env *Environment) ZoroNearby(agt Agent) []Agent {
 	// Get the coordinates and FOV of the agent
 	agtCoord := agt.Coordinates()
 	agtFov := agt.Fov()
@@ -237,7 +237,7 @@ func (env *Environment) ZoroNearby(agt Agent) Agent {
 }
 
 // MerchantNearby returns true if the army is within the field of view of the ship
-func (env *Environment) MerchantNearby(agt Agent) Agent {
+func (env *Environment) MerchantNearby(agt Agent) []Agent {
 	// Get the coordinates and FOV of the agent
 	agtCoord := agt.Coordinates()
 	agtFov := agt.Fov()
@@ -310,5 +310,169 @@ func (env *Environment) ClosestAgent(agt Agent) Agent {
 		}
 	}
 
+	return closestAgent
+}
+
+// ClosestPirate returns the closest Pirate agent to the given agent that is not docked within it's fov
+func (env *Environment) ClosestPirate(agt Agent) Agent {
+	var closestAgent Agent
+	minDistance := math.MaxFloat64
+
+	// Get the coordinates of the agent
+	agtCoord := agt.Coordinates()
+
+	// Loop through all agents in the environment
+	for _, otherAgent := range env.agents {
+		// Skip the current agent
+		if otherAgent.Id() == agt.Id() {
+			continue
+		}
+
+		if otherAgent.AgtType() == "ship" {
+			// check if the ship is docked and if it is an Pirate ship
+			if ship, ok := otherAgent.(*Ship); ok && !ship.Docked() {
+				if ship.ShipType() == "pirate" {
+					// Calculate the distance between the agents
+					otherAgtCoord := otherAgent.Coordinates()
+					distance := CalculateDistance(otherAgtCoord, agtCoord)
+
+					// If the Agent if further than the Fov of the Agent, then we don't return it
+					if distance > float64(agt.Fov()) {
+						continue
+					}
+
+					// Update the closest agent if the distance is smaller
+					if distance < minDistance {
+						minDistance = distance
+						closestAgent = otherAgent
+					}
+				}
+			}
+		}
+
+	}
+	return closestAgent
+}
+
+// ClosestArmy returns the closest Army agent to the given agent that is not docked within it's fov
+func (env *Environment) ClosestArmy(agt Agent) Agent {
+	var closestAgent Agent
+	minDistance := math.MaxFloat64
+
+	// Get the coordinates of the agent
+	agtCoord := agt.Coordinates()
+
+	// Loop through all agents in the environment
+	for _, otherAgent := range env.agents {
+		// Skip the current agent
+		if otherAgent.Id() == agt.Id() {
+			continue
+		}
+
+		if otherAgent.AgtType() == "ship" {
+			// check if the ship is docked and if it is an Army ship
+			if ship, ok := otherAgent.(*Ship); ok && !ship.Docked() {
+				if ship.ShipType() == "army" {
+					// Calculate the distance between the agents
+					otherAgtCoord := otherAgent.Coordinates()
+					distance := CalculateDistance(otherAgtCoord, agtCoord)
+
+					// If the Agent if further than the Fov of the Agent, then we don't return it
+					if distance > float64(agt.Fov()) {
+						continue
+					}
+
+					// Update the closest agent if the distance is smaller
+					if distance < minDistance {
+						minDistance = distance
+						closestAgent = otherAgent
+					}
+				}
+			}
+		}
+
+	}
+	return closestAgent
+}
+
+// ClosestZoro returns the closest Zoro agent to the given agent that is not docked within it's fov
+func (env *Environment) ClosestZoro(agt Agent) Agent {
+	var closestAgent Agent
+	minDistance := math.MaxFloat64
+
+	// Get the coordinates of the agent
+	agtCoord := agt.Coordinates()
+
+	// Loop through all agents in the environment
+	for _, otherAgent := range env.agents {
+		// Skip the current agent
+		if otherAgent.Id() == agt.Id() {
+			continue
+		}
+
+		if otherAgent.AgtType() == "ship" {
+			// check if the ship is docked and if it is an Zoro ship
+			if ship, ok := otherAgent.(*Ship); ok && !ship.Docked() {
+				if ship.ShipType() == "zoro" {
+					// Calculate the distance between the agents
+					otherAgtCoord := otherAgent.Coordinates()
+					distance := CalculateDistance(otherAgtCoord, agtCoord)
+
+					// If the Agent if further than the Fov of the Agent, then we don't return it
+					if distance > float64(agt.Fov()) {
+						continue
+					}
+
+					// Update the closest agent if the distance is smaller
+					if distance < minDistance {
+						minDistance = distance
+						closestAgent = otherAgent
+					}
+				}
+			}
+		}
+
+	}
+	return closestAgent
+}
+
+// ClosestMerchant returns the closest Merchant agent to the given agent that is not docked within it's fov
+func (env *Environment) ClosestMerchant(agt Agent) Agent {
+	var closestAgent Agent
+	minDistance := math.MaxFloat64
+
+	// Get the coordinates of the agent
+	agtCoord := agt.Coordinates()
+
+	// Loop through all agents in the environment
+	for _, otherAgent := range env.agents {
+		// Skip the current agent
+		if otherAgent.Id() == agt.Id() {
+			continue
+		}
+
+		if otherAgent.AgtType() == "ship" {
+			// check if the ship is docked and if it is an Merchant ship
+			if ship, ok := otherAgent.(*Ship); ok && !ship.Docked() {
+				if ship.ShipType() == "merchant" {
+					// Calculate the distance between the agents
+					otherAgtCoord := otherAgent.Coordinates()
+					distance := CalculateDistance(otherAgtCoord, agtCoord)
+
+					// If the Agent if further than the Fov of the Agent, then we don't return it
+					if distance > float64(agt.Fov()) {
+						continue
+					}
+
+					// Update the closest agent if the distance is smaller
+					if distance < minDistance {
+						minDistance = distance
+						closestAgent = otherAgent
+					}
+				}
+			}
+		}
+
+	}
 	return closestAgent
 }
