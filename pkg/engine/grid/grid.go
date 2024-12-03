@@ -3,9 +3,9 @@ package grid
 import (
 	"fmt"
 	"image"
+	"simulationPirate/pkg/engine"
+	"simulationPirate/pkg/engine/sprite"
 	"sync"
-	"testGUI/pkg/engine"
-	"testGUI/pkg/engine/sprite"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )

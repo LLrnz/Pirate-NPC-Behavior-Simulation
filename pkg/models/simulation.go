@@ -2,7 +2,7 @@ package models
 
 import (
 	"math/rand"
-	"testGUI/pkg/engine"
+	"simulationPirate/pkg/engine"
 )
 
 type Simulation struct {

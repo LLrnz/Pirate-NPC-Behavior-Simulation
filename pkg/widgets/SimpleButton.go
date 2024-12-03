@@ -3,7 +3,7 @@ package widgets
 import (
 	"image/color"
 
-	"testGUI/pkg/utils"
+	"simulationPirate/pkg/utils"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"

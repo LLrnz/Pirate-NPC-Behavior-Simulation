@@ -5,9 +5,9 @@ import (
 	"image/color"
 	"log"
 
-	"testGUI/pkg/engine"
-	"testGUI/pkg/engine/sprite"
-	"testGUI/pkg/models"
+	"simulationPirate/pkg/engine"
+	"simulationPirate/pkg/engine/sprite"
+	"simulationPirate/pkg/models"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"

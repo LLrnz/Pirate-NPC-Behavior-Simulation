@@ -1,4 +1,4 @@
-module testGUI
+module simulationPirate
 
 go 1.23.1
 

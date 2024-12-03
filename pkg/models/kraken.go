@@ -1,4 +1,4 @@
-package simulation
+package models
 
 import (
 	"fmt"

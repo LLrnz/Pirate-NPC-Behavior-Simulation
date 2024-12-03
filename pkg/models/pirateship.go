@@ -2,8 +2,8 @@ package models
 
 import (
 	"fmt"
-	"testGUI/pkg/engine"
-	"testGUI/pkg/engine/sprite"
+	"simulationPirate/pkg/engine"
+	"simulationPirate/pkg/engine/sprite"
 )
 
 type Pirateship struct {

@@ -1,8 +1,8 @@
 package sprite
 
 import (
-	engine "testGUI/pkg/engine"
-	imagereader "testGUI/pkg/engine/ImageReader"
+	engine "simulationPirate/pkg/engine"
+	imagereader "simulationPirate/pkg/engine/ImageReader"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )

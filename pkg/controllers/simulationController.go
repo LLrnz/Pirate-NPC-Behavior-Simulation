@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"fmt"
-	"testGUI/pkg/models"
-	"testGUI/pkg/views"
+	"simulationPirate/pkg/models"
+	"simulationPirate/pkg/views"
 )
 
 type SimulationController struct {

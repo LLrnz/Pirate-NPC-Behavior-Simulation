@@ -3,9 +3,9 @@ package main
 import (
 	"image/color"
 	"log"
-	"testGUI/pkg/controllers"
-	"testGUI/pkg/models"
-	"testGUI/pkg/views"
+	"simulationPirate/pkg/controllers"
+	"simulationPirate/pkg/models"
+	"simulationPirate/pkg/views"
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"

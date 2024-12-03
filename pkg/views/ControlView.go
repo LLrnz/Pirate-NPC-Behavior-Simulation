@@ -2,8 +2,8 @@ package views
 
 import (
 	"image/color"
-	"testGUI/pkg/utils"
-	"testGUI/pkg/widgets"
+	"simulationPirate/pkg/utils"
+	"simulationPirate/pkg/widgets"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
