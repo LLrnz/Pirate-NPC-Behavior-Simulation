@@ -87,6 +87,8 @@ type Ship struct {
 	shipType            string
 	capacity            int
 	attack              int
+	target              Agent
+	danger              Agent
 	behaviourPercept    func(*Ship, *Environment)
 	behaviourDeliberate func(*Ship)
 	behaviourAct        func(*Ship, *Environment)
@@ -281,6 +283,10 @@ func (ag *Ship) LevelUp(env *Environment) {
 
 func (ag *Ship) Docked() bool {
 	return ag.docked
+}
+
+func (ag *Ship) SetDanger(danger Agent) {
+	ag.danger = danger
 }
 
 /*

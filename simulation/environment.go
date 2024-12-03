@@ -83,7 +83,7 @@ func (env *Environment) AgentsNearby(agt Agent) []Agent {
 			continue
 		}
 
-		// Calculate the distance between the agents [[CHANGE THIS WITH THE FORMULA WE USE]]
+		// Calculate the distance between the agents
 		otherAgtCoord := otherAgent.Coordinates()
 		distance := CalculateDistance(otherAgtCoord, agtCoord)
 
@@ -94,6 +94,37 @@ func (env *Environment) AgentsNearby(agt Agent) []Agent {
 	}
 
 	return nearbyAgents
+}
+
+// KrakenNearby returns true if the kraken is within the field of view of the ship
+func (env *Environment) KrakenNearby(agt Agent) Agent {
+	// Get the coordinates and FOV of the agent
+	agtCoord := agt.Coordinates()
+	agtFov := agt.Fov()
+
+	// Loop on all agents in the environment
+	for _, otherAgent := range env.agents {
+
+		// Skip the current agent
+		if otherAgent == agt {
+			continue
+		}
+
+		// If kraken agent
+		if otherAgent.AgtType() == "kraken" {
+			// Calculate the distance between the agents
+			otherAgtCoord := otherAgent.Coordinates()
+			distance := CalculateDistance(otherAgtCoord, agtCoord)
+
+			// Check if the other agent is within the field of view
+			if int(distance) <= agtFov {
+				return otherAgent
+			}
+		}
+
+	}
+
+	return nil
 }
 
 // ClosestAgent returns the closest agent to the given agent that is not docked within it's fov
@@ -118,7 +149,7 @@ func (env *Environment) ClosestAgent(agt Agent) Agent {
 			}
 		}
 
-		// Calculate the distance between the agents
+		// Calculate the distance between the kraken and the ship
 		otherAgtCoord := otherAgent.Coordinates()
 		distance := CalculateDistance(otherAgtCoord, agtCoord)
 

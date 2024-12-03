@@ -27,12 +27,27 @@ func pirateShipLevelUp(ship *Ship, env *Environment) {
 // ------------------- Merchant ship -------------------
 
 func merchantShipPercept(ship *Ship, env *Environment) {
-	fmt.Println("Merchant ship percept...")
-	// fmt.Println(AgentsNearby(ag.ship)) // AgentsNearby is a function that returns the agents nearby
+	//Verify if kraken is nearby within Fov
+	kraken := env.KrakenNearby(ship)
+
+	if kraken != nil {
+		//If nearby we set danger
+		ship.SetDanger(kraken)
+	} else {
+		//Else danger is nil
+		ship.SetDanger(nil)
+	}
 
 }
 
 func merchantShipDeliberate(ship *Ship) {
+	// If kraken nearby, get away as priority
+
+	// Else if path to follow not finished, follow it
+
+	// Else if docked at a harbour, transaction
+
+	// Else deliberate where to go to get ressources based on distance and price of market
 	fmt.Println("Merchant ship deliberate...")
 }
 
