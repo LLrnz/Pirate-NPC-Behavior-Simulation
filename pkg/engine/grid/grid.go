@@ -3,9 +3,9 @@ package grid
 import (
 	"fmt"
 	"image"
-	"simulationPirate/pkg/engine"
-	"simulationPirate/pkg/engine/sprite"
 	"sync"
+	"testGUI/pkg/engine"
+	"testGUI/pkg/engine/sprite"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -154,7 +154,10 @@ func (g *Grid) SetObjectAtPos(key engine.Position, value engine.Object) {
 
 func (g *Grid) GetObjectAtPos(key engine.Position) (*engine.Object, bool) {
 	object, ok := g.Grid[ToCoor(key)]
-	return &object, ok
+	if ok {
+		return &object, ok
+	}
+	return nil, ok
 }
 
 func (g *Grid) RemoveObject(key engine.Position, value engine.Object) {

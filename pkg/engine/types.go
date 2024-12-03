@@ -34,6 +34,10 @@ type Coordinates struct {
 	image.Point
 }
 
+func NewPosition(x int, y int) *Position {
+	return &Position{image.Point{x, y}}
+}
+
 // type Object struct {
 // 	position image.Point
 // 	Update   func()

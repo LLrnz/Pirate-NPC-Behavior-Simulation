@@ -1,10 +1,9 @@
-package simulation
+package models
 
 import (
 	"fmt"
-	"simulationPirate/pkg/engine"
-	"simulationPirate/pkg/engine/grid"
-	"simulationPirate/pkg/engine/sprite"
+	"testGUI/pkg/engine"
+	"testGUI/pkg/engine/sprite"
 )
 
 type Pirateship struct {
@@ -21,10 +20,10 @@ func NewPirateship(position engine.Position) *Pirateship {
 	return &Pirateship{*sprite}
 }
 
-func (p *Pirateship) Update() {
-	grid.GetInstance().MoveNext(p, p.Direction)
-}
-
 func (p *Pirateship) ToString() string {
 	return "this is the pirateship!"
+}
+
+func (p *Pirateship) Update() {
+
 }
