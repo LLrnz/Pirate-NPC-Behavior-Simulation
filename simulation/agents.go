@@ -87,6 +87,7 @@ type Ship struct {
 	shipType            string
 	capacity            int
 	attack              int
+	danger              Agent
 	behaviourPercept    func(*Ship, *Environment)
 	behaviourDeliberate func(*Ship)
 	behaviourAct        func(*Ship, *Environment)
@@ -107,7 +108,7 @@ func NewShipPirate(id string, fov int, cor Coordinates, docked bool, env *Enviro
 		},
 		docked:              docked,
 		speed:               1,
-		shipType:            "pirates",
+		shipType:            "pirate",
 		capacity:            10,
 		attack:              20,
 		behaviourPercept:    pirateShipPercept,
@@ -288,8 +289,10 @@ func (ag *Ship) ShipType() string {
 }
 
 func (ag *Ship) SetDanger(danger Agent) {
-	ag.x = danger
+	ag.danger = danger
 }
+
+func (ag *Ship) Danger() Agent {
 
 /*
 --------------------------------------

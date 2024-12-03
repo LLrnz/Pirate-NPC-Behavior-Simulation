@@ -132,6 +132,7 @@ func (env *Environment) ArmyNearby(agt Agent) Agent {
 	// Get the coordinates and FOV of the agent
 	agtCoord := agt.Coordinates()
 	agtFov := agt.Fov()
+	nearbyAgents := []Agent{}
 
 	// Loop on all agents in the environment
 	for _, otherAgent := range env.agents {
@@ -151,7 +152,7 @@ func (env *Environment) ArmyNearby(agt Agent) Agent {
 
 					// Check if the other agent is within the field of view
 					if int(distance) <= agtFov {
-						return otherAgent
+						nearbyAgents = append(nearbyAgents, otherAgent)
 					}
 
 				}
@@ -159,7 +160,8 @@ func (env *Environment) ArmyNearby(agt Agent) Agent {
 		}
 
 	}
-	return nil
+
+	return nearbyAgents
 }
 
 // PirateNearby returns true if the pirate is within the field of view of the ship
@@ -167,6 +169,7 @@ func (env *Environment) PirateNearby(agt Agent) Agent {
 	// Get the coordinates and FOV of the agent
 	agtCoord := agt.Coordinates()
 	agtFov := agt.Fov()
+	nearbyAgents := []Agent{}
 
 	// Loop on all agents in the environment
 	for _, otherAgent := range env.agents {
@@ -186,7 +189,7 @@ func (env *Environment) PirateNearby(agt Agent) Agent {
 
 					// Check if the other agent is within the field of view
 					if int(distance) <= agtFov {
-						return otherAgent
+						nearbyAgents = append(nearbyAgents, otherAgent)
 					}
 
 				}
@@ -194,7 +197,7 @@ func (env *Environment) PirateNearby(agt Agent) Agent {
 		}
 
 	}
-	return nil
+	return nearbyAgents
 }
 
 // ZoroNearby returns true if the Zoro is within the field of view of the ship
@@ -202,6 +205,7 @@ func (env *Environment) ZoroNearby(agt Agent) Agent {
 	// Get the coordinates and FOV of the agent
 	agtCoord := agt.Coordinates()
 	agtFov := agt.Fov()
+	nearbyAgents := []Agent{}
 
 	// Loop on all agents in the environment
 	for _, otherAgent := range env.agents {
@@ -221,7 +225,7 @@ func (env *Environment) ZoroNearby(agt Agent) Agent {
 
 					// Check if the other agent is within the field of view
 					if int(distance) <= agtFov {
-						return otherAgent
+						nearbyAgents = append(nearbyAgents, otherAgent)
 					}
 
 				}
@@ -229,7 +233,7 @@ func (env *Environment) ZoroNearby(agt Agent) Agent {
 		}
 
 	}
-	return nil
+	return nearbyAgents
 }
 
 // MerchantNearby returns true if the army is within the field of view of the ship
@@ -237,6 +241,7 @@ func (env *Environment) MerchantNearby(agt Agent) Agent {
 	// Get the coordinates and FOV of the agent
 	agtCoord := agt.Coordinates()
 	agtFov := agt.Fov()
+	nearbyAgents := []Agent{}
 
 	// Loop on all agents in the environment
 	for _, otherAgent := range env.agents {
@@ -256,7 +261,7 @@ func (env *Environment) MerchantNearby(agt Agent) Agent {
 
 					// Check if the other agent is within the field of view
 					if int(distance) <= agtFov {
-						return otherAgent
+						nearbyAgents = append(nearbyAgents, otherAgent)
 					}
 
 				}
@@ -264,7 +269,7 @@ func (env *Environment) MerchantNearby(agt Agent) Agent {
 		}
 
 	}
-	return nil
+	return nearbyAgents
 }
 
 // ClosestAgent returns the closest agent to the given agent that is not docked within it's fov

@@ -24,7 +24,7 @@ func pirateShipPercept(ship *Ship, env *Environment) {
 
 func pirateShipDeliberate(ship *Ship) {
 	fmt.Println("Pirate ship deliberate...")
-	// ClosestAgentForPirate(ship) //regarde si elle est good pour choisir la cible
+
 }
 
 func pirateShipAct(ship *Ship, env *Environment) {
