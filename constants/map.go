@@ -1,5 +1,8 @@
 package constants
 
+var GridWidth = 48
+var GridHeight = 27
+
 // The map is a grid 48x27
 // 0 means non-movable land, 0 means movable
 var MapGrid = [27][48]int{

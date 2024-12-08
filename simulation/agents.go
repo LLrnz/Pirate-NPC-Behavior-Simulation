@@ -1,10 +1,6 @@
 package simulation
 
-import (
-	"fmt"
-
-	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
-)
+import "gitlab.utc.fr/arsaintm/ia04-projet/constants"
 
 /*
 ********************************************
@@ -44,9 +40,9 @@ type Agent interface {
 
 	FollowItinerary()
 
-	Percept(env *Environment)
-	Deliberate(env *Environment)
-	Act(env *Environment)
+	Percept(env *Environment, step int)
+	Deliberate(env *Environment, step int)
+	Act(env *Environment, step int)
 }
 
 /*
@@ -222,10 +218,10 @@ type Ship struct {
 
 	danger *Agent
 
-	behaviourPercept    func(*Ship, *Environment)
-	behaviourDeliberate func(*Ship, *Environment)
-	behaviourAct        func(*Ship, *Environment)
-	behaviourLevelUp    func(*Ship, *Environment)
+	behaviourPercept    func(*Ship, *Environment, int)
+	behaviourDeliberate func(*Ship, *Environment, int)
+	behaviourAct        func(*Ship, *Environment, int)
+	behaviourLevelUp    func(*Ship, *Environment, int)
 }
 
 // Different types of ships
@@ -419,8 +415,8 @@ func (ag *Ship) Level() int {
 	return ag.level
 }
 
-func (ag *Ship) LevelUp(env *Environment) {
-	ag.behaviourLevelUp(ag, env)
+func (ag *Ship) LevelUp(env *Environment, step int) {
+	ag.behaviourLevelUp(ag, env, step)
 }
 
 // Getter Capacity
@@ -505,16 +501,35 @@ func (ag *Ship) SetDanger(danger *Agent) {
 	ag.danger = danger
 }
 
-func (ag *Ship) Percept(env *Environment) {
-	ag.behaviourPercept(ag, env)
+func (ag *Ship) Percept(env *Environment, step int) {
+	ag.behaviourPercept(ag, env, step)
 }
 
-func (ag *Ship) Deliberate(env *Environment) {
-	ag.behaviourDeliberate(ag, env)
+func (ag *Ship) Deliberate(env *Environment, step int) {
+	ag.behaviourDeliberate(ag, env, step)
 }
 
-func (ag *Ship) Act(env *Environment) {
-	ag.behaviourAct(ag, env)
+func (ag *Ship) Act(env *Environment, step int) {
+	ag.behaviourAct(ag, env, step)
+}
+
+// Repair the ship for 1 health is 1 money to the max of health or money
+func (ag *Ship) Repair() {
+	repairsNeeded := constants.ShipConfigs[ag.ShipType()].Health - ag.Health()
+	repairsNeeded = min(repairsNeeded, int(ag.Money()))
+	ag.AddHealth(repairsNeeded)
+	ag.RemoveMoney(float32(repairsNeeded))
+}
+
+func (ag *Ship) Quantity() int {
+	totalResources := int(0)
+
+	// Calculate total resources on the ship
+	for _, quantity := range ag.Ressources() {
+		totalResources += quantity
+	}
+
+	return totalResources
 }
 
 /*
@@ -544,26 +559,22 @@ func NewKraken(id string, coor Coordinates) *Kraken {
 
 // Regain 10% of max health per step resting
 func (ag *Kraken) RestAndGainHealth() {
-	ag.health = ag.health + int(float32(constants.KrakenParameters.Health)*0.1)
+	ag.AddHealth(int(float32(constants.KrakenParameters.Health) * 0.1))
 }
 
-func (ag *Kraken) Percept(env *Environment) {
+func (ag *Kraken) Percept(env *Environment, step int) {
 	// Retrieve the closest agent from kraken
 	closest := env.ClosestShip(ag)
 
 	// Check if there is a closest ship within fov
 	if closest != nil {
-		fmt.Println("Kraken sees ship...")
-		fmt.Println((*closest).Id())
-		fmt.Println((*closest).Coordinates())
 		ag.target = closest
 	} else {
-		fmt.Println("Kraken does not see ship...")
 		ag.target = nil
 	}
 }
 
-func (ag *Kraken) Deliberate(env *Environment) {
+func (ag *Kraken) Deliberate(env *Environment, step int) {
 
 	//If the Kraken is low life or has no target = rest to gain PV
 	if ag.Health() <= int(float32(constants.KrakenParameters.Health)*0.1) || ag.Target() == nil {
@@ -572,18 +583,15 @@ func (ag *Kraken) Deliberate(env *Environment) {
 	}
 
 	// Calculate the distance to the target agent (Manhattan)
-	distance := Heuristic(ag.Coordinates(), (*ag.target).Coordinates())
+	distance := Heuristic(ag.Coordinates(), (*ag.Target()).Coordinates())
 
 	// If the Kraken can attack, it should attack the ship
 	// Else it should follow the nearest agent as a target
 	if distance < ag.Speed() {
-		fmt.Println("Kraken attacks")
 		ag.action = "attack"
 	} else {
 		// Pathfinding to the target
-		path := AStar(constants.MapGrid, ag.Coordinates(), (*ag.target).Coordinates())
-		fmt.Println("Kraken follows")
-		fmt.Println(path)
+		path := AStar(ag.Coordinates(), (*ag.Target()).Coordinates())
 		// If path found set itinerary and follow
 		if path != nil {
 			ag.SetItinerary(path)
@@ -592,14 +600,14 @@ func (ag *Kraken) Deliberate(env *Environment) {
 	}
 }
 
-func (ag *Kraken) Act(env *Environment) {
+func (ag *Kraken) Act(env *Environment, step int) {
 
 	switch ag.Action() {
 	case "attack":
 		// Go to target and attack
 		ag.FollowItinerary()
 		// Remove the target from the environment
-		env.AttackAgent(*ag.target, ag)
+		env.AttackAgent(*ag.Target(), ag)
 	case "follow":
 		// Move towards target
 		ag.FollowItinerary()

@@ -27,43 +27,39 @@ func (m *Market) Transactions() []Transaction {
 }
 
 // Sell takes an Agent that will sell a ressource for money in exchange
-func (m *Market) Sell(simu *Simulation, ship *Ship, ressource Ressource) error {
+func (m *Market) Sell(ship *Ship, ressource Ressource, step int) {
 	//Lock the market when a transaction is currently happening so the price changes after every transaction
 	m.Lock()
 	defer m.Unlock()
 
-	//Get agent ressource quantity [[REPLACE WITH THE GETTER]]
-	quantitySold := ship.ressources[ressource.name]
+	//Get agent ressource quantity
+	quantitySold := ship.Ressources()[ressource.name]
 
 	// Calculate the price for the quantity of the ressource
-	ressourcePrice := m.CalculateRessourcePrice(simu, ressource)
+	ressourcePrice := m.CalculateRessourcePrice(step, ressource)
 	totalPrice := ressourcePrice * float32(quantitySold)
 
-	// Deduct the sold quantity from the agent's resources [[REPLACE WITH THE SETTER]]
-	ship.ressources[ressource.name] = 0
+	// Deduct the sold quantity from the agent ressource
+	ship.RemoveRessources(ressource.name, quantitySold)
 
-	// Add the money to the agent's account [[REPLACE WITH THE SETTER]]
-	ship.money += totalPrice
+	// Add the money to the Agent account
+	ship.AddMoney(totalPrice)
 
 	// Create and record a new transaction
-	transaction := NewTransaction(simu.parameters.step, ressource, quantitySold, ship, totalPrice)
+	transaction := NewTransaction(step, ressource, quantitySold, ship, totalPrice)
 	m.transactions = append(m.transactions, transaction)
 
-	return nil
 }
 
 // CalculateRessourcePrice returns the price an agent will sell it's ressource
-func (m *Market) CalculateRessourcePrice(simu *Simulation, ressource Ressource) float32 {
+func (m *Market) CalculateRessourcePrice(step int, ressource Ressource) float32 {
 	// Get transactions
 	transactions := m.Transactions()
-
-	// Current simulation step
-	currentStep := simu.parameters.step
 
 	// Only get the transactions in the last 31 steps (31 days)
 	var quantitySoldBefore int
 	for _, transaction := range transactions {
-		if transaction.ressource.name == ressource.name && transaction.step >= currentStep-31 {
+		if transaction.ressource.name == ressource.name && transaction.step >= step-31 {
 			quantitySoldBefore += transaction.quantity
 		}
 	}
@@ -76,12 +72,12 @@ func (m *Market) CalculateRessourcePrice(simu *Simulation, ressource Ressource) 
 }
 
 // RessourcePrice returns the price and the difference in percentage with previous ressource price of a ressource
-func (m *Market) RessourcePrice(simu *Simulation, ressource Ressource) (float32, float32) {
+func (m *Market) RessourcePrice(step int, ressource Ressource) (float32, float32) {
 	// Get transactions
 	transactions := m.Transactions()
 
 	// Current and previous simulation step for the percent calculation
-	currentStep := simu.parameters.step
+	currentStep := step
 	previousStep := currentStep - 1
 
 	// Get the quantity sold previous step and current step
