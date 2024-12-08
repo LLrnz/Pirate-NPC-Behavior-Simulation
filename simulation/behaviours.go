@@ -1,5 +1,11 @@
 package simulation
 
+import (
+	"fmt"
+
+	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
+)
+
 func pirateShipPercept(ship *Ship, env *Environment) {
 	//fmt.Println("Pirate ship percept...")
 
@@ -118,15 +124,124 @@ func armyShipPercept(ship *Ship, env *Environment) {
 	//fmt.Println("Army ship percept...")
 	// //fmt.Println(AgentsNearby(ag.ship)) // AgentsNearby is a function that returns the agents nearby
 
+	// army's targets are pirate ships, privateer ships (from different nationality) and kraken
+	// retreive potential target from environment
+
+	//kraken := env.KrakenNearby(ship)
+	//pirate := env.ClosestPirate(ship)
+	//privateer := env.ClosestPrivateer(ship)
+	//target := closest agt from the previous
+
+	/*if target != nil {
+		fmt.Println((*target).Id())
+		fmt.Println((*target).Coordinates())
+	} else {
+		fmt.Println("Army ship doesn't detect any target")
+	}
+	*/
+
+	//ship.SetTarget(target)
 }
 
 func armyShipDeliberate(ship *Ship, env *Environment) {
 	//fmt.Println("Army ship deliberate...")
+
+	// actions in priority order
+
+	// if docked and not full life, fix
+	if ship.Docked() != nil && ship.Health() < maxHealth {
+		ship.SetAction("repair")
+		return
+	}
+
+	// if docked, set itinerary to another harbour
+	if ship.Docked() != nil {
+		ship.SetAction("toAnyHarbour")
+		return
+	}
+
+	// if life under 20, set itinerary to closest harbour
+	if ship.Health() <= 20 {
+		ship.SetAction("toClosestHarbour")
+		return
+	}
+
+	// if ship has a target
+	if ship.Target() != nil {
+		distance := Heuristic(ship.Coordinates(), (*ship.Target()).Coordinates())
+
+		if distance <= ship.Speed() { // if ship is next to a target, attack target
+			ship.SetAction("attack")
+		} else { // else, follow target
+			ship.SetAction("follow")
+		}
+		return
+	}
 }
 
 func armyShipAct(ship *Ship, env *Environment) {
 	//fmt.Println("Army ship act...")
 	// Army ship can attack Pirate ship,  Filibusteer ship, Privateer ship
+
+	switch ship.Action() {
+	case "repair":
+		ship.SetHealth(maxHealth)
+	case "toAnyHarbour":
+		// set itinerary to another harbour (except current one)
+		// retreive any harbour (except current one) from environment
+		var anyHarbour *Harbour
+
+		distance := Heuristic(ship.Coordinates(), (*anyHarbour).Coordinates())
+
+		if distance <= ship.Speed() { // if ship is next to harbour, docked
+
+			// TODO : check if there's a free spot in the harbour -> if not, wait for a free spot ?
+			ship.SetDocked(anyHarbour)
+		} else {
+			path := AStar(constants.MapGrid, ship.Coordinates(), (*ship.Target()).Coordinates())
+
+			fmt.Println(path)
+			// If path found set itinerary and follow
+			if path != nil {
+				ship.SetItinerary(path)
+			}
+		}
+
+		ship.FollowItinerary()
+
+	case "toClosestHarbour":
+		// retreive closest harbour from environment
+		var closestHarbour *Harbour
+
+		distance := Heuristic(ship.Coordinates(), (*closestHarbour).Coordinates())
+
+		if distance <= ship.Speed() { // if ship is next to harbour, docked
+			ship.SetDocked(closestHarbour)
+		} else {
+			path := AStar(constants.MapGrid, ship.Coordinates(), (*ship.Target()).Coordinates())
+
+			fmt.Println(path)
+			// If path found set itinerary and follow
+			if path != nil {
+				ship.SetItinerary(path)
+			}
+		}
+
+		ship.FollowItinerary()
+
+	case "attack":
+		// Go to target and attack
+		ship.FollowItinerary()
+		// Remove the target from the environment
+		env.AttackAgent(*ship.Target(), ship)
+
+	case "follow":
+		// Follow target
+		ship.FollowItinerary()
+
+	default:
+		ship.FollowItinerary()
+	}
 }
 
 func armyShipLevelUp(ship *Ship, env *Environment) {
