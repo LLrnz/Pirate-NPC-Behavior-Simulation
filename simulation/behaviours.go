@@ -1,8 +1,8 @@
 package simulation
 
 import (
-	"fmt"
 	"math"
+	mathrand "math/rand"
 
 	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
 )
@@ -361,13 +361,58 @@ func armyShipDeliberate(ship *Ship, env *Environment, step int) {
 
 	// if docked, set itinerary to another harbour
 	if ship.Docked() != nil {
-		ship.SetAction("toAnyHarbour")
+		// retreive harbours from environment
+		harbours := env.Harbours()
+
+		// remove current harbour from the list
+		for i, harbour := range harbours {
+			if harbour.Coordinates() == ship.Docked().Coordinates() {
+				harbours = append(harbours[:i], harbours[i+1:]...)
+				break
+			}
+		}
+
+		// get random harbour from the list
+		numberHarbour := mathrand.Intn(len(harbours) - 1)
+		destinationHarbour := harbours[numberHarbour]
+
+		// Set ship itinerary to chosen harbor
+		path := AStar(ship.Coordinates(), destinationHarbour.Coordinates())
+		if path != nil {
+			ship.SetItinerary(path)
+		}
+
+		ship.SetAction("follow")
+
 		return
 	}
 
 	// if life under 20, set itinerary to closest harbour
 	if ship.Health() <= 20 {
-		ship.SetAction("toClosestHarbour")
+
+		// retreive harbours from environment
+		harbours := env.Harbours()
+		closestHarbour := harbours[0]
+		shortestDistance := float32(-1)
+
+		for _, harbour := range harbours {
+			// Calculate distance to harbor
+			distance := float32(Heuristic(ship.Coordinates(), harbour.Coordinates()))
+
+			if distance < shortestDistance {
+				shortestDistance = distance
+				closestHarbour = harbour
+			}
+
+		}
+
+		// Set ship itinerary to the closest harbor
+		path := AStar(ship.Coordinates(), closestHarbour.Coordinates())
+		if path != nil {
+			ship.SetItinerary(path)
+		}
+
+		ship.SetAction("follow")
 		return
 	}
 
@@ -378,10 +423,39 @@ func armyShipDeliberate(ship *Ship, env *Environment, step int) {
 		if distance <= ship.Speed() { // if ship is next to a target, attack target
 			ship.SetAction("attack")
 		} else { // else, follow target
-			ship.SetAction("follow")
+			// Pathfinding to the target
+			path := AStar(ship.Coordinates(), (*ship.Target()).Coordinates())
+			// If path found set itinerary and follow
+			if path != nil {
+				ship.SetItinerary(path)
+				ship.SetAction("follow")
+			}
 		}
 		return
 	}
+
+	// if ship has no target, follow current itinerary
+	if ship.Itinerary() != nil {
+		// TODO : recalculate itinerary ?
+		ship.SetAction("follow")
+		return
+	}
+
+	// ship itinerary is null
+	// retreive harbours from environment
+	harbours := env.Harbours()
+
+	// get random harbour from the list
+	numberHarbour := mathrand.Intn(len(harbours) - 1)
+	destinationHarbour := harbours[numberHarbour]
+
+	// Set ship itinerary to chosen harbor
+	path := AStar(ship.Coordinates(), destinationHarbour.Coordinates())
+	if path != nil {
+		ship.SetItinerary(path)
+	}
+
+	ship.SetAction("follow")
 }
 
 func armyShipAct(ship *Ship, env *Environment, step int) {
@@ -391,61 +465,27 @@ func armyShipAct(ship *Ship, env *Environment, step int) {
 	switch ship.Action() {
 	case "repair":
 		ship.SetHealth(maxHealth)
-	case "toAnyHarbour":
-		// set itinerary to another harbour (except current one)
-		// retreive any harbour (except current one) from environment
-		var anyHarbour *Harbour
-
-		distance := Heuristic(ship.Coordinates(), (*anyHarbour).Coordinates())
-
-		if distance <= ship.Speed() { // if ship is next to harbour, docked
-
-			// TODO : check if there's a free spot in the harbour -> if not, wait for a free spot ?
-			ship.SetDocked(anyHarbour)
-		} else {
-			path := AStar(constants.MapGrid, ship.Coordinates(), (*ship.Target()).Coordinates())
-
-			fmt.Println(path)
-			// If path found set itinerary and follow
-			if path != nil {
-				ship.SetItinerary(path)
-			}
-		}
-
-		ship.FollowItinerary()
-
-	case "toClosestHarbour":
-		// retreive closest harbour from environment
-		var closestHarbour *Harbour
-
-		distance := Heuristic(ship.Coordinates(), (*closestHarbour).Coordinates())
-
-		if distance <= ship.Speed() { // if ship is next to harbour, docked
-			ship.SetDocked(closestHarbour)
-		} else {
-			path := AStar(constants.MapGrid, ship.Coordinates(), (*ship.Target()).Coordinates())
-
-			fmt.Println(path)
-			// If path found set itinerary and follow
-			if path != nil {
-				ship.SetItinerary(path)
-			}
-		}
-
-		ship.FollowItinerary()
-
 	case "attack":
 		// Go to target and attack
 		ship.FollowItinerary()
 		// Remove the target from the environment
 		env.AttackAgent(*ship.Target(), ship)
-
 	case "follow":
 		// Follow target
 		ship.FollowItinerary()
 
+		if ship.Docked() != nil {
+			env.UndockShip(ship)
+		}
+
+		if len(ship.Itinerary()) == 0 {
+			harbour, ok := env.IsHarbour(ship)
+			if ok {
+				env.DockShip(ship, harbour)
+			}
+		}
 	default:
-		ship.FollowItinerary()
+		// Do nothing
 	}
 }
 
