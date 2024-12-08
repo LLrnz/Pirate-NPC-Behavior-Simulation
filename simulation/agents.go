@@ -1,8 +1,9 @@
 package simulation
 
 import (
-	"log"
-	"math"
+	"fmt"
+
+	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
 )
 
 /*
@@ -20,14 +21,32 @@ import (
 
 type Agent interface {
 	Object
+	Id() string
+	AgtType() string
+
+	Fov() int
+	SetFov(fov int)
+	Speed() int
+	SetSpeed(speed int)
+	Attack() int
+	SetAttack(attack int)
+	Health() int
+	SetHealth(health int)
+	AddHealth(health int)
+	RemoveHealth(health int)
+
+	Target() *Agent
+	SetTarget(target *Agent)
+	Action() string
+	SetAction(action string)
+	Itinerary() []Coordinates
+	SetItinerary(itinerary []Coordinates)
+
+	FollowItinerary()
 
 	Percept(env *Environment)
 	Deliberate(env *Environment)
 	Act(env *Environment)
-
-	Fov() int
-	Id() string
-	AgtType() string
 }
 
 /*
@@ -39,15 +58,17 @@ type Agent interface {
 
 type BaseAgent struct {
 	BaseObject
-	id        string
-	fov       int
-	agtType   string
-	itinerary []Coordinates
-}
+	id      string
+	agtType string
 
-// Getter Field of view
-func (agt *BaseAgent) Fov() int {
-	return agt.fov
+	fov    int
+	speed  int
+	attack int
+	health int
+
+	target    *Agent
+	action    string
+	itinerary []Coordinates
 }
 
 // Getter Id
@@ -55,21 +76,128 @@ func (agt *BaseAgent) Id() string {
 	return agt.id
 }
 
-// Getter Agent type
+// Getter Agent type (Ship or Kraken)
 func (agt *BaseAgent) AgtType() string {
 	return agt.agtType
 }
 
+// Getter Field of view
+func (agt *BaseAgent) Fov() int {
+	return agt.fov
+}
+
+// Setter Fov
+func (agt *BaseAgent) SetFov(fov int) {
+	agt.fov = fov
+}
+
+// Getter Speed
+func (agt *BaseAgent) Speed() int {
+	return agt.speed
+}
+
+// Setter Speed
+func (agt *BaseAgent) SetSpeed(speed int) {
+	agt.speed = speed
+}
+
+// Getter Attack
+func (agt *BaseAgent) Attack() int {
+	return agt.attack
+}
+
+// Setter Attack
+func (agt *BaseAgent) SetAttack(attack int) {
+	agt.attack = attack
+}
+
+// Getter Health
+func (agt *BaseAgent) Health() int {
+	return agt.health
+}
+
+// Setter Health
+func (agt *BaseAgent) SetHealth(health int) {
+	agt.health = health
+}
+
+// Setter Health Add
+func (agt *BaseAgent) AddHealth(health int) {
+	agt.health = agt.health + health
+}
+
+// Setter Health Remove
+func (agt *BaseAgent) RemoveHealth(health int) {
+	agt.health = agt.health - health
+}
+
+// Getter Target
+func (agt *BaseAgent) Target() *Agent {
+	return agt.target
+}
+
+// Setter Target
+func (agt *BaseAgent) SetTarget(target *Agent) {
+	agt.target = target
+}
+
+// Getter Action
+func (agt *BaseAgent) Action() string {
+	return agt.action
+}
+
+// Setter Action
+func (agt *BaseAgent) SetAction(action string) {
+	agt.action = action
+}
+
+// Getter Itinerary
+func (agt *BaseAgent) Itinerary() []Coordinates {
+	return agt.itinerary
+}
+
+// Setter Itinerary
+func (agt *BaseAgent) SetItinerary(itinerary []Coordinates) {
+	agt.itinerary = itinerary
+}
+
+// Agent Percept
 func (agt *BaseAgent) Percept(env *Environment) {
-	// Base implementation
+
 }
 
+// Agent Deliberate
 func (agt *BaseAgent) Deliberate() {
-	// Base implementation
+
 }
 
+// Agent Act
 func (agt *BaseAgent) Act(env *Environment) {
-	// Base implementation
+
+}
+
+// FollowItinerary at speed of agent
+func (ag *BaseAgent) FollowItinerary() {
+	itinerary := ag.Itinerary()
+	speed := ag.Speed()
+
+	// If there is not enough coordinates to go through
+	if len(itinerary) == 0 {
+		return
+	}
+
+	// Move based on the Agent speed
+	moves := speed
+	if moves > len(itinerary) {
+		moves = len(itinerary) // Max to the end of the array
+	}
+
+	// Update the Agent coordinates to the last point within the move range
+	newCoordinates := itinerary[moves-1]
+	ag.SetCoordinates(newCoordinates)
+
+	// Remove the used coordinates from the itinerary
+	ag.SetItinerary(itinerary[moves:])
 }
 
 /*
@@ -81,18 +209,19 @@ func (agt *BaseAgent) Act(env *Environment) {
 
 type Ship struct {
 	*BaseAgent
-	level               int
-	speed               int
-	ressources          map[string]int
-	money               float32
-	health              int
-	docked              *Harbour
-	shipType            string
-	capacity            int
-	attack              int
-	target              *Agent
-	action              string
-	danger              *Agent
+	shipType    string
+	nationality constants.Nationality
+
+	level    int
+	capacity int
+
+	ressources map[string]int
+	money      float32
+
+	docked *Harbour
+
+	danger *Agent
+
 	behaviourPercept    func(*Ship, *Environment)
 	behaviourDeliberate func(*Ship, *Environment)
 	behaviourAct        func(*Ship, *Environment)
@@ -103,19 +232,26 @@ type Ship struct {
 // Pirate, Merchant, Privateer, Army, Filibusteer, PirateHunter, Zoro
 
 // Pirate ship
-func NewShipPirate(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
+func NewShipPirate(id string, coor Coordinates, docked *Harbour) *Ship {
+	shipType := "Pirate"
+	config := constants.ShipConfigs[shipType]
 	return &Ship{
 		BaseAgent: &BaseAgent{
-			BaseObject: BaseObject{coordinates: cor},
+			BaseObject: BaseObject{coordinates: coor},
 			id:         id,
-			fov:        fov,
-			agtType:    "ship",
+			agtType:    "Ship",
+			fov:        config.FOV,
+			speed:      config.Speed,
+			attack:     config.Attack,
+			health:     config.Health,
 		},
-		docked:              docked,
-		speed:               1,
-		shipType:            "pirates",
-		capacity:            10,
-		attack:              20,
+		shipType:    shipType,
+		nationality: constants.Without,
+		level:       1,
+		capacity:    config.Capacity,
+
+		docked: docked,
+
 		behaviourPercept:    pirateShipPercept,
 		behaviourDeliberate: pirateShipDeliberate,
 		behaviourAct:        pirateShipAct,
@@ -124,19 +260,26 @@ func NewShipPirate(id string, fov int, cor Coordinates, docked *Harbour, env *En
 }
 
 // Merchant ship
-func NewShipMerchant(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
+func NewShipMerchant(id string, nationality constants.Nationality, coor Coordinates, docked *Harbour) *Ship {
+	shipType := "Merchant"
+	config := constants.ShipConfigs[shipType]
 	return &Ship{
 		BaseAgent: &BaseAgent{
-			BaseObject: BaseObject{coordinates: cor},
+			BaseObject: BaseObject{coordinates: coor},
 			id:         id,
-			fov:        fov,
-			agtType:    "ship",
+			agtType:    "Ship",
+			fov:        config.FOV,
+			speed:      config.Speed,
+			attack:     config.Attack,
+			health:     config.Health,
 		},
-		docked:              docked,
-		speed:               1,
-		shipType:            "merchant",
-		capacity:            100,
-		attack:              2,
+		shipType:    shipType,
+		nationality: nationality,
+		level:       1,
+		capacity:    config.Capacity,
+
+		docked: docked,
+
 		behaviourPercept:    merchantShipPercept,
 		behaviourDeliberate: merchantShipDeliberate,
 		behaviourAct:        merchantShipAct,
@@ -145,19 +288,26 @@ func NewShipMerchant(id string, fov int, cor Coordinates, docked *Harbour, env *
 }
 
 // Privateer ship
-func NewShipPrivateer(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
+func NewShipPrivateer(id string, nationality constants.Nationality, coor Coordinates, docked *Harbour) *Ship {
+	shipType := "Privateer"
+	config := constants.ShipConfigs[shipType]
 	return &Ship{
 		BaseAgent: &BaseAgent{
-			BaseObject: BaseObject{coordinates: cor},
+			BaseObject: BaseObject{coordinates: coor},
 			id:         id,
-			fov:        fov,
-			agtType:    "ship",
+			agtType:    "Ship",
+			fov:        config.FOV,
+			speed:      config.Speed,
+			attack:     config.Attack,
+			health:     config.Health,
 		},
-		docked:              docked,
-		speed:               1,
-		shipType:            "privateer",
-		capacity:            10,
-		attack:              20,
+		shipType:    shipType,
+		nationality: nationality,
+		level:       1,
+		capacity:    config.Capacity,
+
+		docked: docked,
+
 		behaviourPercept:    privateerShipPercept,
 		behaviourDeliberate: privateerShipDeliberate,
 		behaviourAct:        privateerShipAct,
@@ -166,17 +316,26 @@ func NewShipPrivateer(id string, fov int, cor Coordinates, docked *Harbour, env 
 }
 
 // Army ship
-func NewShipArmy(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
+func NewShipArmy(id string, nationality constants.Nationality, coor Coordinates, docked *Harbour) *Ship {
+	shipType := "Army"
+	config := constants.ShipConfigs[shipType]
 	return &Ship{
 		BaseAgent: &BaseAgent{
-			BaseObject: BaseObject{coordinates: cor},
+			BaseObject: BaseObject{coordinates: coor},
 			id:         id,
-			fov:        fov,
-			agtType:    "ship",
+			agtType:    "Ship",
+			fov:        config.FOV,
+			speed:      config.Speed,
+			attack:     config.Attack,
+			health:     config.Health,
 		},
-		docked:              docked,
-		speed:               1,
-		shipType:            "army",
+		shipType:    shipType,
+		nationality: nationality,
+		level:       1,
+		capacity:    config.Capacity,
+
+		docked: docked,
+
 		behaviourPercept:    armyShipPercept,
 		behaviourDeliberate: armyShipDeliberate,
 		behaviourAct:        armyShipAct,
@@ -184,62 +343,27 @@ func NewShipArmy(id string, fov int, cor Coordinates, docked *Harbour, env *Envi
 	}
 }
 
-// Filibusteer ship
-func NewShipFilibusteer(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
-	return &Ship{
-		BaseAgent: &BaseAgent{
-			BaseObject: BaseObject{coordinates: cor},
-			id:         id,
-			fov:        fov,
-			agtType:    "ship",
-		},
-		docked:              docked,
-		speed:               1,
-		shipType:            "filibusteer",
-		capacity:            30,
-		attack:              6,
-		behaviourPercept:    filibusteerShipPercept,
-		behaviourDeliberate: filibusteerShipDeliberate,
-		behaviourAct:        filibusteerShipAct,
-		behaviourLevelUp:    filibusteerShipLevelUp,
-	}
-}
-
-// Pirate hunter ship
-func NewShipPirateHunter(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
-	return &Ship{
-		BaseAgent: &BaseAgent{
-			BaseObject: BaseObject{coordinates: cor},
-			id:         id,
-			fov:        fov,
-			agtType:    "ship",
-		},
-		docked:              docked,
-		speed:               1,
-		shipType:            "piratehunter",
-		capacity:            10,
-		attack:              30,
-		behaviourPercept:    piratehunterShipPercept,
-		behaviourDeliberate: piratehunterShipDeliberate,
-		behaviourAct:        piratehunterShipAct,
-		behaviourLevelUp:    piratehunterShipLevelUp,
-	}
-}
-
 // Zoro ship
-func NewShipZoro(id string, fov int, cor Coordinates, docked *Harbour, env *Environment) *Ship {
+func NewShipZoro(id string, coor Coordinates, docked *Harbour) *Ship {
+	shipType := "Zoro"
+	config := constants.ShipConfigs[shipType]
 	return &Ship{
 		BaseAgent: &BaseAgent{
-			BaseObject: BaseObject{coordinates: cor},
+			BaseObject: BaseObject{coordinates: coor},
 			id:         id,
-			fov:        fov,
-			agtType:    "ship",
+			agtType:    "Ship",
+			fov:        config.FOV,
+			speed:      config.Speed,
+			attack:     config.Attack,
+			health:     config.Health,
 		},
-		docked:              docked,
-		speed:               1,
-		shipType:            "zoro",
-		capacity:            10,
-		attack:              200,
+		shipType:    shipType,
+		nationality: constants.Without,
+		level:       1,
+		capacity:    config.Capacity,
+
+		docked: docked,
+
 		behaviourPercept:    zoroShipPercept,
 		behaviourDeliberate: zoroShipDeliberate,
 		behaviourAct:        zoroShipAct,
@@ -247,26 +371,138 @@ func NewShipZoro(id string, fov int, cor Coordinates, docked *Harbour, env *Envi
 	}
 }
 
-func (ag *Ship) MoveTowards(targetCoords Coordinates) {
-	current := ag.Coordinates()
+// Rackham ship
+func NewShipRackham(id string, coor Coordinates, docked *Harbour) *Ship {
+	shipType := "Rackham"
+	config := constants.ShipConfigs[shipType]
+	return &Ship{
+		BaseAgent: &BaseAgent{
+			BaseObject: BaseObject{coordinates: coor},
+			id:         id,
+			agtType:    "Ship",
+			fov:        config.FOV,
+			speed:      config.Speed,
+			attack:     config.Attack,
+			health:     config.Health,
+		},
+		shipType:    shipType,
+		nationality: constants.Without,
+		level:       1,
+		capacity:    config.Capacity,
 
-	// Determine step size based on Ship speed
-	dx := targetCoords.X() - current.X()
-	dy := targetCoords.Y() - current.Y()
-	stepX, stepY := 0, 0
+		docked: docked,
 
-	if dx != 0 {
-		stepX = ag.speed * dx / int(math.Abs(float64(dx)))
+		behaviourPercept:    rackhamShipPercept,
+		behaviourDeliberate: rackhamShipDeliberate,
+		behaviourAct:        rackhamShipAct,
+		behaviourLevelUp:    rackhamShipLevelUp,
 	}
-	if dy != 0 {
-		stepY = ag.speed * dy / int(math.Abs(float64(dy)))
+}
+
+// Getter Nationality
+func (ag *Ship) Nationality() constants.Nationality {
+	return ag.nationality
+}
+
+// Setter Nationality
+func (ag *Ship) SetNationality(nationality constants.Nationality) {
+	ag.nationality = nationality
+}
+
+// Getter ShipType
+func (ag *Ship) ShipType() string {
+	return ag.shipType
+}
+
+// Getter Level
+func (ag *Ship) Level() int {
+	return ag.level
+}
+
+func (ag *Ship) LevelUp(env *Environment) {
+	ag.behaviourLevelUp(ag, env)
+}
+
+// Getter Capacity
+func (ag *Ship) Capacity() int {
+	return ag.capacity
+}
+
+// Setter Capacity
+func (ag *Ship) SetCapacity(capacity int) {
+	ag.capacity = capacity
+}
+
+// Getter Ressources
+func (ag *Ship) Ressources() map[string]int {
+	return ag.ressources
+}
+
+// Setter Ressources
+func (ag *Ship) SetRessources(ressources map[string]int) {
+	ag.ressources = ressources
+}
+
+// Setter Ressources Add
+func (ag *Ship) AddRessources(ressource string, quantity int) {
+	ag.ressources[ressource] += quantity
+}
+
+// Setter Ressources Remove
+func (ag *Ship) RemoveRessources(ressource string, quantity int) {
+	currentQuantity, exists := ag.ressources[ressource]
+
+	// If it does not exist do nothing
+	if !exists {
+		return
 	}
 
-	// Update Kraken coordinates
-	ag.SetCoordinates(Coordinates{
-		x: current.X() + stepX,
-		y: current.Y() + stepY,
-	})
+	// If it uses all the quantity remove totally
+	if quantity >= currentQuantity {
+		ag.ressources[ressource] = 0
+	} else {
+		ag.ressources[ressource] -= quantity
+	}
+}
+
+// Getter Money
+func (ag *Ship) Money() float32 {
+	return ag.money
+}
+
+// Setter Money
+func (ag *Ship) SetMoney(money float32) {
+	ag.money = money
+}
+
+// Setter Money Add
+func (ag *Ship) AddMoney(money float32) {
+	ag.money = ag.money + money
+}
+
+// Setter Money Remove
+func (ag *Ship) RemoveMoney(money float32) {
+	ag.money = ag.money - money
+}
+
+// Getter Docked
+func (ag *Ship) Docked() *Harbour {
+	return ag.docked
+}
+
+// Setter Docked
+func (ag *Ship) SetDocked(harbour *Harbour) {
+	ag.docked = harbour
+}
+
+// Getter Danger
+func (ag *Ship) Danger() *Agent {
+	return ag.danger
+}
+
+// Setter Danger
+func (ag *Ship) SetDanger(danger *Agent) {
+	ag.danger = danger
 }
 
 func (ag *Ship) Percept(env *Environment) {
@@ -281,29 +517,6 @@ func (ag *Ship) Act(env *Environment) {
 	ag.behaviourAct(ag, env)
 }
 
-func (ag *Ship) LevelUp(env *Environment) {
-	ag.behaviourLevelUp(ag, env)
-}
-
-func (ag *Ship) Docked() *Harbour {
-	return ag.docked
-}
-
-func (ag *Ship) Health() int {
-	return ag.health
-}
-
-func (ag *Ship) SetDanger(danger *Agent) {
-	ag.danger = danger
-}
-func (ag *Ship) SetAction(action string) {
-	ag.action = action
-}
-
-func (ag *Ship) Ressources() map[string]int {
-	return ag.ressources
-}
-
 /*
 --------------------------------------
 *********** Kraken Agent *************
@@ -313,61 +526,39 @@ func (ag *Ship) Ressources() map[string]int {
 
 type Kraken struct {
 	*BaseAgent
-	health int
-	attack int
-	speed  int
-	target *Agent
-	action string
 }
 
-func NewKraken(id string, fov int, attack int, speed int, cor Coordinates) *Kraken {
+func NewKraken(id string, coor Coordinates) *Kraken {
 	return &Kraken{
 		BaseAgent: &BaseAgent{
-			BaseObject: BaseObject{coordinates: cor},
+			BaseObject: BaseObject{coordinates: coor},
 			id:         id,
-			fov:        fov,
-			agtType:    "kraken",
+			agtType:    "Kraken",
+			fov:        constants.KrakenParameters.FOV,
+			speed:      constants.KrakenParameters.Speed,
+			attack:     constants.KrakenParameters.Attack,
+			health:     constants.KrakenParameters.Health,
 		},
-		attack: attack,
-		speed:  speed,
-		health: 100,
 	}
 }
 
+// Regain 10% of max health per step resting
 func (ag *Kraken) RestAndGainHealth() {
-	ag.health = ag.health + 10
-}
-
-func (ag *Kraken) MoveTowards(targetCoords Coordinates) {
-	current := ag.Coordinates()
-
-	// Determine step size based on Kraken's speed
-	dx := targetCoords.X() - current.X()
-	dy := targetCoords.Y() - current.Y()
-	stepX, stepY := 0, 0
-
-	if dx != 0 {
-		stepX = ag.speed * dx / int(math.Abs(float64(dx)))
-	}
-	if dy != 0 {
-		stepY = ag.speed * dy / int(math.Abs(float64(dy)))
-	}
-
-	// Update Kraken coordinates
-	ag.SetCoordinates(Coordinates{
-		x: current.X() + stepX,
-		y: current.Y() + stepY,
-	})
+	ag.health = ag.health + int(float32(constants.KrakenParameters.Health)*0.1)
 }
 
 func (ag *Kraken) Percept(env *Environment) {
 	// Retrieve the closest agent from kraken
-	closest := env.ClosestAgent(ag)
+	closest := env.ClosestShip(ag)
 
-	// Check if there is a closest agent
+	// Check if there is a closest ship within fov
 	if closest != nil {
-		ag.target = &closest
+		fmt.Println("Kraken sees ship...")
+		fmt.Println((*closest).Id())
+		fmt.Println((*closest).Coordinates())
+		ag.target = closest
 	} else {
+		fmt.Println("Kraken does not see ship...")
 		ag.target = nil
 	}
 }
@@ -375,41 +566,47 @@ func (ag *Kraken) Percept(env *Environment) {
 func (ag *Kraken) Deliberate(env *Environment) {
 
 	//If the Kraken is low life or has no target = rest to gain PV
-	if ag.health <= 20 || ag.target == nil {
+	if ag.Health() <= int(float32(constants.KrakenParameters.Health)*0.1) || ag.Target() == nil {
 		ag.action = "rest"
 		return
 	}
 
-	// Calculate the distance to the target agent
-	distance := CalculateDistance(ag.Coordinates(), (*ag.target).Coordinates())
+	// Calculate the distance to the target agent (Manhattan)
+	distance := Heuristic(ag.Coordinates(), (*ag.target).Coordinates())
 
 	// If the Kraken can attack, it should attack the ship
 	// Else it should follow the nearest agent as a target
-	if distance <= float64(ag.speed) {
+	if distance < ag.Speed() {
+		fmt.Println("Kraken attacks")
 		ag.action = "attack"
 	} else {
-		ag.action = "follow"
+		// Pathfinding to the target
+		path := AStar(constants.MapGrid, ag.Coordinates(), (*ag.target).Coordinates())
+		fmt.Println("Kraken follows")
+		fmt.Println(path)
+		// If path found set itinerary and follow
+		if path != nil {
+			ag.SetItinerary(path)
+			ag.action = "follow"
+		}
 	}
 }
 
 func (ag *Kraken) Act(env *Environment) {
-	// No action = do nothing
-	if ag.action == "" {
-		return
-	}
 
-	switch ag.action {
+	switch ag.Action() {
 	case "attack":
-		// Remove the target from the environment (we should only remove health points)
-		env.RemoveAgent(*ag.target)
+		// Go to target and attack
+		ag.FollowItinerary()
+		// Remove the target from the environment
+		env.AttackAgent(*ag.target, ag)
 	case "follow":
 		// Move towards target
-		ag.MoveTowards((*ag.target).Coordinates())
+		ag.FollowItinerary()
 	case "rest":
-		// Regain 10% of health points
 		ag.RestAndGainHealth()
 	default:
-		log.Printf("%s has no valid action to perform.\n", ag.id)
+		ag.RestAndGainHealth()
 	}
 
 	ag.target = nil

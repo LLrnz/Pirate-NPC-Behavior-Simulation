@@ -17,7 +17,7 @@ type Environment struct {
 	agents    []Agent
 	objects   []Object
 	harbours  []Harbour
-	market    Market
+	market    *Market
 	agentLock sync.RWMutex
 }
 
@@ -50,9 +50,25 @@ func (env *Environment) AddObject(object Object) {
 func (env *Environment) RemoveAgent(target Agent) {
 	// Loop over the agents until the target is found
 	for i, agent := range env.agents {
-		if agent == target {
+		if agent.Id() == target.Id() {
 			// Here we take all the agents except the one to remove it
 			env.agents = append(env.agents[:i], env.agents[i+1:]...)
+			return
+		}
+	}
+}
+
+// Attack the agent in the env
+func (env *Environment) AttackAgent(target Agent, attacker Agent) {
+	// Loop over the agents until the target is found
+	for _, agent := range env.agents {
+		if agent.Id() == target.Id() {
+			agent.RemoveHealth(attacker.Attack())
+
+			if agent.Health() <= 0 {
+				env.RemoveAgent(target)
+			}
+			// If die, retrieve 60% ressources
 			return
 		}
 	}
@@ -128,8 +144,48 @@ func (env *Environment) KrakenNearby(agt Agent) Agent {
 	return nil
 }
 
+// ClosestShip returns the closest ship to the given ship that is not docked within it's fov
+func (env *Environment) ClosestShip(agt *Kraken) *Agent {
+	var closestAgent *Agent
+	minDistance := math.MaxInt
+
+	// Get the coordinates of the agent
+	agtCoord := agt.Coordinates()
+
+	// Loop through all agents in the environment
+	for _, otherAgent := range env.agents {
+		// Skip the current agent
+		if otherAgent.Id() == agt.Id() || otherAgent.AgtType() != "Ship" {
+			continue
+		}
+
+		// Skip docked ships because they are safe
+		ship, ok := otherAgent.(*Ship)
+		if ok && ship.Docked() != nil {
+			continue
+		}
+
+		// Calculate the distance between the kraken and the ship
+		otherAgtCoord := otherAgent.Coordinates()
+		distance := Heuristic(otherAgtCoord, agtCoord)
+
+		// If the Agent if further than the Fov of the Agent, then we don't return it
+		if distance > agt.Fov() {
+			continue
+		}
+
+		// Update the closest agent if the distance is smaller
+		if distance < minDistance {
+			minDistance = distance
+			closestAgent = &otherAgent
+		}
+	}
+
+	return closestAgent
+}
+
 // ClosestAgent returns the closest agent to the given agent that is not docked within it's fov
-func (env *Environment) ClosestAgent(agt Agent) Agent {
+func (env *Environment) ClosestAgent(agt *Kraken) Agent {
 	var closestAgent Agent
 	minDistance := math.MaxFloat64
 
@@ -144,7 +200,7 @@ func (env *Environment) ClosestAgent(agt Agent) Agent {
 		}
 
 		// Skip docked ships because they are safe
-		if otherAgent.AgtType() == "ship" {
+		if otherAgent.AgtType() == "Ship" {
 			if ship, ok := otherAgent.(*Ship); ok && ship.Docked() != nil {
 				continue
 			}

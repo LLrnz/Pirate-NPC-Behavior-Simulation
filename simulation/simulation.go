@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
+
 	"golang.org/x/exp/rand"
 )
 
@@ -34,15 +36,21 @@ func (simu *Simulation) Agents() []Agent {
 	return simu.Environment().Agents()
 }
 
-// NewRandomCoordinates generates random coordinates
+// NewRandomCoordinates generates random coordinates that is not land
 func NewRandomCoordinates() Coordinates {
-	return Coordinates{
-		x: rand.Intn(800),
-		y: rand.Intn(600),
+	for {
+		x := rand.Intn(48)
+		y := rand.Intn(27)
+
+		// Check if the cell is sea
+		if constants.MapGrid[y][x] == 0 {
+			return Coordinates{x: x, y: y}
+		}
+
 	}
 }
 
-// NewSimulation initializes the Simulation [[professor code]]
+// NewSimulation initializes the Simulation
 func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	simu = &Simulation{}
 	simu.agents = make([]Agent, 0)
@@ -56,20 +64,74 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 		timeSpeed:   1,
 	}
 
-	docked := NewHarbour("Port à Coutollenc", Coordinates{0, 0})
+	// Create the harbour
+	docked := NewHarbour("Port à Coutollenc", Coordinates{12, 5})
+	docked = nil
 
-	// création des agents
-	for i := 0; i < 200; i++ {
-		// création de l'agent
-		id := fmt.Sprintf("Ship #%d", i)
+	// Nationalities to choose from for ships
+	nationalities := []constants.Nationality{
+		constants.France,
+		constants.England,
+		constants.Spain,
+	}
+
+	// Number of ships to create for each type
+	numPirate := 10
+	numMerchant := 25
+	numPrivateer := 15
+	numArmy := 6
+
+	// Create Pirate Ships
+	for i := 0; i < numPirate; i++ {
+		id := fmt.Sprintf("Pirate Ship #%d", i)
 		coor := NewRandomCoordinates()
-		ship := NewShipMerchant(id, 10, coor, docked, &simu.env)
+		ship := NewShipPirate(id, coor, docked)
 		simu.agents = append(simu.agents, ship)
 		simu.env.AddAgent(ship)
 	}
 
-	// Kraken
-	kraken := NewKraken("Kraken #1", 200, 10, 4, Coordinates{x: 100, y: 100})
+	// Create Merchant Ships
+	for i := 0; i < numMerchant; i++ {
+		id := fmt.Sprintf("Merchant Ship #%d", i)
+		coor := NewRandomCoordinates()
+		nat := nationalities[i%len(nationalities)]
+		ship := NewShipMerchant(id, nat, coor, docked)
+		simu.agents = append(simu.agents, ship)
+		simu.env.AddAgent(ship)
+	}
+
+	// Create Privateer Ships
+	for i := 0; i < numPrivateer; i++ {
+		id := fmt.Sprintf("Privateer Ship #%d", i)
+		coor := NewRandomCoordinates()
+		nat := nationalities[i%len(nationalities)]
+		ship := NewShipPrivateer(id, nat, coor, docked)
+		simu.agents = append(simu.agents, ship)
+		simu.env.AddAgent(ship)
+	}
+
+	// Create Army Ships
+	for i := 0; i < numArmy; i++ {
+		id := fmt.Sprintf("Army Ship #%d", i)
+		coor := NewRandomCoordinates()
+		nat := nationalities[i%len(nationalities)]
+		ship := NewShipArmy(id, nat, coor, docked)
+		simu.agents = append(simu.agents, ship)
+		simu.env.AddAgent(ship)
+	}
+
+	// Create one Zoro Ship (no nationality)
+	zoro := NewShipZoro("Zoro", NewRandomCoordinates(), docked)
+	simu.agents = append(simu.agents, zoro)
+	simu.env.AddAgent(zoro)
+
+	// Create one Rackham Ship (no nationality)
+	rackham := NewShipRackham("Rackham", NewRandomCoordinates(), docked)
+	simu.agents = append(simu.agents, rackham)
+	simu.env.AddAgent(rackham)
+
+	// Create one Kraken
+	kraken := NewKraken("Kraken", Coordinates{x: 10, y: 10})
 	simu.agents = append(simu.agents, kraken)
 	simu.env.AddAgent(kraken)
 

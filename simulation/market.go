@@ -17,8 +17,8 @@ type Market struct {
 }
 
 // NewMarket initializes a Market struct
-func NewMarket() (market Market) {
-	return Market{}
+func NewMarket() (market *Market) {
+	return &Market{}
 }
 
 // Getter returns all transactions
