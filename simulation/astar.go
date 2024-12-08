@@ -3,6 +3,8 @@ package simulation
 import (
 	"container/heap"
 	"math"
+
+	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
 )
 
 /*
@@ -60,7 +62,7 @@ func (pq *PriorityQueue) Pop() interface{} {
 func Heuristic(a, b Coordinates) int {
 	// Calculate horizontal distance with wrapping
 	dx := int(math.Abs(float64(a.X() - b.X())))
-	wrappedDx := 48 - dx
+	wrappedDx := constants.GridWidth - dx
 	minDx := int(math.Min(float64(dx), float64(wrappedDx)))
 
 	// Vertical distance remains the same
@@ -96,7 +98,9 @@ func GetNeighbors(p Coordinates, width, height int) []Coordinates {
 }
 
 // A* algorithm
-func AStar(grid [27][48]int, start, goal Coordinates) []Coordinates {
+func AStar(start, goal Coordinates) []Coordinates {
+	var grid [27][48]int = constants.MapGrid
+
 	width := len(grid[0])
 	height := len(grid)
 

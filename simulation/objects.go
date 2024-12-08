@@ -96,30 +96,14 @@ func NewHarbour(name string, coor Coordinates) *Harbour {
 	}
 }
 
-func (h *Harbour) IsAgentDocked(ag Agent) bool {
-	// Check length of docked
-	if len(h.dockedAgents) == 0 {
-		return false
-	}
-
-	// Loop over the dockedAgents
-	for _, otherAgent := range h.dockedAgents {
-
-		// If the agent docked is the agent we want to check return true
-		if otherAgent == ag {
-			return true
-		}
-
-		// Else continue to iterate
-	}
-
-	// If agent not found, is not docked
-	return false
-}
-
 // Getter
 func (h *Harbour) SellableRessources() map[string]bool {
 	return h.sellableRessources
+}
+
+// Getter
+func (h *Harbour) AvailableRessources() map[string]bool {
+	return h.availableRessources
 }
 
 // IsRessourcesSellable checks if a ressource is sellable in a Harbour
@@ -133,4 +117,19 @@ func (h *Harbour) IsRessourcesSellable(ressource string) bool {
 		return true
 	}
 	return false
+}
+
+func (h *Harbour) DockShip(ship *Ship) {
+	h.dockedAgents = append(h.dockedAgents, ship)
+}
+
+func (h *Harbour) UndockShip(ship *Ship) {
+	// Loop over the agents until the target is found
+	for i, agent := range h.dockedAgents {
+		if agent.Id() == ship.Id() {
+			// Here we take all the agents except the one to remove it
+			h.dockedAgents = append(h.dockedAgents[:i], h.dockedAgents[i+1:]...)
+			return
+		}
+	}
 }

@@ -160,9 +160,9 @@ Loop:
 
 			go func(agt Agent) { // workers
 				defer wg.Done()
-				agt.Percept(&simu.env)
-				agt.Deliberate(&simu.env)
-				agt.Act(&simu.env)
+				agt.Percept(&simu.env, simu.parameters.step)
+				agt.Deliberate(&simu.env, simu.parameters.step)
+				agt.Act(&simu.env, simu.parameters.step)
 
 			}(agt)
 
