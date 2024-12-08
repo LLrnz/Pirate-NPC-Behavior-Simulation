@@ -65,16 +65,16 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		// Choose color based on agent type.
 		var clr color.RGBA
 		switch agent.AgtType() {
-		case "ship":
+		case "Ship":
 			clr = color.RGBA{0, 255, 0, 255} // Green for ships
-		case "kraken":
+		case "Kraken":
 			clr = color.RGBA{255, 0, 0, 255} // Red for kraken
 		default:
 			clr = color.RGBA{255, 255, 255, 255} // White for others
 		}
 
 		// Draw the filled rectangle.
-		vector.DrawFilledRect(screen, x, y, agentSize, agentSize, clr, false)
+		vector.DrawFilledRect(screen, x*16, y*16, agentSize, agentSize, clr, false)
 	}
 }
 

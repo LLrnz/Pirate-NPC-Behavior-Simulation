@@ -16,7 +16,8 @@ type Environment struct {
 	sync.RWMutex
 	agents    []Agent
 	objects   []Object
-	market    Market
+	harbours  []Harbour
+	market    *Market
 	agentLock sync.RWMutex
 }
 
@@ -49,9 +50,25 @@ func (env *Environment) AddObject(object Object) {
 func (env *Environment) RemoveAgent(target Agent) {
 	// Loop over the agents until the target is found
 	for i, agent := range env.agents {
-		if agent == target {
+		if agent.Id() == target.Id() {
 			// Here we take all the agents except the one to remove it
 			env.agents = append(env.agents[:i], env.agents[i+1:]...)
+			return
+		}
+	}
+}
+
+// Attack the agent in the env
+func (env *Environment) AttackAgent(target Agent, attacker Agent) {
+	// Loop over the agents until the target is found
+	for _, agent := range env.agents {
+		if agent.Id() == target.Id() {
+			agent.RemoveHealth(attacker.Attack())
+
+			if agent.Health() <= 0 {
+				env.RemoveAgent(target)
+			}
+			// If die, retrieve 60% ressources
 			return
 		}
 	}
@@ -83,7 +100,7 @@ func (env *Environment) AgentsNearby(agt Agent) []Agent {
 			continue
 		}
 
-		// Calculate the distance between the agents [[CHANGE THIS WITH THE FORMULA WE USE]]
+		// Calculate the distance between the agents
 		otherAgtCoord := otherAgent.Coordinates()
 		distance := CalculateDistance(otherAgtCoord, agtCoord)
 
@@ -96,8 +113,79 @@ func (env *Environment) AgentsNearby(agt Agent) []Agent {
 	return nearbyAgents
 }
 
+// KrakenNearby returns true if the kraken is within the field of view of the ship
+func (env *Environment) KrakenNearby(agt Agent) Agent {
+	// Get the coordinates and FOV of the agent
+	agtCoord := agt.Coordinates()
+	agtFov := agt.Fov()
+
+	// Loop on all agents in the environment
+	for _, otherAgent := range env.agents {
+
+		// Skip the current agent
+		if otherAgent == agt {
+			continue
+		}
+
+		// If kraken agent
+		if otherAgent.AgtType() == "kraken" {
+			// Calculate the distance between the agents
+			otherAgtCoord := otherAgent.Coordinates()
+			distance := CalculateDistance(otherAgtCoord, agtCoord)
+
+			// Check if the other agent is within the field of view
+			if int(distance) <= agtFov {
+				return otherAgent
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ClosestShip returns the closest ship to the given ship that is not docked within it's fov
+func (env *Environment) ClosestShip(agt *Kraken) *Agent {
+	var closestAgent *Agent
+	minDistance := math.MaxInt
+
+	// Get the coordinates of the agent
+	agtCoord := agt.Coordinates()
+
+	// Loop through all agents in the environment
+	for _, otherAgent := range env.agents {
+		// Skip the current agent
+		if otherAgent.Id() == agt.Id() || otherAgent.AgtType() != "Ship" {
+			continue
+		}
+
+		// Skip docked ships because they are safe
+		ship, ok := otherAgent.(*Ship)
+		if ok && ship.Docked() != nil {
+			continue
+		}
+
+		// Calculate the distance between the kraken and the ship
+		otherAgtCoord := otherAgent.Coordinates()
+		distance := Heuristic(otherAgtCoord, agtCoord)
+
+		// If the Agent if further than the Fov of the Agent, then we don't return it
+		if distance > agt.Fov() {
+			continue
+		}
+
+		// Update the closest agent if the distance is smaller
+		if distance < minDistance {
+			minDistance = distance
+			closestAgent = &otherAgent
+		}
+	}
+
+	return closestAgent
+}
+
 // ClosestAgent returns the closest agent to the given agent that is not docked within it's fov
-func (env *Environment) ClosestAgent(agt Agent) Agent {
+func (env *Environment) ClosestAgent(agt *Kraken) Agent {
 	var closestAgent Agent
 	minDistance := math.MaxFloat64
 
@@ -112,13 +200,13 @@ func (env *Environment) ClosestAgent(agt Agent) Agent {
 		}
 
 		// Skip docked ships because they are safe
-		if otherAgent.AgtType() == "ship" {
-			if ship, ok := otherAgent.(*Ship); ok && ship.Docked() {
+		if otherAgent.AgtType() == "Ship" {
+			if ship, ok := otherAgent.(*Ship); ok && ship.Docked() != nil {
 				continue
 			}
 		}
 
-		// Calculate the distance between the agents
+		// Calculate the distance between the kraken and the ship
 		otherAgtCoord := otherAgent.Coordinates()
 		distance := CalculateDistance(otherAgtCoord, agtCoord)
 
@@ -135,4 +223,27 @@ func (env *Environment) ClosestAgent(agt Agent) Agent {
 	}
 
 	return closestAgent
+}
+
+// Get harbours in the environment
+func (env *Environment) Harbours() []Harbour {
+	return env.harbours
+}
+
+// HasRessourcesToSellAtHarbour returns true if ship has ressources to sell else false
+func (env *Environment) HasRessourcesToSellAtHarbour(agt *Ship) bool {
+	// Get Harbour where the ship is docked
+	harbour := agt.Docked()
+
+	// Get the ressources the ship has
+	agtRessources := agt.Ressources()
+
+	// For each ressource of the ship, check if it can be sold
+	for ressource := range agtRessources {
+		if harbour.IsRessourcesSellable(ressource) {
+			return true
+		}
+	}
+
+	return false
 }

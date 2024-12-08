@@ -7,3 +7,5 @@ var ressourcesSprites = map[string]string{
 	"coffee": "assets/sprites/ressource/coffee.png",
 	"beer":   "assets/sprites/ressource/beer.png",
 }
+
+var maxHealth int = 100
