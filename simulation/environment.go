@@ -210,3 +210,82 @@ func (env *Environment) HasRessourcesToSellAtHarbour(agt *Ship) bool {
 
 	return false
 }
+
+// ClosestPirate returns the closest pirate ship not docked within it's fov
+func (env *Environment) ClosestPirate(ag *Ship) *Agent {
+	var closestAgent *Agent
+	minDistance := math.MaxInt
+
+	// Get the coordinates of the agent
+	agtCoord := ag.Coordinates()
+
+	// Loop through all agents in the environment
+	for _, otherAgent := range env.agents {
+		// Skip the current agent
+		if otherAgent.Id() == ag.Id() || otherAgent.AgtType() != "Ship" {
+			continue
+		}
+
+		// Skip docked ships because they are safe
+		ship, ok := otherAgent.(*Ship)
+		if ok && (ship.Docked() != nil || ship.ShipType() != "Pirate") {
+			continue
+		}
+
+		// Calculate the distance between the kraken and the ship
+		otherAgtCoord := otherAgent.Coordinates()
+		distance := Heuristic(otherAgtCoord, agtCoord)
+
+		// If the Agent if further than the Fov of the Agent, then we don't return it
+		if distance > ag.Fov() {
+			continue
+		}
+
+		// Update the closest agent if the distance is smaller
+		if distance < minDistance {
+			minDistance = distance
+			closestAgent = &otherAgent
+		}
+	}
+
+	return closestAgent
+}
+
+func (env *Environment) ClosestPrivateerNationality(ag *Ship) *Agent {
+	var closestAgent *Agent
+	minDistance := math.MaxInt
+
+	// Get the coordinates of the agent
+	agtCoord := ag.Coordinates()
+
+	// Loop through all agents in the environment
+	for _, otherAgent := range env.agents {
+		// Skip the current agent
+		if otherAgent.Id() == ag.Id() || otherAgent.AgtType() != "Ship" {
+			continue
+		}
+
+		// Skip docked ships because they are safe
+		ship, ok := otherAgent.(*Ship)
+		if ok && (ship.Docked() != nil || ship.ShipType() != "Privateer" || ship.Nationality() == ag.Nationality()) {
+			continue
+		}
+
+		// Calculate the distance between the kraken and the ship
+		otherAgtCoord := otherAgent.Coordinates()
+		distance := Heuristic(otherAgtCoord, agtCoord)
+
+		// If the Agent if further than the Fov of the Agent, then we don't return it
+		if distance > ag.Fov() {
+			continue
+		}
+
+		// Update the closest agent if the distance is smaller
+		if distance < minDistance {
+			minDistance = distance
+			closestAgent = &otherAgent
+		}
+	}
+
+	return closestAgent
+}
