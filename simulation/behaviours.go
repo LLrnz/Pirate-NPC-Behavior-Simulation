@@ -255,7 +255,6 @@ func merchantShipAct(ship *Ship, env *Environment, step int) {
 				env.Market().Sell(ship, ressourceObj, step)
 			}
 		}
-		print(ship.Id(), " ", int(ship.Money()), "€")
 	case "buy":
 		// Evaluate resources at the harbor
 		resources := ship.Docked().AvailableRessources()

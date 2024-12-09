@@ -581,9 +581,9 @@ func (ag *Kraken) Percept(env *Environment, step int) {
 
 	// Check if there is a closest ship within fov
 	if closest != nil {
-		ag.target = closest
+		ag.SetTarget(closest)
 	} else {
-		ag.target = nil
+		ag.SetTarget(nil)
 	}
 }
 
@@ -591,7 +591,7 @@ func (ag *Kraken) Deliberate(env *Environment, step int) {
 
 	//If the Kraken is low life or has no target = rest to gain PV
 	if ag.Health() <= int(float32(constants.KrakenParameters.Health)*0.1) || ag.Target() == nil {
-		ag.action = "rest"
+		ag.SetAction("rest")
 		return
 	}
 
@@ -601,14 +601,14 @@ func (ag *Kraken) Deliberate(env *Environment, step int) {
 	// If the Kraken can attack, it should attack the ship
 	// Else it should follow the nearest agent as a target
 	if distance < ag.Speed() {
-		ag.action = "attack"
+		ag.SetAction("attack")
 	} else {
 		// Pathfinding to the target
 		path := AStar(ag.Coordinates(), (*ag.Target()).Coordinates())
 		// If path found set itinerary and follow
 		if path != nil {
 			ag.SetItinerary(path)
-			ag.action = "follow"
+			ag.SetAction("follow")
 		}
 	}
 }

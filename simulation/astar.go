@@ -130,7 +130,9 @@ func AStar(start, goal Coordinates) []Coordinates {
 			// Reconstruct the path
 			path := []Coordinates{}
 			for c := current; c != nil; c = c.Parent {
-				path = append([]Coordinates{c.Coordinates}, path...)
+				if c.Coordinates != start {
+					path = append([]Coordinates{c.Coordinates}, path...)
+				}
 			}
 			return path
 		}

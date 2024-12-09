@@ -110,7 +110,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 
 	// Create Merchant Ships
 	for i := 0; i < numMerchant; i++ {
-		id := fmt.Sprintf("Merchant Ship #%d", i)
+		id := fmt.Sprintf("Merchant 1 Ship #%d", i)
 		nat := nationalities[i%len(nationalities)]
 		ship := NewShipMerchant(id, nat, dockedHarbour1.Coordinates(), dockedHarbour1)
 		simu.agents = append(simu.agents, ship)
@@ -119,7 +119,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 
 	// Create Merchant Ships
 	for i := 0; i < numMerchant; i++ {
-		id := fmt.Sprintf("Merchant Ship #%d", i)
+		id := fmt.Sprintf("Merchant 2 Ship #%d", i)
 		nat := nationalities[i%len(nationalities)]
 		ship := NewShipMerchant(id, nat, dockedHarbour4.Coordinates(), dockedHarbour4)
 		simu.agents = append(simu.agents, ship)
@@ -128,7 +128,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 
 	// Create Merchant Ships
 	for i := 0; i < numMerchant; i++ {
-		id := fmt.Sprintf("Merchant Ship #%d", i)
+		id := fmt.Sprintf("Merchant 3 Ship #%d", i)
 		nat := nationalities[i%len(nationalities)]
 		ship := NewShipMerchant(id, nat, dockedHarbour3.Coordinates(), dockedHarbour3)
 		simu.agents = append(simu.agents, ship)
@@ -137,7 +137,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 
 	// Create Merchant Ships
 	for i := 0; i < numMerchant; i++ {
-		id := fmt.Sprintf("Merchant Ship #%d", i)
+		id := fmt.Sprintf("Merchant 4 Ship #%d", i)
 		nat := nationalities[i%len(nationalities)]
 		ship := NewShipMerchant(id, nat, dockedHarbour2.Coordinates(), dockedHarbour2)
 		simu.agents = append(simu.agents, ship)
@@ -175,7 +175,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	simu.env.AddAgent(rackham)
 
 	// Create one Kraken
-	kraken := NewKraken("Kraken", Coordinates{x: 10, y: 10})
+	kraken := NewKraken("Kraken", Coordinates{x: 13, y: 12})
 	simu.agents = append(simu.agents, kraken)
 	simu.env.AddAgent(kraken)
 
