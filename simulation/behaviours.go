@@ -101,7 +101,7 @@ func merchantShipDeliberate(ship *Ship, env *Environment, step int) {
 		}
 
 		// If ressources in ship that can be sold at harbour, sell
-		if env.HasRessourcesToSellAtHarbour(ship) {
+		if env.HasRessourcesToSellAtHarbour(ship) && ship.Quantity() >= 1 {
 			ship.SetAction("sell")
 			return
 		}
@@ -131,6 +131,10 @@ func merchantShipDeliberate(ship *Ship, env *Environment, step int) {
 		for _, harbour := range harbours {
 			resources := harbour.SellableRessources()
 
+			if len(resources) == 0 {
+				continue
+			}
+
 			for ressource, available := range resources {
 				if !available {
 					continue
@@ -139,8 +143,7 @@ func merchantShipDeliberate(ship *Ship, env *Environment, step int) {
 				if ship.Ressources()[ressource] > 0 {
 					// Calculate distance to the harbor
 					distance := float32(Heuristic(ship.Coordinates(), harbour.Coordinates()))
-
-					if distance < shortestDistance {
+					if distance < shortestDistance || shortestDistance == -1 {
 						shortestDistance = distance
 						closestHarbour = harbour
 					}
@@ -211,7 +214,6 @@ func merchantShipDeliberate(ship *Ship, env *Environment, step int) {
 }
 
 func merchantShipAct(ship *Ship, env *Environment, step int) {
-
 	switch ship.Action() {
 	case "flee":
 		// Continue itinerary to flee
@@ -253,6 +255,7 @@ func merchantShipAct(ship *Ship, env *Environment, step int) {
 				env.Market().Sell(ship, ressourceObj, step)
 			}
 		}
+		print(ship.Id(), " ", int(ship.Money()), "€")
 	case "buy":
 		// Evaluate resources at the harbor
 		resources := ship.Docked().AvailableRessources()
@@ -278,7 +281,7 @@ func merchantShipAct(ship *Ship, env *Environment, step int) {
 
 		// Calculate the amount to load based on the ship capacity
 		maxCapacity := constants.ShipConfigs["Merchant"].Capacity
-		availableCapacity := ship.Quantity()
+		availableCapacity := maxCapacity - ship.Quantity()
 		quantityToLoad := min(maxCapacity, availableCapacity)
 
 		// Buy ressource for the ship

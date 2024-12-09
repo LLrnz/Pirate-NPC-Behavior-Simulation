@@ -13,5 +13,5 @@ var KrakenParameters = KrakenConfig{
 	Speed:  2,
 	Attack: 40,
 	Health: 200,
-	FOV:    20,
+	FOV:    10,
 }

@@ -231,6 +231,7 @@ type Ship struct {
 func NewShipPirate(id string, coor Coordinates, docked *Harbour) *Ship {
 	shipType := "Pirate"
 	config := constants.ShipConfigs[shipType]
+	ressources := make(map[string]int)
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: coor},
@@ -245,6 +246,7 @@ func NewShipPirate(id string, coor Coordinates, docked *Harbour) *Ship {
 		nationality: constants.Without,
 		level:       1,
 		capacity:    config.Capacity,
+		ressources:  ressources,
 
 		docked: docked,
 
@@ -259,6 +261,7 @@ func NewShipPirate(id string, coor Coordinates, docked *Harbour) *Ship {
 func NewShipMerchant(id string, nationality constants.Nationality, coor Coordinates, docked *Harbour) *Ship {
 	shipType := "Merchant"
 	config := constants.ShipConfigs[shipType]
+	ressources := make(map[string]int)
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: coor},
@@ -272,6 +275,7 @@ func NewShipMerchant(id string, nationality constants.Nationality, coor Coordina
 		shipType:    shipType,
 		nationality: nationality,
 		level:       1,
+		ressources:  ressources,
 		capacity:    config.Capacity,
 
 		docked: docked,
@@ -287,6 +291,7 @@ func NewShipMerchant(id string, nationality constants.Nationality, coor Coordina
 func NewShipPrivateer(id string, nationality constants.Nationality, coor Coordinates, docked *Harbour) *Ship {
 	shipType := "Privateer"
 	config := constants.ShipConfigs[shipType]
+	ressources := make(map[string]int)
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: coor},
@@ -300,6 +305,7 @@ func NewShipPrivateer(id string, nationality constants.Nationality, coor Coordin
 		shipType:    shipType,
 		nationality: nationality,
 		level:       1,
+		ressources:  ressources,
 		capacity:    config.Capacity,
 
 		docked: docked,
@@ -315,6 +321,7 @@ func NewShipPrivateer(id string, nationality constants.Nationality, coor Coordin
 func NewShipArmy(id string, nationality constants.Nationality, coor Coordinates, docked *Harbour) *Ship {
 	shipType := "Army"
 	config := constants.ShipConfigs[shipType]
+	ressources := make(map[string]int)
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: coor},
@@ -328,7 +335,9 @@ func NewShipArmy(id string, nationality constants.Nationality, coor Coordinates,
 		shipType:    shipType,
 		nationality: nationality,
 		level:       1,
-		capacity:    config.Capacity,
+		ressources:  ressources,
+
+		capacity: config.Capacity,
 
 		docked: docked,
 
@@ -343,6 +352,7 @@ func NewShipArmy(id string, nationality constants.Nationality, coor Coordinates,
 func NewShipZoro(id string, coor Coordinates, docked *Harbour) *Ship {
 	shipType := "Zoro"
 	config := constants.ShipConfigs[shipType]
+	ressources := make(map[string]int)
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: coor},
@@ -356,6 +366,7 @@ func NewShipZoro(id string, coor Coordinates, docked *Harbour) *Ship {
 		shipType:    shipType,
 		nationality: constants.Without,
 		level:       1,
+		ressources:  ressources,
 		capacity:    config.Capacity,
 
 		docked: docked,
@@ -371,6 +382,7 @@ func NewShipZoro(id string, coor Coordinates, docked *Harbour) *Ship {
 func NewShipRackham(id string, coor Coordinates, docked *Harbour) *Ship {
 	shipType := "Rackham"
 	config := constants.ShipConfigs[shipType]
+	ressources := make(map[string]int)
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: coor},
@@ -384,6 +396,7 @@ func NewShipRackham(id string, coor Coordinates, docked *Harbour) *Ship {
 		shipType:    shipType,
 		nationality: constants.Without,
 		level:       1,
+		ressources:  ressources,
 		capacity:    config.Capacity,
 
 		docked: docked,
