@@ -97,7 +97,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	numPirate := 0
 	numMerchant := 1
 	numPrivateer := 0
-	numArmy := 0
+	numArmy := 1
 
 	// Create Pirate Ships
 	for i := 0; i < numPirate; i++ {
