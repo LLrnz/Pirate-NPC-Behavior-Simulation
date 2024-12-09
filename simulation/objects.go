@@ -90,9 +90,13 @@ type Harbour struct {
 }
 
 func NewHarbour(name string, coor Coordinates) *Harbour {
+	sellableRessources := make(map[string]bool)
+	availableRessources := make(map[string]bool)
 	return &Harbour{
-		name:       name,
-		BaseObject: BaseObject{coordinates: coor},
+		name:                name,
+		BaseObject:          BaseObject{coordinates: coor},
+		sellableRessources:  sellableRessources,
+		availableRessources: availableRessources,
 	}
 }
 
@@ -102,8 +106,23 @@ func (h *Harbour) SellableRessources() map[string]bool {
 }
 
 // Getter
+func (h *Harbour) Name() string {
+	return h.name
+}
+
+// Getter
 func (h *Harbour) AvailableRessources() map[string]bool {
 	return h.availableRessources
+}
+
+// Add sellable ressource
+func (h *Harbour) AddSellableRessources(ressource string) {
+	h.sellableRessources[ressource] = true
+}
+
+// Add available ressource
+func (h *Harbour) AddAvailableRessources(ressource string) {
+	h.availableRessources[ressource] = true
 }
 
 // IsRessourcesSellable checks if a ressource is sellable in a Harbour
@@ -113,7 +132,8 @@ func (h *Harbour) IsRessourcesSellable(ressource string) bool {
 	sellableRessources := h.SellableRessources()
 
 	// Check if the ressource given by agent is sellable
-	if sellableRessources[ressource] {
+	sellable, ok := sellableRessources[ressource]
+	if ok && sellable {
 		return true
 	}
 	return false

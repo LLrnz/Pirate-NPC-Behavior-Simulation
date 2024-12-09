@@ -22,12 +22,13 @@ type Environment struct {
 }
 
 // NewEnvironment initializes the Environment
-func NewEnvironment(agents []Agent, objects []Object) (env *Environment) {
+func NewEnvironment(agents []Agent, objects []Object, harbours []Harbour) (env *Environment) {
 	market := NewMarket()
 	return &Environment{
-		agents:  agents,
-		objects: objects,
-		market:  market,
+		agents:   agents,
+		objects:  objects,
+		harbours: harbours,
+		market:   market,
 	}
 }
 
@@ -49,6 +50,11 @@ func (env *Environment) AddAgent(agt Agent) {
 // Add an Object to the Environment
 func (env *Environment) AddObject(object Object) {
 	env.objects = append(env.objects, object)
+}
+
+// Add an Harbour to the Environment
+func (env *Environment) AddHarbour(h Harbour) {
+	env.harbours = append(env.harbours, h)
 }
 
 // Remove the Agent from the Environment
@@ -202,11 +208,94 @@ func (env *Environment) HasRessourcesToSellAtHarbour(agt *Ship) bool {
 	agtRessources := agt.Ressources()
 
 	// For each ressource of the ship, check if it can be sold
-	for ressource := range agtRessources {
-		if harbour.IsRessourcesSellable(ressource) {
-			return true
+	for ressource, quantity := range agtRessources {
+		if quantity != 0 {
+			if harbour.IsRessourcesSellable(ressource) {
+				print(ressource)
+				return true
+			}
 		}
 	}
 
 	return false
+}
+
+// ClosestPirate returns the closest pirate ship not docked within it's fov
+func (env *Environment) ClosestPirate(ag *Ship) *Agent {
+	var closestAgent *Agent
+	minDistance := math.MaxInt
+
+	// Get the coordinates of the agent
+	agtCoord := ag.Coordinates()
+
+	// Loop through all agents in the environment
+	for _, otherAgent := range env.agents {
+		// Skip the current agent
+		if otherAgent.Id() == ag.Id() || otherAgent.AgtType() != "Ship" {
+			continue
+		}
+
+		// Skip docked ships because they are safe
+		ship, ok := otherAgent.(*Ship)
+		if ok && (ship.Docked() != nil || ship.ShipType() != "Pirate") {
+			continue
+		}
+
+		// Calculate the distance between the kraken and the ship
+		otherAgtCoord := otherAgent.Coordinates()
+		distance := Heuristic(otherAgtCoord, agtCoord)
+
+		// If the Agent if further than the Fov of the Agent, then we don't return it
+		if distance > ag.Fov() {
+			continue
+		}
+
+		// Update the closest agent if the distance is smaller
+		if distance < minDistance {
+			minDistance = distance
+			closestAgent = &otherAgent
+		}
+	}
+
+	return closestAgent
+}
+
+// ClosestPrivateer returns the closest privateer ship not docked within it's fov and not same nationality
+func (env *Environment) ClosestPrivateerNationality(ag *Ship) *Agent {
+	var closestAgent *Agent
+	minDistance := math.MaxInt
+
+	// Get the coordinates of the agent
+	agtCoord := ag.Coordinates()
+
+	// Loop through all agents in the environment
+	for _, otherAgent := range env.agents {
+		// Skip the current agent
+		if otherAgent.Id() == ag.Id() || otherAgent.AgtType() != "Ship" {
+			continue
+		}
+
+		// Skip docked ships because they are safe
+		ship, ok := otherAgent.(*Ship)
+		if ok && (ship.Docked() != nil || ship.ShipType() != "Privateer" || ship.Nationality() == ag.Nationality()) {
+			continue
+		}
+
+		// Calculate the distance between the kraken and the ship
+		otherAgtCoord := otherAgent.Coordinates()
+		distance := Heuristic(otherAgtCoord, agtCoord)
+
+		// If the Agent if further than the Fov of the Agent, then we don't return it
+		if distance > ag.Fov() {
+			continue
+		}
+
+		// Update the closest agent if the distance is smaller
+		if distance < minDistance {
+			minDistance = distance
+			closestAgent = &otherAgent
+		}
+	}
+
+	return closestAgent
 }

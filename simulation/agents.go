@@ -231,6 +231,7 @@ type Ship struct {
 func NewShipPirate(id string, coor Coordinates, docked *Harbour) *Ship {
 	shipType := "Pirate"
 	config := constants.ShipConfigs[shipType]
+	ressources := make(map[string]int)
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: coor},
@@ -245,6 +246,7 @@ func NewShipPirate(id string, coor Coordinates, docked *Harbour) *Ship {
 		nationality: constants.Without,
 		level:       1,
 		capacity:    config.Capacity,
+		ressources:  ressources,
 
 		docked: docked,
 
@@ -259,6 +261,7 @@ func NewShipPirate(id string, coor Coordinates, docked *Harbour) *Ship {
 func NewShipMerchant(id string, nationality constants.Nationality, coor Coordinates, docked *Harbour) *Ship {
 	shipType := "Merchant"
 	config := constants.ShipConfigs[shipType]
+	ressources := make(map[string]int)
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: coor},
@@ -272,6 +275,7 @@ func NewShipMerchant(id string, nationality constants.Nationality, coor Coordina
 		shipType:    shipType,
 		nationality: nationality,
 		level:       1,
+		ressources:  ressources,
 		capacity:    config.Capacity,
 
 		docked: docked,
@@ -287,6 +291,7 @@ func NewShipMerchant(id string, nationality constants.Nationality, coor Coordina
 func NewShipPrivateer(id string, nationality constants.Nationality, coor Coordinates, docked *Harbour) *Ship {
 	shipType := "Privateer"
 	config := constants.ShipConfigs[shipType]
+	ressources := make(map[string]int)
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: coor},
@@ -300,6 +305,7 @@ func NewShipPrivateer(id string, nationality constants.Nationality, coor Coordin
 		shipType:    shipType,
 		nationality: nationality,
 		level:       1,
+		ressources:  ressources,
 		capacity:    config.Capacity,
 
 		docked: docked,
@@ -315,6 +321,7 @@ func NewShipPrivateer(id string, nationality constants.Nationality, coor Coordin
 func NewShipArmy(id string, nationality constants.Nationality, coor Coordinates, docked *Harbour) *Ship {
 	shipType := "Army"
 	config := constants.ShipConfigs[shipType]
+	ressources := make(map[string]int)
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: coor},
@@ -328,7 +335,9 @@ func NewShipArmy(id string, nationality constants.Nationality, coor Coordinates,
 		shipType:    shipType,
 		nationality: nationality,
 		level:       1,
-		capacity:    config.Capacity,
+		ressources:  ressources,
+
+		capacity: config.Capacity,
 
 		docked: docked,
 
@@ -343,6 +352,7 @@ func NewShipArmy(id string, nationality constants.Nationality, coor Coordinates,
 func NewShipZoro(id string, coor Coordinates, docked *Harbour) *Ship {
 	shipType := "Zoro"
 	config := constants.ShipConfigs[shipType]
+	ressources := make(map[string]int)
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: coor},
@@ -356,6 +366,7 @@ func NewShipZoro(id string, coor Coordinates, docked *Harbour) *Ship {
 		shipType:    shipType,
 		nationality: constants.Without,
 		level:       1,
+		ressources:  ressources,
 		capacity:    config.Capacity,
 
 		docked: docked,
@@ -371,6 +382,7 @@ func NewShipZoro(id string, coor Coordinates, docked *Harbour) *Ship {
 func NewShipRackham(id string, coor Coordinates, docked *Harbour) *Ship {
 	shipType := "Rackham"
 	config := constants.ShipConfigs[shipType]
+	ressources := make(map[string]int)
 	return &Ship{
 		BaseAgent: &BaseAgent{
 			BaseObject: BaseObject{coordinates: coor},
@@ -384,6 +396,7 @@ func NewShipRackham(id string, coor Coordinates, docked *Harbour) *Ship {
 		shipType:    shipType,
 		nationality: constants.Without,
 		level:       1,
+		ressources:  ressources,
 		capacity:    config.Capacity,
 
 		docked: docked,
@@ -568,9 +581,9 @@ func (ag *Kraken) Percept(env *Environment, step int) {
 
 	// Check if there is a closest ship within fov
 	if closest != nil {
-		ag.target = closest
+		ag.SetTarget(closest)
 	} else {
-		ag.target = nil
+		ag.SetTarget(nil)
 	}
 }
 
@@ -578,7 +591,7 @@ func (ag *Kraken) Deliberate(env *Environment, step int) {
 
 	//If the Kraken is low life or has no target = rest to gain PV
 	if ag.Health() <= int(float32(constants.KrakenParameters.Health)*0.1) || ag.Target() == nil {
-		ag.action = "rest"
+		ag.SetAction("rest")
 		return
 	}
 
@@ -588,14 +601,14 @@ func (ag *Kraken) Deliberate(env *Environment, step int) {
 	// If the Kraken can attack, it should attack the ship
 	// Else it should follow the nearest agent as a target
 	if distance < ag.Speed() {
-		ag.action = "attack"
+		ag.SetAction("attack")
 	} else {
 		// Pathfinding to the target
 		path := AStar(ag.Coordinates(), (*ag.Target()).Coordinates())
 		// If path found set itinerary and follow
 		if path != nil {
 			ag.SetItinerary(path)
-			ag.action = "follow"
+			ag.SetAction("follow")
 		}
 	}
 }

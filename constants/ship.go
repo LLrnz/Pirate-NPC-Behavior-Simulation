@@ -31,11 +31,11 @@ var ShipConfigs = map[ShipType]ShipConfig{
 		FOV:      10,
 	},
 	Merchant: {
-		Speed:    2,
+		Speed:    1,
 		Attack:   5,
 		Health:   150,
 		Capacity: 50,
-		FOV:      12,
+		FOV:      2,
 	},
 	Privateer: {
 		Speed:    3,
