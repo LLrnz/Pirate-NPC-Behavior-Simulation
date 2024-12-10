@@ -66,7 +66,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		var clr color.RGBA
 		switch agent.AgtType() {
 		case "Ship":
-			clr = color.RGBA{0, 255, 0, 255} // Green for ships
+			ship, ok := agent.(*simulation.Ship)
+			if ok {
+				switch ship.ShipType() {
+				case "Army":
+					clr = color.RGBA{0, 0, 255, 255} // Blue for army
+				default:
+					clr = color.RGBA{0, 255, 0, 255} // Green for ships
+				}
+			}
 		case "Kraken":
 			clr = color.RGBA{255, 0, 0, 255} // Red for kraken
 		default:

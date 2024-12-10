@@ -400,12 +400,12 @@ func armyShipDeliberate(ship *Ship, env *Environment, step int) {
 		harbours := env.Harbours()
 
 		// remove current harbour from the list
-		for i, harbour := range harbours {
+		/*for i, harbour := range harbours {
 			if harbour.Coordinates() == ship.Docked().Coordinates() {
 				harbours = append(harbours[:i], harbours[i+1:]...)
 				break
 			}
-		}
+		}*/
 
 		// get random harbour from the list
 		numberHarbour := mathrand.Intn(len(harbours) - 1)
