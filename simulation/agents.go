@@ -577,7 +577,7 @@ func (ag *Kraken) RestAndGainHealth() {
 
 func (ag *Kraken) Percept(env *Environment, step int) {
 	// Retrieve the closest agent from kraken
-	closest := env.ClosestShip(ag)
+	closest := env.ClosestShipFromKraken(ag)
 
 	// Check if there is a closest ship within fov
 	if closest != nil {
@@ -600,7 +600,10 @@ func (ag *Kraken) Deliberate(env *Environment, step int) {
 
 	// If the Kraken can attack, it should attack the ship
 	// Else it should follow the nearest agent as a target
-	if distance < ag.Speed() {
+	// Skip docked ships because they are safe
+	ship, ok := (*ag.Target()).(*Ship)
+
+	if (distance < ag.Speed() && ok && ship.Docked() == nil) || (distance < ag.Speed() && !ok) {
 		ag.SetAction("attack")
 	} else {
 		// Pathfinding to the target
@@ -611,6 +614,7 @@ func (ag *Kraken) Deliberate(env *Environment, step int) {
 			ag.SetAction("follow")
 		}
 	}
+
 }
 
 func (ag *Kraken) Act(env *Environment, step int) {

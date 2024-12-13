@@ -605,6 +605,7 @@ func zoroShipLevelUp(ship *Ship, env *Environment, step int) {
 // ------------------- Rackham ship -------------------
 
 func rackhamShipPercept(ship *Ship, env *Environment, step int) {
+
 	//fmt.Println("Rackham ship percept...")
 }
 
