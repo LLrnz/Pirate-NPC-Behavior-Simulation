@@ -587,43 +587,43 @@ func zoroShipPercept(ship *Ship, env *Environment, step int) {
 	// Zoro percepts a target within its fov
 	// Zoro's target is any ship/kraken who's closest to him
 
-	/*
-		kraken := env.KrakenNearby(ship)
-		targetShip := env.ClosestShip(ship)
+	kraken := env.KrakenNearby(ship)
+	targetShip := env.ClosestShipFromShip(ship)
 
-		var distancesSlice = make([]int, 2)
-		distancesSlice[0] = math.MaxInt // Kraken
-		distancesSlice[1] = math.MaxInt // targetShip
+	var distancesSlice = make([]int, 2)
+	distancesSlice[0] = math.MaxInt // Kraken
+	distancesSlice[1] = math.MaxInt // targetShip
 
-		if kraken != nil {
-			distancesSlice[0] = Heuristic((*kraken).Coordinates(), ship.coordinates)
+	if kraken != nil {
+		distancesSlice[0] = Heuristic((*kraken).Coordinates(), ship.coordinates)
+	}
+	if targetShip != nil {
+		distancesSlice[0] = Heuristic((*targetShip).Coordinates(), ship.coordinates)
+	}
+
+	distanceMin := distancesSlice[0]
+	indiceMin := 0
+
+	for i, d := range distancesSlice {
+		if d < distanceMin {
+			indiceMin = i
+			distanceMin = d
 		}
-		if targetShip != nil {
-			distancesSlice[0] = Heuristic((*targetShip).Coordinates(), ship.coordinates)
-		}
+	}
 
-		distanceMin := distancesSlice[0]
-		indiceMin := 0
-
-		for i, d := range distancesSlice {
-			if d < distanceMin {
-				indiceMin = i
-				distanceMin = d
-			}
-		}
-
-		if indiceMin == 0 && kraken != nil {
-			fmt.Println((*kraken).Id())
-			fmt.Println((*kraken).Coordinates())
-			ship.SetTarget(kraken)
-		} else if indiceMin == 1 && targetShip != nil {
-			fmt.Println((*targetShip).Id())
-			fmt.Println((*targetShip).Coordinates())
-			ship.SetTarget(targetShip)
-		} else {
-			fmt.Println("Zoro doesn't detect any target")
-		}
-	*/
+	if indiceMin == 0 && kraken != nil {
+		fmt.Println("Zoro detects the Kraken as target:")
+		fmt.Println((*kraken).Id())
+		fmt.Println((*kraken).Coordinates())
+		ship.SetTarget(kraken)
+	} else if indiceMin == 1 && targetShip != nil {
+		fmt.Println("Zoro detects a ship as target:")
+		fmt.Println((*targetShip).Id())
+		fmt.Println((*targetShip).Coordinates())
+		ship.SetTarget(targetShip)
+	} else {
+		fmt.Println("Zoro doesn't detect any target")
+	}
 
 }
 
