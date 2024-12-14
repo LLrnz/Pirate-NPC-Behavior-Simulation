@@ -10,33 +10,34 @@ import (
 	"gitlab.utc.fr/arsaintm/ia04-projet/simulation"
 )
 
+// Instantiate the container window and all its children
 func NewMainWindow(model *simulation.Simulation, refreshRate float64) (*widget.Container, controllers.SimulationController) {
 	// construct a new container that serves as the root of the UI hierarchy
 	rootroot := widget.NewContainer(
-		// the container will use a plain color as its background
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
-		// the container will use an anchor layout to layout its single child widget
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(2),
 
 			widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{false, true}),
-		//widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
 		)),
 	)
 
-	//rootroot.AddChild(rootContainer)
 	eventChan := make(chan widgets.Events)
+	// Create the children
+	// the control view
 	controlView := widgets.NewControlView(eventChan)
+	// the simulation view
 	viewSimu := widgets.NewSimulationView(eventChan)
 
+	//creates the view controller
 	controller := controllers.NewSimulationController(model, viewSimu, controlView, eventChan, refreshRate)
 
+	// Add all children to window
 	rootroot.AddChild(
 		viewSimu,
 		widgets.NewLogView(),
 		widgets.NewInfoPanelView(),
 		controlView,
-		//innerContainer2,
 	)
 	return rootroot, *controller
 }

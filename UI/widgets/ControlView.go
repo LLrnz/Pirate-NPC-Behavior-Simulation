@@ -9,15 +9,15 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 )
 
+// Widget used for displaying buttons to control the simulation
 type ControlView struct {
 	*widget.Container
 	events chan Events
 	btn    *widget.Button
-
-	//controller engine.SimulationController
 }
 
 func NewControlView(events chan Events) *ControlView {
+	// Create UI container
 	rootContainer := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.RGBA{100, 100, 0, 255})),
 		widget.ContainerOpts.WidgetOpts(
@@ -27,25 +27,18 @@ func NewControlView(events chan Events) *ControlView {
 			widget.GridLayoutOpts.Columns(1),
 
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
-		//widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
 		)),
 	)
 
-	buttonImage, _ := LoadButtonImage()
+	buttonImage, _ := utils.LoadButtonImage()
 
 	// load button text font
 	face, _ := utils.LoadFont(20)
 
-	// Creating button variable first so that it is usable in callbacks
+	// Creates the "Add Agent" button
 	var button *widget.Button
-	// construct a button
 	button = widget.NewButton(
-		// set general widget options
-		widget.ButtonOpts.WidgetOpts(
-		// instruct the container's anchor layout to center the button both horizontally and vertically
-
-		),
-		// specify the images to use
+		widget.ButtonOpts.WidgetOpts(),
 		widget.ButtonOpts.Image(buttonImage),
 
 		widget.ButtonOpts.Text("Add ship", face, &widget.ButtonTextColor{
@@ -54,27 +47,28 @@ func NewControlView(events chan Events) *ControlView {
 			Pressed: color.NRGBA{255, 0, 0, 255},
 		}),
 		widget.ButtonOpts.TextProcessBBCode(true),
-		// specify that the button's text needs some padding for correct display
 		widget.ButtonOpts.TextPadding(widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    5,
 			Bottom: 5,
 		}),
-		//Move the text down and right on press
+
+		//When button presses
 		widget.ButtonOpts.PressedHandler(func(args *widget.ButtonPressedEventArgs) {
 			button.Text().Inset.Top = 4
 			button.Text().Inset.Left = 4
 			button.GetWidget().CustomData = true
 		}),
-		//Move the text back to start on press released
+
+		//When button released
 		widget.ButtonOpts.ReleasedHandler(func(args *widget.ButtonReleasedEventArgs) {
 			button.Text().Inset.Top = 0
 			button.Text().Inset.Left = 0
 			button.GetWidget().CustomData = false
 		}),
 
-		// add a handler that reacts to clicking the button
+		// When button clicked
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			events <- AddAgent
 		}))

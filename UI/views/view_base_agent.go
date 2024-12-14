@@ -4,24 +4,30 @@ import (
 	"fmt"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"gitlab.utc.fr/arsaintm/ia04-projet/UI/engine"
+	"gitlab.utc.fr/arsaintm/ia04-projet/UI/utils"
 	"gitlab.utc.fr/arsaintm/ia04-projet/simulation"
 )
 
+// Base structure for displayable agent
+// it only stores its position, textures, state
+// and a way to communicate its info
 type ViewAgent struct {
-	Pos      engine.Position
+	Pos      utils.Position
 	Textures []ebiten.Image
 	State    int
 	ToInfo   func() string
 }
 
+// Base interface for displayable agent
 type IViewAgent interface {
 	Draw(screen *ebiten.Image)
 	ToString() string
-	Position() engine.Position
-	SetPosition(engine.Position)
+	Position() utils.Position
+	SetPosition(utils.Position)
 }
 
+// Converts a simulation agent to a displayable view of that agent
+// Kinda a factory
 func AgentToView(a simulation.Agent) (IViewAgent, error) {
 
 	switch a.AgtType() {
@@ -52,6 +58,7 @@ func AgentToView(a simulation.Agent) (IViewAgent, error) {
 	}
 }
 
+// Converts all agents of a slice to displayable views
 func ConvertAllAgentsToView(agents []simulation.Agent) ([]IViewAgent, error) {
 	size := len(agents)
 	views := make([]IViewAgent, size)
@@ -69,6 +76,7 @@ func ConvertAllAgentsToView(agents []simulation.Agent) ([]IViewAgent, error) {
 	return views, nil
 }
 
+// Draws a displayable agent on screen
 func (v *ViewAgent) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 
@@ -89,14 +97,17 @@ func (v *ViewAgent) Draw(screen *ebiten.Image) {
 	screen.DrawImage(&v.Textures[v.State], op)
 }
 
+// Will be used by the info panel to display the agent's info
 func (v *ViewAgent) ToString() string {
 	return v.ToInfo()
 }
 
-func (v *ViewAgent) Position() engine.Position {
+// Returns the postition on screen of the displayable agent
+func (v *ViewAgent) Position() utils.Position {
 	return v.Pos
 }
 
-func (v *ViewAgent) SetPosition(pos engine.Position) {
+// Sets the position on screen of the displayable agent
+func (v *ViewAgent) SetPosition(pos utils.Position) {
 	v.Pos = pos
 }

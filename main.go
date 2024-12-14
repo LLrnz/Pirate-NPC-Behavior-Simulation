@@ -8,6 +8,7 @@ import (
 	"github.com/ebitenui/ebitenui"
 	"github.com/hajimehoshi/ebiten/v2"
 	"gitlab.utc.fr/arsaintm/ia04-projet/UI"
+	"gitlab.utc.fr/arsaintm/ia04-projet/UI/utils"
 	"gitlab.utc.fr/arsaintm/ia04-projet/simulation"
 )
 
@@ -17,8 +18,8 @@ func main() {
 	mw, controller := UI.NewMainWindow(simu, 2)
 
 	// Ebiten setup
-	ebiten.SetWindowSize(868, 432)
-	ebiten.SetWindowSizeLimits(968, 532, -1, -1)
+	ebiten.SetWindowSize(utils.WindowWidth, utils.WindowHeight)
+	ebiten.SetWindowSizeLimits(utils.MaxWindowWidth, utils.MaxWindowHeight, -1, -1)
 	ebiten.SetWindowTitle("Piraaaates")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 

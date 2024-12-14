@@ -7,6 +7,7 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 )
 
+// Widget to output the logs (WIP)
 type LogView struct {
 	*widget.Container
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 )
 
+// Widget used to display infos about a selected object (WIP)
 type InfoPanelView struct {
 	*widget.Container
 }

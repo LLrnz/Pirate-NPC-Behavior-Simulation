@@ -2,23 +2,24 @@ package views
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"gitlab.utc.fr/arsaintm/ia04-projet/UI/engine"
 	"gitlab.utc.fr/arsaintm/ia04-projet/UI/utils"
 	"gitlab.utc.fr/arsaintm/ia04-projet/simulation"
 )
 
 // ==================[Kraken View]=====================
+// Structure acting as a displayable version of the Kraken object
 type ViewKraken struct {
 	ViewAgent
 }
 
+// Initiate the agent textures
 func getKrakenSprites() ([]ebiten.Image, error) {
 	im, err := utils.NewImageFromPath("assets/kraken.png")
 	return []ebiten.Image{*im}, err
 }
 
 func NewViewKraken(a simulation.Agent) (IViewAgent, error) {
-	pos := engine.ToPos(a.Coordinates())
+	pos := utils.ToPos(a.Coordinates())
 
 	ToInfo := func() string {
 		return ""
@@ -45,7 +46,7 @@ func getPirateSprites() ([]ebiten.Image, error) {
 }
 
 func NewViewPirate(s *simulation.Ship) (IViewAgent, error) {
-	pos := engine.ToPos(s.Coordinates())
+	pos := utils.ToPos(s.Coordinates())
 
 	ToInfo := func() string {
 		return ""
@@ -72,7 +73,7 @@ func getArmySprites() ([]ebiten.Image, error) {
 }
 
 func NewViewArmy(s *simulation.Ship) (IViewAgent, error) {
-	pos := engine.ToPos(s.Coordinates())
+	pos := utils.ToPos(s.Coordinates())
 
 	ToInfo := func() string {
 		return ""
@@ -99,7 +100,7 @@ func getPrivateerSprites() ([]ebiten.Image, error) {
 }
 
 func NewViewPrivateer(s *simulation.Ship) (IViewAgent, error) {
-	pos := engine.ToPos(s.Coordinates())
+	pos := utils.ToPos(s.Coordinates())
 
 	ToInfo := func() string {
 		return ""
@@ -126,7 +127,7 @@ func getMerchantSprites() ([]ebiten.Image, error) {
 }
 
 func NewViewMerchant(s *simulation.Ship) (IViewAgent, error) {
-	pos := engine.ToPos(s.Coordinates())
+	pos := utils.ToPos(s.Coordinates())
 
 	ToInfo := func() string {
 		return ""
@@ -153,7 +154,7 @@ func getRackhamSprites() ([]ebiten.Image, error) {
 }
 
 func NewViewRackham(s *simulation.Ship) (IViewAgent, error) {
-	pos := engine.ToPos(s.Coordinates())
+	pos := utils.ToPos(s.Coordinates())
 
 	ToInfo := func() string {
 		return ""
@@ -180,7 +181,7 @@ func getZoroSprites() ([]ebiten.Image, error) {
 }
 
 func NewViewZoro(s *simulation.Ship) (IViewAgent, error) {
-	pos := engine.ToPos(s.Coordinates())
+	pos := utils.ToPos(s.Coordinates())
 
 	ToInfo := func() string {
 		return ""
