@@ -26,23 +26,23 @@ func AgentToView(a simulation.Agent) (IViewAgent, error) {
 
 	switch a.AgtType() {
 	case "Kraken":
-		return NewViewKraken(a), nil
+		return NewViewKraken(a)
 
 	case "Ship":
 		ship, _ := a.(*simulation.Ship)
 		switch ship.ShipType() {
 		case "Pirate":
-			return NewViewPirate(ship), nil
+			return NewViewPirate(ship)
 		case "Army":
-			return NewViewArmy(ship), nil
+			return NewViewArmy(ship)
 		case "Privateer":
-			return NewViewPrivateer(ship), nil
+			return NewViewPrivateer(ship)
 		case "Merchant":
-			return NewViewMerchant(ship), nil
+			return NewViewMerchant(ship)
 		case "Rackham":
-			return NewViewRackham(ship), nil
+			return NewViewRackham(ship)
 		case "Zoro":
-			return NewViewZoro(ship), nil
+			return NewViewZoro(ship)
 		default:
 			return nil, fmt.Errorf("unknown ShipType : %s", a.AgtType())
 		}

@@ -36,9 +36,11 @@ func NewSimulationController(simu *simulation.Simulation, view *widgets.Simulati
 
 func (s *SimulationController) Start() {
 	go func() {
-		dur := time.Duration(float64(time.Second) * (1 / s.refreshRate))
-		time.Sleep(dur)
-		s.View.Update(s.simu)
+		for {
+			dur := time.Duration(float64(time.Second) * (1 / s.refreshRate))
+			time.Sleep(dur)
+			s.View.Update(s.simu)
+		}
 	}()
 }
 

@@ -14,9 +14,7 @@ import (
 func main() {
 	// Init the Model
 	simu := simulation.NewSimulation(600*time.Second, 0)
-	mw, controller := UI.NewMainWindow(simu, 0.5)
-
-	// Init the View
+	mw, controller := UI.NewMainWindow(simu, 2)
 
 	// Ebiten setup
 	ebiten.SetWindowSize(868, 432)
@@ -34,13 +32,15 @@ func main() {
 		Simu:       simu,
 		AgentLock:  sync.RWMutex{}}
 
+	game.Controller.Start()
+
+	// Run the simulation in a separate goroutine so it works at the same time as the game
+	go simu.Run()
+
 	// run Ebiten main loop
 	err := ebiten.RunGame(&game)
 	if err != nil {
 		log.Println(err)
 	}
-
-	// Run the simulation in a separate goroutine so it works at the same time as the game
-	go simu.Run()
 
 }

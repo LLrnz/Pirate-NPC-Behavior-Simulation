@@ -45,7 +45,7 @@ func NewSimulationView(events chan Events) *SimulationView {
 
 func (s *SimulationView) Update(simu *simulation.Simulation) {
 
-	viewAgents, err1 := views.ConvertAllAgentsToView([]simulation.Agent{})
+	viewAgents, err1 := views.ConvertAllAgentsToView(simu.Agents())
 	if err1 != nil {
 		log.Fatal(err1)
 	}
