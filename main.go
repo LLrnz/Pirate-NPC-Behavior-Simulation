@@ -2,27 +2,46 @@ package main
 
 import (
 	"log"
+	"sync"
 	"time"
 
+	"github.com/ebitenui/ebitenui"
 	"github.com/hajimehoshi/ebiten/v2"
+	"gitlab.utc.fr/arsaintm/ia04-projet/UI"
+	"gitlab.utc.fr/arsaintm/ia04-projet/UI/utils"
 	"gitlab.utc.fr/arsaintm/ia04-projet/simulation"
-	"gitlab.utc.fr/arsaintm/ia04-projet/view"
 )
 
 func main() {
 	// Init the Model
 	simu := simulation.NewSimulation(600*time.Second, 0)
+	mw, controller := UI.NewMainWindow(simu, 2)
 
-	// Init the View
-	game := view.NewGame(simu, 800, 600)
+	// Ebiten setup
+	ebiten.SetWindowSize(utils.WindowWidth, utils.WindowHeight)
+	ebiten.SetWindowSizeLimits(utils.MaxWindowWidth, utils.MaxWindowHeight, -1, -1)
+	ebiten.SetWindowTitle("Piraaaates")
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+
+	ui := ebitenui.UI{
+		Container: mw,
+	}
+
+	game := UI.Game{
+		Ui:         &ui,
+		Controller: controller,
+		Simu:       simu,
+		AgentLock:  sync.RWMutex{}}
+
+	game.Controller.Start()
 
 	// Run the simulation in a separate goroutine so it works at the same time as the game
 	go simu.Run()
 
-	// Start the Ebitengine game
-	ebiten.SetWindowSize(1024, 576)
-	ebiten.SetWindowTitle("Pirateeees")
-	if err := ebiten.RunGame(game); err != nil {
-		log.Fatal(err)
+	// run Ebiten main loop
+	err := ebiten.RunGame(&game)
+	if err != nil {
+		log.Println(err)
 	}
+
 }
