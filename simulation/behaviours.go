@@ -529,6 +529,7 @@ func armyShipAct(ship *Ship, env *Environment, step int) {
 
 	// Update current ship state for sprite
 	ship.CurrentShipState()
+	ship.CurrentDirection()
 }
 
 func armyShipLevelUp(ship *Ship, env *Environment, step int) {
