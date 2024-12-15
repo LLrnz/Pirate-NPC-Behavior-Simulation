@@ -13,6 +13,7 @@ import (
 // and a way to communicate its info
 type ViewAgent struct {
 	Pos      utils.Position
+	Dir      simulation.Direction
 	Textures []ebiten.Image
 	State    int
 	ToInfo   func() string
@@ -32,7 +33,8 @@ func AgentToView(a simulation.Agent) (IViewAgent, error) {
 
 	switch a.AgtType() {
 	case "Kraken":
-		return NewViewKraken(a)
+		kraken, _ := a.(*simulation.Kraken)
+		return NewViewKraken(kraken)
 
 	case "Ship":
 		ship, _ := a.(*simulation.Ship)
@@ -80,17 +82,16 @@ func ConvertAllAgentsToView(agents []simulation.Agent) ([]IViewAgent, error) {
 func (v *ViewAgent) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 
-	//TODO : To be added ?
-	// //flip horizontal
-	// if s.Direction == Left {
-	// 	op.GeoM.Scale(-1, 1)
-	// 	op.GeoM.Translate(float64(s.Texture.Bounds().Dx()), 0)
-	// }
+	//flip horizontal
+	if v.Dir == simulation.Left {
+		op.GeoM.Scale(-1, 1)
+		op.GeoM.Translate(float64(v.Textures[v.State].Bounds().Dx()), 0)
+	}
 
 	// //flip vertical
-	// if s.Direction == Down {
+	// if v.Dir == simulation.Down {
 	// 	op.GeoM.Scale(1, -1)
-	// 	op.GeoM.Translate(0, float64(s.Texture.Bounds().Dy()))
+	// 	op.GeoM.Translate(0, float64(v.Textures[v.State].Bounds().Dy()))
 	// }
 
 	op.GeoM.Translate(float64(v.Pos.X), (float64(v.Pos.Y)))
