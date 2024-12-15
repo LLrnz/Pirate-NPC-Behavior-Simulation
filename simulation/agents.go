@@ -170,7 +170,7 @@ func (agt *BaseAgent) SetDirection(direction Direction) {
 
 // Compute current Direction
 func (agt *BaseAgent) CurrentDirection() {
-	if agt.Itinerary() == nil {
+	if len(agt.Itinerary()) == 0 || agt.Itinerary() == nil {
 		return
 	}
 

@@ -475,7 +475,7 @@ func armyShipDeliberate(ship *Ship, env *Environment, step int) {
 	}
 
 	// if ship has no target, follow current itinerary
-	if ship.Itinerary() != nil {
+	if len(ship.Itinerary()) != 0 || ship.Itinerary() != nil {
 		fmt.Println("Army ship deliberate - no target, follow current itinerary - follow")
 		ship.SetAction("follow")
 		return
