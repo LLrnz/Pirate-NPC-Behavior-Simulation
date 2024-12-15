@@ -527,7 +527,7 @@ func armyShipAct(ship *Ship, env *Environment, step int) {
 		// Do nothing
 	}
 
-	// Update current ship state for sprite
+	// Update current shipState and direction for sprite
 	ship.CurrentShipState()
 	ship.CurrentDirection()
 }
