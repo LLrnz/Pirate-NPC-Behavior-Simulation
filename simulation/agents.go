@@ -65,6 +65,7 @@ type BaseAgent struct {
 	target    *Agent
 	action    string
 	itinerary []Coordinates
+	direction Direction
 }
 
 // Getter Id
@@ -157,6 +158,43 @@ func (agt *BaseAgent) SetItinerary(itinerary []Coordinates) {
 	agt.itinerary = itinerary
 }
 
+// Getter Direction
+func (agt *BaseAgent) Direction() Direction {
+	return agt.direction
+}
+
+// Setter Direction
+func (agt *BaseAgent) SetDirection(direction Direction) {
+	agt.direction = direction
+}
+
+// Compute current Direction
+func (agt *BaseAgent) CurrentDirection() {
+	if agt.Itinerary() == nil {
+		return
+	}
+
+	if agt.Itinerary()[0].X() > agt.Coordinates().x {
+		agt.SetDirection(Right)
+		return
+	}
+
+	if agt.Itinerary()[0].X() < agt.Coordinates().x {
+		agt.SetDirection(Left)
+		return
+	}
+
+	if agt.Itinerary()[0].Y() > agt.Coordinates().y {
+		agt.SetDirection(Up)
+		return
+	}
+
+	if agt.Itinerary()[0].Y() < agt.Coordinates().y {
+		agt.SetDirection(Down)
+		return
+	}
+}
+
 // Agent Percept
 func (agt *BaseAgent) Percept(env *Environment) {
 
@@ -207,6 +245,7 @@ type Ship struct {
 	*BaseAgent
 	shipType    string
 	nationality constants.Nationality
+	shipState   ShipState
 
 	level    int
 	capacity int
@@ -416,6 +455,31 @@ func (ag *Ship) Nationality() constants.Nationality {
 // Setter Nationality
 func (ag *Ship) SetNationality(nationality constants.Nationality) {
 	ag.nationality = nationality
+}
+
+// Getter ShipState
+func (ag *Ship) ShipState() ShipState {
+	return ag.shipState
+}
+
+// Setter ShipState
+func (ag *Ship) SetShipState(state ShipState) {
+	ag.shipState = state
+}
+
+// Decide current ShipState
+func (ag *Ship) CurrentShipState() {
+	if ag.Action() == "attack" {
+		ag.SetShipState(Attacking)
+		return
+	}
+
+	if ag.Health() <= 20 {
+		ag.SetShipState(OnFire)
+		return
+	}
+
+	ag.SetShipState(Idle)
 }
 
 // Getter ShipType

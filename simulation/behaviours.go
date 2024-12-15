@@ -526,6 +526,9 @@ func armyShipAct(ship *Ship, env *Environment, step int) {
 	default:
 		// Do nothing
 	}
+
+	// Update current ship state for sprite
+	ship.CurrentShipState()
 }
 
 func armyShipLevelUp(ship *Ship, env *Environment, step int) {
