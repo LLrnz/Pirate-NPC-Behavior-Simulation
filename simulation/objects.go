@@ -1,5 +1,7 @@
 package simulation
 
+import "sync"
+
 /*
 ********************************************
 	objects.go - Objects logique
@@ -58,16 +60,21 @@ type Object interface {
 
 // Creation of BaseObject so it can be used by other structs
 type BaseObject struct {
+	sync.RWMutex
 	coordinates Coordinates
 }
 
 // Getter coordinates
 func (o *BaseObject) Coordinates() Coordinates {
+	o.RLock()
+	defer o.RUnlock()
 	return o.coordinates
 }
 
 // Setter coordinates
 func (o *BaseObject) SetCoordinates(coor Coordinates) {
+	o.Lock()
+	defer o.Unlock()
 	o.coordinates = coor
 }
 
@@ -82,11 +89,10 @@ func (o *BaseObject) SetCoordinates(coor Coordinates) {
 
 // Creation of our Harbour object that takes a BaseObject
 type Harbour struct {
-	BaseObject
+	*BaseObject
 	name                string
 	sellableRessources  map[string]bool
 	availableRessources map[string]bool
-	dockedAgents        []Agent
 }
 
 func NewHarbour(name string, coor Coordinates) *Harbour {
@@ -94,20 +100,20 @@ func NewHarbour(name string, coor Coordinates) *Harbour {
 	availableRessources := make(map[string]bool)
 	return &Harbour{
 		name:                name,
-		BaseObject:          BaseObject{coordinates: coor},
+		BaseObject:          &BaseObject{coordinates: coor},
 		sellableRessources:  sellableRessources,
 		availableRessources: availableRessources,
 	}
 }
 
 // Getter
-func (h *Harbour) SellableRessources() map[string]bool {
-	return h.sellableRessources
+func (h *Harbour) Name() string {
+	return h.name
 }
 
 // Getter
-func (h *Harbour) Name() string {
-	return h.name
+func (h *Harbour) SellableRessources() map[string]bool {
+	return h.sellableRessources
 }
 
 // Getter
@@ -137,19 +143,4 @@ func (h *Harbour) IsRessourcesSellable(ressource string) bool {
 		return true
 	}
 	return false
-}
-
-func (h *Harbour) DockShip(ship *Ship) {
-	h.dockedAgents = append(h.dockedAgents, ship)
-}
-
-func (h *Harbour) UndockShip(ship *Ship) {
-	// Loop over the agents until the target is found
-	for i, agent := range h.dockedAgents {
-		if agent.Id() == ship.Id() {
-			// Here we take all the agents except the one to remove it
-			h.dockedAgents = append(h.dockedAgents[:i], h.dockedAgents[i+1:]...)
-			return
-		}
-	}
 }

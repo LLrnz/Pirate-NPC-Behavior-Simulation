@@ -23,15 +23,23 @@ func NewMarket() (market *Market) {
 
 // Getter returns all transactions
 func (m *Market) Transactions() []Transaction {
+	m.RLock()
+	defer m.RUnlock()
+
 	return m.transactions
+}
+
+// Getter returns all transactions
+func (m *Market) AddTransactions(transaction Transaction) {
+	m.Lock()
+	defer m.Unlock()
+
+	m.transactions = append(m.transactions, transaction)
+
 }
 
 // Sell takes an Agent that will sell a ressource for money in exchange
 func (m *Market) Sell(ship *Ship, ressource Ressource, step int) {
-	//Lock the market when a transaction is currently happening so the price changes after every transaction
-	m.Lock()
-	defer m.Unlock()
-
 	//Get agent ressource quantity
 	quantitySold := ship.Ressources()[ressource.name]
 
@@ -56,6 +64,10 @@ func (m *Market) CalculateRessourcePrice(step int, ressource Ressource) float32 
 	// Get transactions
 	transactions := m.Transactions()
 
+	//Lock the market when a transaction is currently happening so the price changes after every transaction
+	m.Lock()
+	defer m.Unlock()
+
 	// Only get the transactions in the last 31 steps (31 days)
 	var quantitySoldBefore int
 	for _, transaction := range transactions {
@@ -75,6 +87,10 @@ func (m *Market) CalculateRessourcePrice(step int, ressource Ressource) float32 
 func (m *Market) RessourcePrice(step int, ressource Ressource) (float32, float32) {
 	// Get transactions
 	transactions := m.Transactions()
+
+	//Lock the market for calculations
+	m.Lock()
+	defer m.Unlock()
 
 	// Current and previous simulation step for the percent calculation
 	currentStep := step

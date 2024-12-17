@@ -1,6 +1,10 @@
 package simulation
 
-import "gitlab.utc.fr/arsaintm/ia04-projet/constants"
+import (
+	"sync"
+
+	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
+)
 
 /*
 ********************************************
@@ -54,6 +58,7 @@ type Agent interface {
 
 type BaseAgent struct {
 	BaseObject
+	sync.RWMutex
 	id      string
 	agtType string
 
@@ -79,6 +84,9 @@ func (agt *BaseAgent) AgtType() string {
 
 // Getter Field of view
 func (agt *BaseAgent) Fov() int {
+	agt.RLock()
+	defer agt.RUnlock()
+
 	return agt.fov
 }
 
@@ -99,31 +107,49 @@ func (agt *BaseAgent) SetSpeed(speed int) {
 
 // Getter Attack
 func (agt *BaseAgent) Attack() int {
+	agt.RLock()
+	defer agt.RUnlock()
+
 	return agt.attack
 }
 
 // Setter Attack
 func (agt *BaseAgent) SetAttack(attack int) {
+	agt.Lock()
+	defer agt.Unlock()
+
 	agt.attack = attack
 }
 
 // Getter Health
 func (agt *BaseAgent) Health() int {
+	agt.RLock()
+	defer agt.RUnlock()
+
 	return agt.health
 }
 
 // Setter Health
 func (agt *BaseAgent) SetHealth(health int) {
+	agt.Lock()
+	defer agt.Unlock()
+
 	agt.health = health
 }
 
 // Setter Health Add
 func (agt *BaseAgent) AddHealth(health int) {
+	agt.Lock()
+	defer agt.Unlock()
+
 	agt.health = agt.health + health
 }
 
 // Setter Health Remove
 func (agt *BaseAgent) RemoveHealth(health int) {
+	agt.Lock()
+	defer agt.Unlock()
+
 	agt.health = agt.health - health
 }
 
@@ -174,6 +200,7 @@ func (agt *BaseAgent) Act(env *Environment) {
 
 // FollowItinerary at speed of agent
 func (ag *BaseAgent) FollowItinerary() {
+
 	itinerary := ag.Itinerary()
 	speed := ag.Speed()
 
@@ -205,6 +232,8 @@ func (ag *BaseAgent) FollowItinerary() {
 
 type Ship struct {
 	*BaseAgent
+
+	sync.RWMutex
 	shipType    string
 	nationality constants.Nationality
 
@@ -415,6 +444,9 @@ func (ag *Ship) Nationality() constants.Nationality {
 
 // Setter Nationality
 func (ag *Ship) SetNationality(nationality constants.Nationality) {
+	ag.Lock()
+	defer ag.Unlock()
+
 	ag.nationality = nationality
 }
 
@@ -434,31 +466,49 @@ func (ag *Ship) LevelUp(env *Environment, step int) {
 
 // Getter Capacity
 func (ag *Ship) Capacity() int {
+	ag.RLock()
+	defer ag.RUnlock()
+
 	return ag.capacity
 }
 
 // Setter Capacity
 func (ag *Ship) SetCapacity(capacity int) {
+	ag.Lock()
+	defer ag.Unlock()
+
 	ag.capacity = capacity
 }
 
 // Getter Ressources
 func (ag *Ship) Ressources() map[string]int {
+	ag.RLock()
+	defer ag.RUnlock()
+
 	return ag.ressources
 }
 
 // Setter Ressources
 func (ag *Ship) SetRessources(ressources map[string]int) {
+	ag.Lock()
+	defer ag.Unlock()
+
 	ag.ressources = ressources
 }
 
 // Setter Ressources Add
 func (ag *Ship) AddRessources(ressource string, quantity int) {
+	ag.Lock()
+	defer ag.Unlock()
+
 	ag.ressources[ressource] += quantity
 }
 
 // Setter Ressources Remove
 func (ag *Ship) RemoveRessources(ressource string, quantity int) {
+	ag.Lock()
+	defer ag.Unlock()
+
 	currentQuantity, exists := ag.ressources[ressource]
 
 	// If it does not exist do nothing
@@ -476,31 +526,49 @@ func (ag *Ship) RemoveRessources(ressource string, quantity int) {
 
 // Getter Money
 func (ag *Ship) Money() float32 {
+	ag.RLock()
+	defer ag.RUnlock()
+
 	return ag.money
 }
 
 // Setter Money
 func (ag *Ship) SetMoney(money float32) {
+	ag.Lock()
+	defer ag.Unlock()
+
 	ag.money = money
 }
 
 // Setter Money Add
 func (ag *Ship) AddMoney(money float32) {
+	ag.Lock()
+	defer ag.Unlock()
+
 	ag.money = ag.money + money
 }
 
 // Setter Money Remove
 func (ag *Ship) RemoveMoney(money float32) {
+	ag.Lock()
+	defer ag.Unlock()
+
 	ag.money = ag.money - money
 }
 
 // Getter Docked
 func (ag *Ship) Docked() *Harbour {
+	ag.RLock()
+	defer ag.RUnlock()
+
 	return ag.docked
 }
 
 // Setter Docked
 func (ag *Ship) SetDocked(harbour *Harbour) {
+	ag.Lock()
+	defer ag.Unlock()
+
 	ag.docked = harbour
 }
 
@@ -554,6 +622,8 @@ func (ag *Ship) Quantity() int {
 
 type Kraken struct {
 	*BaseAgent
+
+	sync.RWMutex
 }
 
 func NewKraken(id string, coor Coordinates) *Kraken {
@@ -572,7 +642,7 @@ func NewKraken(id string, coor Coordinates) *Kraken {
 
 // Regain 10% of max health per step resting
 func (ag *Kraken) RestAndGainHealth() {
-	ag.AddHealth(int(float32(constants.KrakenParameters.Health) * 0.1))
+	ag.AddHealth(int(float32(constants.KrakenParameters.Health) * 0.05))
 }
 
 func (ag *Kraken) Percept(env *Environment, step int) {
@@ -590,7 +660,7 @@ func (ag *Kraken) Percept(env *Environment, step int) {
 func (ag *Kraken) Deliberate(env *Environment, step int) {
 
 	//If the Kraken is low life or has no target = rest to gain PV
-	if ag.Health() <= int(float32(constants.KrakenParameters.Health)*0.1) || ag.Target() == nil {
+	if ag.Health() <= int(float32(constants.KrakenParameters.Health)*0.05) || ag.Target() == nil {
 		ag.SetAction("rest")
 		return
 	}
