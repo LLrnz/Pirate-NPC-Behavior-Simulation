@@ -2,8 +2,8 @@ package utils
 
 const (
 	//Size of the background
-	MapWidth = 768
-	MapHeigt = 432
+	MapWidth = 768 * 2
+	MapHeigt = 432 * 2
 
 	Zoom = 1
 
@@ -11,16 +11,16 @@ const (
 	GameWidth  = MapWidth * Zoom
 	GameHeight = MapHeigt * Zoom
 
-	WindowWidth     = 868
-	WindowHeight    = 432
-	MaxWindowWidth  = 968
-	MaxWindowHeight = 532
+	WindowWidth     = MapWidth + 100
+	WindowHeight    = MapHeigt
+	MaxWindowWidth  = MapWidth + 200
+	MaxWindowHeight = +100
 
 	//Size of a tile on screen
 	TileSize = 16 * Zoom
 
 	//Asset of the background
-	MapImage = "assets/mapMonde.png"
+	MapImage = "assets/worldMap_big.png"
 
 	//TODO : add all the asset path ?
 )
