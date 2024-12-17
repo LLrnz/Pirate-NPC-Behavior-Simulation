@@ -65,6 +65,7 @@ type BaseAgent struct {
 	target    *Agent
 	action    string
 	itinerary []Coordinates
+	direction Direction
 }
 
 // Getter Id
@@ -157,6 +158,43 @@ func (agt *BaseAgent) SetItinerary(itinerary []Coordinates) {
 	agt.itinerary = itinerary
 }
 
+// Getter Direction
+func (agt *BaseAgent) Direction() Direction {
+	return agt.direction
+}
+
+// Setter Direction
+func (agt *BaseAgent) SetDirection(direction Direction) {
+	agt.direction = direction
+}
+
+// Compute current Direction
+func (agt *BaseAgent) CurrentDirection() {
+	if len(agt.Itinerary()) == 0 || agt.Itinerary() == nil {
+		return
+	}
+
+	if agt.Itinerary()[0].X() > agt.Coordinates().x {
+		agt.SetDirection(Right)
+		return
+	}
+
+	if agt.Itinerary()[0].X() < agt.Coordinates().x {
+		agt.SetDirection(Left)
+		return
+	}
+
+	if agt.Itinerary()[0].Y() > agt.Coordinates().y {
+		agt.SetDirection(Up)
+		return
+	}
+
+	if agt.Itinerary()[0].Y() < agt.Coordinates().y {
+		agt.SetDirection(Down)
+		return
+	}
+}
+
 // Agent Percept
 func (agt *BaseAgent) Percept(env *Environment) {
 
@@ -207,6 +245,7 @@ type Ship struct {
 	*BaseAgent
 	shipType    string
 	nationality constants.Nationality
+	shipState   ShipState
 
 	level    int
 	capacity int
@@ -418,6 +457,31 @@ func (ag *Ship) SetNationality(nationality constants.Nationality) {
 	ag.nationality = nationality
 }
 
+// Getter ShipState
+func (ag *Ship) ShipState() ShipState {
+	return ag.shipState
+}
+
+// Setter ShipState
+func (ag *Ship) SetShipState(state ShipState) {
+	ag.shipState = state
+}
+
+// Decide current ShipState
+func (ag *Ship) CurrentShipState() {
+	if ag.Action() == "attack" {
+		ag.SetShipState(Attacking)
+		return
+	}
+
+	if ag.Health() <= 20 {
+		ag.SetShipState(OnFire)
+		return
+	}
+
+	ag.SetShipState(Idle)
+}
+
 // Getter ShipType
 func (ag *Ship) ShipType() string {
 	return ag.shipType
@@ -554,6 +618,8 @@ func (ag *Ship) Quantity() int {
 
 type Kraken struct {
 	*BaseAgent
+
+	krakenState KrakenState
 }
 
 func NewKraken(id string, coor Coordinates) *Kraken {
@@ -568,6 +634,26 @@ func NewKraken(id string, coor Coordinates) *Kraken {
 			health:     constants.KrakenParameters.Health,
 		},
 	}
+}
+
+// Getter KrakenState
+func (ag *Kraken) KrakenState() KrakenState {
+	return ag.krakenState
+}
+
+// Setter KrakenState
+func (ag *Kraken) SetKrakenState(krakenState KrakenState) {
+	ag.krakenState = krakenState
+}
+
+// Compute current KrakenState
+func (ag *Kraken) CurrentKrakenState() {
+	if ag.Action() == "rest" {
+		ag.SetKrakenState(Hidden)
+		return
+	}
+
+	ag.SetKrakenState(OutOfWater)
 }
 
 // Regain 10% of max health per step resting
@@ -636,4 +722,8 @@ func (ag *Kraken) Act(env *Environment, step int) {
 
 	ag.target = nil
 	ag.action = ""
+
+	//Compute KrakenState and Direction for sprite
+	ag.CurrentKrakenState()
+	ag.CurrentDirection()
 }
