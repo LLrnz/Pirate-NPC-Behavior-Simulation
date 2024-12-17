@@ -18,6 +18,7 @@ import (
 type SimulationView struct {
 	*widget.Container
 	background *ebiten.Image
+	factory    *views.ViewFactory
 	objects    []views.IViewAgent
 	events     chan Events
 }
@@ -36,19 +37,24 @@ func NewSimulationView(events chan Events) *SimulationView {
 		log.Fatal(err)
 	}
 
-	// Converts all simulation objects to a displayable object
-	viewAgents, err1 := views.ConvertAllAgentsToView([]simulation.Agent{})
-	if err1 != nil {
-		log.Fatal(err1)
+	factory, err := views.NewViewFactory()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	return &SimulationView{rootContainer, fond, viewAgents, events}
+	// Converts all simulation objects to a displayable object
+	viewAgents, err := factory.ConvertAllAgentsToView([]simulation.Agent{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &SimulationView{rootContainer, fond, factory, viewAgents, events}
 }
 
 // Refreshes the view
 func (s *SimulationView) Update(simu *simulation.Simulation) {
 
-	viewAgents, err1 := views.ConvertAllAgentsToView(simu.Agents())
+	viewAgents, err1 := s.factory.ConvertAllAgentsToView(simu.Agents())
 	if err1 != nil {
 		log.Fatal(err1)
 	}

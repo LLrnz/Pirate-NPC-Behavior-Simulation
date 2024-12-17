@@ -12,11 +12,11 @@ import (
 // it only stores its position, textures, state
 // and a way to communicate its info
 type ViewAgent struct {
-	Pos      utils.Position
-	Dir      simulation.Direction
-	Textures []ebiten.Image
-	State    int
-	ToInfo   func() string
+	Pos     utils.Position
+	Dir     simulation.Direction
+	Texture *ebiten.Image
+	State   int
+	ToInfo  func() string
 }
 
 // Base interface for displayable agent
@@ -27,33 +27,80 @@ type IViewAgent interface {
 	SetPosition(utils.Position)
 }
 
+type BaseViewFactory struct {
+	Textures []ebiten.Image
+}
+
+type ViewFactory struct {
+	Textures map[string]map[simulation.State]ebiten.Image
+}
+
+func NewViewFactory() (*ViewFactory, error) {
+	krakenSprites, err := getKrakenSprites()
+	if err != nil {
+		return nil, err
+	}
+
+	pirateSprites, err := getPirateSprites()
+	if err != nil {
+		return nil, err
+	}
+
+	privateerSprites, err := getPrivateerSprites()
+	if err != nil {
+		return nil, err
+	}
+
+	armySprites, err := getArmySprites()
+	if err != nil {
+		return nil, err
+	}
+
+	merchantSprites, err := getMerchantSprites()
+	if err != nil {
+		return nil, err
+	}
+
+	zoroSprites, err := getZoroSprites()
+	if err != nil {
+		return nil, err
+	}
+
+	rackhamSprites, err := getRackhamSprites()
+	if err != nil {
+		return nil, err
+	}
+
+	textures := map[string]map[simulation.State]ebiten.Image{
+		"Kraken":    krakenSprites,
+		"Pirate":    pirateSprites,
+		"Privateer": privateerSprites,
+		"Army":      armySprites,
+		"Merchant":  merchantSprites,
+		"Zoro":      zoroSprites,
+		"Rackham":   rackhamSprites,
+	}
+
+	return &ViewFactory{textures}, nil
+}
+
 // Converts a simulation agent to a displayable view of that agent
 // Kinda a factory
-func AgentToView(a simulation.Agent) (IViewAgent, error) {
+
+func (v *ViewFactory) AgentToView(a simulation.Agent) (IViewAgent, error) {
+	pos := utils.ToPos(a.Coordinates())
 
 	switch a.AgtType() {
 	case "Kraken":
 		kraken, _ := a.(*simulation.Kraken)
-		return NewViewKraken(kraken)
+		texture := v.Textures[a.AgtType()][0]
+
+		return &ViewAgent{pos, kraken.Direction(), &texture, 0, func() string { return kraken.Id() }}, nil
 
 	case "Ship":
 		ship, _ := a.(*simulation.Ship)
-		switch ship.ShipType() {
-		case "Pirate":
-			return NewViewPirate(ship)
-		case "Army":
-			return NewViewArmy(ship)
-		case "Privateer":
-			return NewViewPrivateer(ship)
-		case "Merchant":
-			return NewViewMerchant(ship)
-		case "Rackham":
-			return NewViewRackham(ship)
-		case "Zoro":
-			return NewViewZoro(ship)
-		default:
-			return nil, fmt.Errorf("unknown ShipType : %s", a.AgtType())
-		}
+		texture := v.Textures[ship.ShipType()][simulation.State(ship.ShipState())]
+		return &ViewAgent{pos, ship.Direction(), &texture, int(ship.ShipState()), func() string { return ship.Id() }}, nil
 
 	default:
 		return nil, fmt.Errorf("unknown AgentType : %s", a.AgtType())
@@ -61,12 +108,12 @@ func AgentToView(a simulation.Agent) (IViewAgent, error) {
 }
 
 // Converts all agents of a slice to displayable views
-func ConvertAllAgentsToView(agents []simulation.Agent) ([]IViewAgent, error) {
+func (v *ViewFactory) ConvertAllAgentsToView(agents []simulation.Agent) ([]IViewAgent, error) {
 	size := len(agents)
 	views := make([]IViewAgent, size)
 
 	for i, agt := range agents {
-		view, err := AgentToView(agt)
+		view, err := v.AgentToView(agt)
 
 		if err != nil {
 			return nil, err
@@ -85,7 +132,7 @@ func (v *ViewAgent) Draw(screen *ebiten.Image) {
 	//flip horizontal
 	if v.Dir == simulation.Left {
 		op.GeoM.Scale(-1, 1)
-		op.GeoM.Translate(float64(v.Textures[v.State].Bounds().Dx()), 0)
+		op.GeoM.Translate(float64(v.Texture.Bounds().Dx()), 0)
 	}
 
 	// //flip vertical
@@ -95,7 +142,7 @@ func (v *ViewAgent) Draw(screen *ebiten.Image) {
 	// }
 
 	op.GeoM.Translate(float64(v.Pos.X), (float64(v.Pos.Y)))
-	screen.DrawImage(&v.Textures[v.State], op)
+	screen.DrawImage(v.Texture, op)
 }
 
 // Will be used by the info panel to display the agent's info

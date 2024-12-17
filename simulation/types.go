@@ -28,6 +28,16 @@ const (
 type KrakenState int
 
 const (
-	Hidden     KrakenState = 0
-	OutOfWater KrakenState = 1
+	Hidden     KrakenState = 3
+	OutOfWater KrakenState = 4
+)
+
+type State int
+
+const (
+	ShipIdle         State = 0
+	ShipOnFire       State = 1
+	ShipAttacking    State = 2
+	KrakenHidden     State = 3
+	KrakenOutOfWater State = 4
 )

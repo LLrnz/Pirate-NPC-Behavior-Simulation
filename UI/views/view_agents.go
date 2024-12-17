@@ -13,9 +13,9 @@ type ViewKraken struct {
 }
 
 // Initiate the agent textures
-func getKrakenSprites() ([]ebiten.Image, error) {
-	im1, err1 := utils.NewImageFromPath("assets/kraken.png")
-	im2, err2 := utils.NewImageFromPath("assets/kraken_shadow.png")
+func getKrakenSprites() (map[simulation.State]ebiten.Image, error) {
+	im1, err1 := utils.NewImageFromPath(utils.KrakenIdle)
+	im2, err2 := utils.NewImageFromPath(utils.KrakenHidden)
 
 	if err1 != nil {
 		return nil, err1
@@ -23,40 +23,34 @@ func getKrakenSprites() ([]ebiten.Image, error) {
 		return nil, err2
 	}
 
-	res := []ebiten.Image{
-		simulation.Hidden:     *im2,
-		simulation.OutOfWater: *im1,
+	res := map[simulation.State]ebiten.Image{
+		simulation.KrakenHidden:     *im2,
+		simulation.KrakenOutOfWater: *im1,
 	}
 
 	return res, nil
 }
 
-func NewViewKraken(a *simulation.Kraken) (IViewAgent, error) {
-	pos := utils.ToPos(a.Coordinates())
+// func NewViewKraken(a *simulation.Kraken, textures map[simulation.State]ebiten.Image) (IViewAgent, error) {
+// 	pos := utils.ToPos(a.Coordinates())
 
-	ToInfo := func() string {
-		return ""
-	}
+// 	ToInfo := func() string {
+// 		return ""
+// 	}
 
-	sprites, err := getKrakenSprites()
-
-	if err != nil {
-		return &ViewKraken{}, err
-	}
-
-	agt := ViewAgent{pos, a.Direction(), sprites, 0, ToInfo}
-	return &ViewKraken{agt}, nil
-}
+// 	agt := ViewAgent{pos, a.Direction(), textures[0], 0, ToInfo}
+// 	return &ViewKraken{agt}, nil
+// }
 
 // ==================[Pirate View]=====================
 type ViewPirate struct {
 	ViewAgent
 }
 
-func getPirateSprites() ([]ebiten.Image, error) {
-	im, err := utils.NewImageFromPath("assets/pirateship.png")
-	im1, err1 := utils.NewImageFromPath("assets/pirateship_fire.png")
-	im2, err2 := utils.NewImageFromPath("assets/pirateship_attack.png")
+func getPirateSprites() (map[simulation.State]ebiten.Image, error) {
+	im, err := utils.NewImageFromPath(utils.PirateIdle)
+	im1, err1 := utils.NewImageFromPath(utils.PirateFire)
+	im2, err2 := utils.NewImageFromPath(utils.PirateAttack)
 
 	if err1 != nil {
 		return nil, err1
@@ -64,41 +58,35 @@ func getPirateSprites() ([]ebiten.Image, error) {
 		return nil, err2
 	}
 
-	res := []ebiten.Image{
-		simulation.Idle:      *im,
-		simulation.OnFire:    *im1,
-		simulation.Attacking: *im2,
+	res := map[simulation.State]ebiten.Image{
+		simulation.ShipIdle:      *im,
+		simulation.ShipOnFire:    *im1,
+		simulation.ShipAttacking: *im2,
 	}
 
 	return res, err
 }
 
-func NewViewPirate(s *simulation.Ship) (IViewAgent, error) {
-	pos := utils.ToPos(s.Coordinates())
+// func NewViewPirate(s *simulation.Ship, t map[simulation.State]ebiten.Image) (IViewAgent, error) {
+// 	pos := utils.ToPos(s.Coordinates())
 
-	ToInfo := func() string {
-		return ""
-	}
+// 	ToInfo := func() string {
+// 		return ""
+// 	}
 
-	sprites, err := getPirateSprites()
-
-	if err != nil {
-		return &ViewPirate{}, err
-	}
-
-	agt := ViewAgent{pos, s.Direction(), sprites, int(s.ShipState()), ToInfo}
-	return &ViewPirate{agt}, nil
-}
+// 	agt := ViewAgent{pos, s.Direction(), sprites, int(s.ShipState()), ToInfo}
+// 	return &ViewPirate{agt}, nil
+// }
 
 // ==================[Army View]=====================
 type ViewArmy struct {
 	ViewAgent
 }
 
-func getArmySprites() ([]ebiten.Image, error) {
-	im, err := utils.NewImageFromPath("assets/armyship.png")
-	im1, err1 := utils.NewImageFromPath("assets/armyship_fire.png")
-	im2, err2 := utils.NewImageFromPath("assets/armyship_attack.png")
+func getArmySprites() (map[simulation.State]ebiten.Image, error) {
+	im, err := utils.NewImageFromPath(utils.ArmyIdle)
+	im1, err1 := utils.NewImageFromPath(utils.ArmyFire)
+	im2, err2 := utils.NewImageFromPath(utils.ArmyAttack)
 
 	if err1 != nil {
 		return nil, err1
@@ -106,41 +94,35 @@ func getArmySprites() ([]ebiten.Image, error) {
 		return nil, err2
 	}
 
-	res := []ebiten.Image{
-		simulation.Idle:      *im,
-		simulation.OnFire:    *im1,
-		simulation.Attacking: *im2,
+	res := map[simulation.State]ebiten.Image{
+		simulation.ShipIdle:      *im,
+		simulation.ShipOnFire:    *im1,
+		simulation.ShipAttacking: *im2,
 	}
 
 	return res, err
 }
 
-func NewViewArmy(s *simulation.Ship) (IViewAgent, error) {
-	pos := utils.ToPos(s.Coordinates())
+// func NewViewArmy(s *simulation.Ship) (IViewAgent, error) {
+// 	pos := utils.ToPos(s.Coordinates())
 
-	ToInfo := func() string {
-		return ""
-	}
+// 	ToInfo := func() string {
+// 		return ""
+// 	}
 
-	sprites, err := getArmySprites()
-
-	if err != nil {
-		return &ViewArmy{}, err
-	}
-
-	agt := ViewAgent{pos, s.Direction(), sprites, int(s.ShipState()), ToInfo}
-	return &ViewArmy{agt}, nil
-}
+// 	agt := ViewAgent{pos, s.Direction(), sprites, int(s.ShipState()), ToInfo}
+// 	return &ViewArmy{agt}, nil
+// }
 
 // ==================[Privateer View]=====================
 type ViewPrivateer struct {
 	ViewAgent
 }
 
-func getPrivateerSprites() ([]ebiten.Image, error) {
-	im, err := utils.NewImageFromPath("assets/privateer.png")
-	im1, err1 := utils.NewImageFromPath("assets/privateer_fire.png")
-	im2, err2 := utils.NewImageFromPath("assets/privateer_attack.png")
+func getPrivateerSprites() (map[simulation.State]ebiten.Image, error) {
+	im, err := utils.NewImageFromPath(utils.PrivateerIdle)
+	im1, err1 := utils.NewImageFromPath(utils.PrivateerFire)
+	im2, err2 := utils.NewImageFromPath(utils.PrivateerAttack)
 
 	if err1 != nil {
 		return nil, err1
@@ -148,41 +130,35 @@ func getPrivateerSprites() ([]ebiten.Image, error) {
 		return nil, err2
 	}
 
-	res := []ebiten.Image{
-		simulation.Idle:      *im,
-		simulation.OnFire:    *im1,
-		simulation.Attacking: *im2,
+	res := map[simulation.State]ebiten.Image{
+		simulation.ShipIdle:      *im,
+		simulation.ShipOnFire:    *im1,
+		simulation.ShipAttacking: *im2,
 	}
 
 	return res, err
 }
 
-func NewViewPrivateer(s *simulation.Ship) (IViewAgent, error) {
-	pos := utils.ToPos(s.Coordinates())
+// func NewViewPrivateer(s *simulation.Ship) (IViewAgent, error) {
+// 	pos := utils.ToPos(s.Coordinates())
 
-	ToInfo := func() string {
-		return ""
-	}
+// 	ToInfo := func() string {
+// 		return ""
+// 	}
 
-	sprites, err := getPrivateerSprites()
-
-	if err != nil {
-		return &ViewPrivateer{}, err
-	}
-
-	agt := ViewAgent{pos, s.Direction(), sprites, int(s.ShipState()), ToInfo}
-	return &ViewPrivateer{agt}, nil
-}
+// 	agt := ViewAgent{pos, s.Direction(), sprites, int(s.ShipState()), ToInfo}
+// 	return &ViewPrivateer{agt}, nil
+// }
 
 // ==================[Merchant View]=====================
 type ViewMerchant struct {
 	ViewAgent
 }
 
-func getMerchantSprites() ([]ebiten.Image, error) {
-	im, err := utils.NewImageFromPath("assets/merchantship.png")
-	im1, err1 := utils.NewImageFromPath("assets/merchantship_fire.png")
-	im2, err2 := utils.NewImageFromPath("assets/merchantship_attack.png")
+func getMerchantSprites() (map[simulation.State]ebiten.Image, error) {
+	im, err := utils.NewImageFromPath(utils.MerchantIdle)
+	im1, err1 := utils.NewImageFromPath(utils.MerchantFire)
+	im2, err2 := utils.NewImageFromPath(utils.MerchantAttack)
 
 	if err1 != nil {
 		return nil, err1
@@ -190,41 +166,35 @@ func getMerchantSprites() ([]ebiten.Image, error) {
 		return nil, err2
 	}
 
-	res := []ebiten.Image{
-		simulation.Idle:      *im,
-		simulation.OnFire:    *im1,
-		simulation.Attacking: *im2,
+	res := map[simulation.State]ebiten.Image{
+		simulation.ShipIdle:      *im,
+		simulation.ShipOnFire:    *im1,
+		simulation.ShipAttacking: *im2,
 	}
 
 	return res, err
 }
 
-func NewViewMerchant(s *simulation.Ship) (IViewAgent, error) {
-	pos := utils.ToPos(s.Coordinates())
+// func NewViewMerchant(s *simulation.Ship) (IViewAgent, error) {
+// 	pos := utils.ToPos(s.Coordinates())
 
-	ToInfo := func() string {
-		return ""
-	}
+// 	ToInfo := func() string {
+// 		return ""
+// 	}
 
-	sprites, err := getMerchantSprites()
-
-	if err != nil {
-		return &ViewMerchant{}, err
-	}
-
-	agt := ViewAgent{pos, s.Direction(), sprites, int(s.ShipState()), ToInfo}
-	return &ViewMerchant{agt}, nil
-}
+// 	agt := ViewAgent{pos, s.Direction(), sprites, int(s.ShipState()), ToInfo}
+// 	return &ViewMerchant{agt}, nil
+// }
 
 // ==================[Rackham View]=====================
 type ViewRackham struct {
 	ViewAgent
 }
 
-func getRackhamSprites() ([]ebiten.Image, error) {
-	im, err := utils.NewImageFromPath("assets/zoroship.png")
-	im1, err1 := utils.NewImageFromPath("assets/zoroship_fire.png")
-	im2, err2 := utils.NewImageFromPath("assets/zoroship_attack.png")
+func getRackhamSprites() (map[simulation.State]ebiten.Image, error) {
+	im, err := utils.NewImageFromPath(utils.ZoroIdle)
+	im1, err1 := utils.NewImageFromPath(utils.ZoroFire)
+	im2, err2 := utils.NewImageFromPath(utils.ZoroAttack)
 
 	if err1 != nil {
 		return nil, err1
@@ -232,41 +202,35 @@ func getRackhamSprites() ([]ebiten.Image, error) {
 		return nil, err2
 	}
 
-	res := []ebiten.Image{
-		simulation.Idle:      *im,
-		simulation.OnFire:    *im1,
-		simulation.Attacking: *im2,
+	res := map[simulation.State]ebiten.Image{
+		simulation.ShipIdle:      *im,
+		simulation.ShipOnFire:    *im1,
+		simulation.ShipAttacking: *im2,
 	}
 
 	return res, err
 }
 
-func NewViewRackham(s *simulation.Ship) (IViewAgent, error) {
-	pos := utils.ToPos(s.Coordinates())
+// func NewViewRackham(s *simulation.Ship) (IViewAgent, error) {
+// 	pos := utils.ToPos(s.Coordinates())
 
-	ToInfo := func() string {
-		return ""
-	}
+// 	ToInfo := func() string {
+// 		return ""
+// 	}
 
-	sprites, err := getRackhamSprites()
-
-	if err != nil {
-		return &ViewRackham{}, err
-	}
-
-	agt := ViewAgent{pos, s.Direction(), sprites, int(s.ShipState()), ToInfo}
-	return &ViewRackham{agt}, nil
-}
+// 	agt := ViewAgent{pos, s.Direction(), sprites, int(s.ShipState()), ToInfo}
+// 	return &ViewRackham{agt}, nil
+// }
 
 // ==================[Zoro View]=====================
 type ViewZoro struct {
 	ViewAgent
 }
 
-func getZoroSprites() ([]ebiten.Image, error) {
-	im, err := utils.NewImageFromPath("assets/zoroship.png")
-	im1, err1 := utils.NewImageFromPath("assets/zoroship_fire.png")
-	im2, err2 := utils.NewImageFromPath("assets/zoroship_attack.png")
+func getZoroSprites() (map[simulation.State]ebiten.Image, error) {
+	im, err := utils.NewImageFromPath(utils.ZoroIdle)
+	im1, err1 := utils.NewImageFromPath(utils.ZoroFire)
+	im2, err2 := utils.NewImageFromPath(utils.ZoroAttack)
 
 	if err1 != nil {
 		return nil, err1
@@ -274,28 +238,22 @@ func getZoroSprites() ([]ebiten.Image, error) {
 		return nil, err2
 	}
 
-	res := []ebiten.Image{
-		simulation.Idle:      *im,
-		simulation.OnFire:    *im1,
-		simulation.Attacking: *im2,
+	res := map[simulation.State]ebiten.Image{
+		simulation.ShipIdle:      *im,
+		simulation.ShipOnFire:    *im1,
+		simulation.ShipAttacking: *im2,
 	}
 
 	return res, err
 }
 
-func NewViewZoro(s *simulation.Ship) (IViewAgent, error) {
-	pos := utils.ToPos(s.Coordinates())
+// func NewViewZoro(s *simulation.Ship) (IViewAgent, error) {
+// 	pos := utils.ToPos(s.Coordinates())
 
-	ToInfo := func() string {
-		return ""
-	}
+// 	ToInfo := func() string {
+// 		return ""
+// 	}
 
-	sprites, err := getZoroSprites()
-
-	if err != nil {
-		return &ViewZoro{}, err
-	}
-
-	agt := ViewAgent{pos, s.Direction(), sprites, int(s.ShipState()), ToInfo}
-	return &ViewZoro{agt}, nil
-}
+// 	agt := ViewAgent{pos, s.Direction(), sprites, int(s.ShipState()), ToInfo}
+// 	return &ViewZoro{agt}, nil
+// }
