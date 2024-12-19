@@ -979,7 +979,7 @@ func armyShipDeliberate(ship *Ship, env *Environment, step int) {
 	}
 
 	// if ship has no target, follow current itinerary
-	if ship.Itinerary() != nil {
+	if len(ship.Itinerary()) != 0 || ship.Itinerary() != nil {
 		fmt.Println("Army ship deliberate - no target, follow current itinerary - follow")
 		ship.SetAction("follow")
 		return
@@ -1013,10 +1013,8 @@ func armyShipAct(ship *Ship, env *Environment, step int) {
 	case "attack":
 		// Go to target and attack
 		ship.FollowItinerary()
-		// Remove the target from the environment
 		env.AttackAgent(*ship.Target(), ship)
 	case "follow":
-		// Follow target
 		ship.FollowItinerary()
 
 		if ship.Docked() != nil {
@@ -1032,6 +1030,10 @@ func armyShipAct(ship *Ship, env *Environment, step int) {
 	default:
 		// Do nothing
 	}
+
+	// Update current shipState and direction for sprite
+	ship.CurrentShipState()
+	ship.CurrentDirection()
 }
 
 func armyShipLevelUp(ship *Ship, env *Environment, step int) {
@@ -1045,15 +1047,143 @@ func armyShipLevelUp(ship *Ship, env *Environment, step int) {
 func zoroShipPercept(ship *Ship, env *Environment, step int) {
 	//fmt.Println("Zoro ship percept...")
 	// //fmt.Println(AgentsNearby(ag.ship)) // AgentsNearby is a function that returns the agents nearby
+
+	// Zoro percepts a target within its fov
+	// Zoro's target is any ship/kraken who's closest to him
+
+	kraken := env.KrakenNearby(ship)
+	targetShip := env.ClosestShipFromShip(ship)
+
+	var distancesSlice = make([]int, 2)
+	distancesSlice[0] = math.MaxInt // Kraken
+	distancesSlice[1] = math.MaxInt // targetShip
+
+	if kraken != nil {
+		distancesSlice[0] = Heuristic((*kraken).Coordinates(), ship.coordinates)
+	}
+	if targetShip != nil {
+		distancesSlice[0] = Heuristic((*targetShip).Coordinates(), ship.coordinates)
+	}
+
+	distanceMin := distancesSlice[0]
+	indiceMin := 0
+
+	for i, d := range distancesSlice {
+		if d < distanceMin {
+			indiceMin = i
+			distanceMin = d
+		}
+	}
+
+	if indiceMin == 0 && kraken != nil {
+		fmt.Println("Zoro detects the Kraken as target:")
+		fmt.Println((*kraken).Id())
+		fmt.Println((*kraken).Coordinates())
+		ship.SetTarget(kraken)
+	} else if indiceMin == 1 && targetShip != nil {
+		fmt.Println("Zoro detects a ship as target:")
+		fmt.Println((*targetShip).Id())
+		fmt.Println((*targetShip).Coordinates())
+		ship.SetTarget(targetShip)
+	} else {
+		fmt.Println("Zoro doesn't detect any target")
+	}
+
 }
 
 func zoroShipDeliberate(ship *Ship, env *Environment, step int) {
 	//fmt.Println("Zoro ship deliberate...")
+
+	// if docked and not full life, fix
+	if ship.Docked() != nil && ship.Health() < maxHealth {
+		fmt.Println("Zoro deliberate - repair")
+		ship.SetAction("repair")
+		return
+	}
+
+	// since Zoro is lost at all times, he can't decide to go to the closest harbour when his life is low
+
+	// if docked, set itinerary to somewhere else (random)
+	if ship.Docked() != nil {
+		destination := NewRandomCoordinates()
+		path := AStar(ship.Coordinates(), destination)
+		if path != nil {
+			ship.SetItinerary(path)
+		}
+		fmt.Println("Zoro deliberate - Zoro leaves harbour to somewhere else (oh no) - follow")
+		ship.SetAction("follow")
+		return
+	}
+
+	// If Zoro has a target, attack/follow it
+	if ship.Target() != nil {
+		distance := Heuristic(ship.Coordinates(), (*ship.Target()).Coordinates())
+
+		if distance <= ship.Speed() { // if ship is next to a target, attack target
+
+			fmt.Println("Zoro deliberate - target - attack")
+			ship.SetAction("attack")
+		} else { // else, follow target // should never happen since Zoro should only detect agt on the same coordinates as him
+			// Pathfinding to the target
+			path := AStar(ship.Coordinates(), (*ship.Target()).Coordinates())
+			// if path found set itinerary and follow
+			if path != nil {
+				ship.SetItinerary(path)
+				fmt.Println("Zoro deliberate - target - follow")
+				ship.SetAction("follow")
+			}
+		}
+		return
+	}
+
+	// If Zoro has no target, follow current itinerary
+	if ship.Itinerary() != nil {
+		fmt.Println("Zoro deliberate - no target, follow current itinerary - follow")
+		ship.SetAction("follow")
+		return
+	}
+
+	// If Zoro has no target and no current itinerary, compute new itinerary
+	// get random coordinates
+	destination := NewRandomCoordinates()
+
+	// Set ship itinerary to chosen destination
+	path := AStar(ship.Coordinates(), destination)
+	if path != nil {
+		ship.SetItinerary(path)
+	}
+
+	fmt.Println("Zoro deliberate - no target, no itinerary - follow")
+	ship.SetAction("follow")
 }
 
 func zoroShipAct(ship *Ship, env *Environment, step int) {
 	//fmt.Println("Zoro ship act...")
 	//LostZoro(ship, env)
+
+	switch ship.Action() {
+	case "repair":
+		ship.SetHealth(maxHealth)
+	case "attack":
+		// Go to target and attack
+		ship.FollowItinerary()
+		env.AttackAgent(*ship.Target(), ship)
+	case "follow":
+		ship.FollowItinerary()
+
+		if ship.Docked() != nil {
+			env.UndockShip(ship)
+		}
+
+		if len(ship.Itinerary()) == 0 {
+			harbour, ok := env.IsHarbour(ship)
+			if ok {
+				env.DockShip(ship, harbour)
+			}
+		}
+	default:
+		// Do nothing
+	}
 
 }
 

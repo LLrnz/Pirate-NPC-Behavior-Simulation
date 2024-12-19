@@ -210,5 +210,5 @@ func (simu *Simulation) Print() {
 }
 
 func (simu *Simulation) Log() {
-
+	fmt.Print("starting")
 }
