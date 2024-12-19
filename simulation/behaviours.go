@@ -1095,7 +1095,7 @@ func zoroShipDeliberate(ship *Ship, env *Environment, step int) {
 	//fmt.Println("Zoro ship deliberate...")
 
 	// if docked and not full life, fix
-	if ship.Docked() != nil && ship.Health() < maxHealth {
+	if ship.Docked() != nil && ship.Health() < constants.ShipConfigs["Zoro"].Health {
 		fmt.Println("Zoro deliberate - repair")
 		ship.SetAction("repair")
 		return
@@ -1163,7 +1163,7 @@ func zoroShipAct(ship *Ship, env *Environment, step int) {
 
 	switch ship.Action() {
 	case "repair":
-		ship.SetHealth(maxHealth)
+		ship.SetHealth(constants.ShipConfigs["Zoro"].Health)
 	case "attack":
 		// Go to target and attack
 		ship.FollowItinerary()
