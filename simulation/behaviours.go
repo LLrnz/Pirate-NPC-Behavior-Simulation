@@ -9,20 +9,284 @@ import (
 )
 
 func pirateShipPercept(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Pirate ship percept...")
+	fmt.Println("Pirate ship percept...")
 
-	// //fmt.Println(AgentsNearby(ag.ship)) // AgentsNearby is a function that returns the agents nearby
+	kraken := env.KrakenNearby(ship)
+	pirate := env.ClosestPirate(ship)
+	merchant := env.ClosestMerchant(ship)
+	privateer := env.ClosestPrivateer(ship)
+	army := env.ClosestArmy(ship)
 
+	if army != nil {
+		//If nearby we set danger
+		ship.SetDanger(army)
+	} else {
+		// retreive closest potential target between kraken pirate and privateer and merchant
+		var distancesSlice = make([]int, 4)
+		distancesSlice[0] = math.MaxInt // kraken to current ship distance
+		distancesSlice[1] = math.MaxInt // pirate to current ship distance
+		distancesSlice[2] = math.MaxInt // privateer to current ship distance
+		distancesSlice[3] = math.MaxInt // merchant to current ship distance
+
+		if kraken != nil {
+			distancesSlice[0] = Heuristic((*kraken).Coordinates(), ship.coordinates)
+		}
+		if pirate != nil {
+			distancesSlice[1] = Heuristic((*pirate).Coordinates(), ship.coordinates)
+		}
+		if privateer != nil {
+			distancesSlice[2] = Heuristic((*privateer).Coordinates(), ship.coordinates)
+		}
+		if merchant != nil {
+			distancesSlice[3] = Heuristic((*merchant).Coordinates(), ship.coordinates)
+		}
+
+		distanceMin := distancesSlice[0]
+		indiceMin := 0
+
+		for i, d := range distancesSlice {
+			if d < distanceMin {
+				indiceMin = i
+				distanceMin = d
+			}
+		}
+
+		if indiceMin == 0 && kraken != nil {
+			fmt.Println((*kraken).Id())
+			fmt.Println((*kraken).Coordinates())
+			ship.SetTarget(kraken)
+		} else if indiceMin == 1 && pirate != nil {
+			fmt.Println((*pirate).Id())
+			fmt.Println((*pirate).Coordinates())
+			ship.SetTarget(pirate)
+		} else if indiceMin == 2 && privateer != nil {
+			fmt.Println((*privateer).Id())
+			fmt.Println((*privateer).Coordinates())
+			ship.SetTarget(privateer)
+		} else if indiceMin == 3 && merchant != nil {
+			fmt.Println((*merchant).Id())
+			fmt.Println((*merchant).Coordinates())
+			ship.SetTarget(merchant)
+		} else {
+			fmt.Println("Pirate ship doesn't detect any target")
+		}
+	}
 }
 
 func pirateShipDeliberate(ship *Ship, env *Environment, step int) {
 	//fmt.Println("Pirate ship deliberate...")
-	// ClosestAgentForPirate(ship) //regarde si elle est good pour choisir la cible
+
+	// if docked and not full life, fix or sell ressources
+	if ship.Docked() != nil {
+
+		// If not max health, repair ship
+		if ship.Health() != constants.ShipConfigs["Pirate"].Health && ship.Money() >= 1 {
+			ship.SetAction("repair")
+			return
+		}
+
+		// If ressources in ship that can be sold at harbour, sell
+		if env.HasRessourcesToSellAtHarbour(ship) && ship.Quantity() >= 1 {
+			ship.SetAction("sell")
+			return
+		}
+
+		// If ship is in danger wait
+		if ship.Danger() != nil {
+			ship.SetAction("wait")
+			return
+		}
+
+	}
+
+	// if docked, set itinerary to another harbour
+	if ship.Docked() != nil {
+		// If no itinerary and nothing to do at harbour, recalculate itinerary
+		totalResources := ship.Quantity()
+
+		if totalResources > 0 {
+			// Go to the closest harbor where resources can be sold
+			harbours := env.Harbours()
+			closestHarbour := harbours[0]
+			shortestDistance := float32(-1)
+
+			for _, harbour := range harbours {
+				resources := harbour.SellableRessources()
+
+				if len(resources) == 0 {
+					continue
+				}
+
+				for ressource, available := range resources {
+					if !available {
+						continue
+					}
+
+					if ship.Ressources()[ressource] > 0 {
+						// Calculate distance to the harbor
+						distance := float32(Heuristic(ship.Coordinates(), harbour.Coordinates()))
+						if distance < shortestDistance || shortestDistance == -1 {
+							shortestDistance = distance
+							closestHarbour = harbour
+						}
+
+					}
+				}
+			}
+
+			// Set ship itinerary to the closest harbor where resources can be sold
+			path := AStar(ship.Coordinates(), closestHarbour.Coordinates())
+			if path != nil {
+				ship.SetItinerary(path)
+			}
+
+		} else {
+			harbours := env.Harbours()
+			numberHarbour := mathrand.Intn(len(harbours) - 1)
+			destinationHarbour := harbours[numberHarbour]
+
+			// Set ship itinerary to random harbor
+			path := AStar(ship.Coordinates(), destinationHarbour.Coordinates())
+			if path != nil {
+				ship.SetItinerary(path)
+			}
+
+		}
+
+		fmt.Println("Pirate ship deliberate - go to sell ressources in a harbour - follow")
+		ship.SetAction("follow")
+
+		return
+	}
+
+	// if life under 20, set itinerary to closest harbour
+	if ship.Health() <= 20 {
+
+		// retreive harbours from environment
+		harbours := env.Harbours()
+		closestHarbour := harbours[0]
+		shortestDistance := float32(-1)
+
+		for _, harbour := range harbours {
+			// Calculate distance to harbor
+			distance := float32(Heuristic(ship.Coordinates(), harbour.Coordinates()))
+
+			if distance < shortestDistance {
+				shortestDistance = distance
+				closestHarbour = harbour
+			}
+
+		}
+
+		// Set ship itinerary to the closest harbor
+		path := AStar(ship.Coordinates(), closestHarbour.Coordinates())
+		if path != nil {
+			ship.SetItinerary(path)
+		}
+
+		fmt.Println("Pirate ship deliberate - life under 20, set itinerary to closest harbour - follow")
+		ship.SetAction("follow")
+		return
+	}
+
+	// if ship has a target
+	if ship.Target() != nil {
+		distance := Heuristic(ship.Coordinates(), (*ship.Target()).Coordinates())
+
+		if distance <= ship.Speed() { // if ship is next to a target, attack target
+
+			fmt.Println("Pirate ship deliberate - target - attack")
+			ship.SetAction("attack")
+		} else { // else, follow target
+			// Pathfinding to the target
+			path := AStar(ship.Coordinates(), (*ship.Target()).Coordinates())
+			// If path found set itinerary and follow
+			if path != nil {
+				ship.SetItinerary(path)
+				fmt.Println("Pirate ship deliberate - target - follow")
+				ship.SetAction("follow")
+			}
+		}
+		return
+	}
+
+	// ship itinerary is null
+	// retreive harbours from environment
+	harbours := env.Harbours()
+
+	// get random harbour from the list
+	numberHarbour := mathrand.Intn(len(harbours) - 1)
+	destinationHarbour := harbours[numberHarbour]
+
+	// Set ship itinerary to chosen harbor
+	path := AStar(ship.Coordinates(), destinationHarbour.Coordinates())
+	if path != nil {
+		ship.SetItinerary(path)
+	}
+
+	if ship.Danger() != nil {
+		fmt.Println("Pirate ship deliberate - flee army ship - flee")
+		ship.SetAction("flee")
+	} else {
+		fmt.Println("Pirate ship deliberate - no target, no itinerary - follow")
+		ship.SetAction("follow")
+	}
 }
 
 func pirateShipAct(ship *Ship, env *Environment, step int) {
 	//fmt.Println("Pirate ship act...")
-	// Pirate ship can attack Merchant ship, Filibusteer ship, Privateer ship, Army ship
+	switch ship.Action() {
+	// case "flee":
+	// 	// Continue itinerary to flee # see if pirate can attack kraken or not
+	// 	ship.FollowItinerary()
+	case "flee":
+		// Continue itinerary to flee
+		ship.FollowItinerary()
+	case "repair":
+		ship.SetHealth(constants.ShipConfigs["Pirate"].Health)
+	case "attack":
+		// Go to target and attack
+		ship.FollowItinerary()
+		// Remove the target from the environment
+		env.AttackAgent(*ship.Target(), ship) // need to stell ressources from the target
+	case "follow":
+		// Follow target
+		ship.FollowItinerary()
+
+		if ship.Docked() != nil {
+			env.UndockShip(ship)
+		}
+
+		if len(ship.Itinerary()) == 0 {
+			harbour, ok := env.IsHarbour(ship)
+			if ok {
+				env.DockShip(ship, harbour)
+			}
+		}
+	case "sell":
+		for ressource, available := range ship.Docked().SellableRessources() {
+			// Check if the resource is sellable
+			if !available {
+				continue
+			}
+
+			// Check if the ship has this resource and the quantity is greater than 0
+			quantity := ship.Ressources()[ressource]
+			if quantity <= 0 {
+				continue
+			}
+
+			//Get the Ressource Object of the ressource
+			ressourceObj, ok := GetRessource(ressource)
+			if ok {
+				// Sell
+				env.Market().Sell(ship, ressourceObj, step)
+			}
+		}
+
+	default:
+		// Do nothing
+	}
 }
 
 func pirateShipLevelUp(ship *Ship, env *Environment, step int) {
@@ -52,7 +316,7 @@ func merchantShipDeliberate(ship *Ship, env *Environment, step int) {
 	// If kraken within fov go 3 cases away from it or as far as possible max 3 cases
 	if ship.Danger() != nil && ship.Docked() == nil {
 		// Get ship and kraken coordinates
-		shipCoords := ship.Coordinates()
+		/*shipCoords := ship.Coordinates()
 		krakenCoords := (*ship.Danger()).Coordinates()
 
 		// Calculate the direction where the ship should go
@@ -84,7 +348,17 @@ func merchantShipDeliberate(ship *Ship, env *Environment, step int) {
 				}
 				return
 			}
+		}*/
+		harbour := env.ClosestHarbour(ship)
+		path := AStar(ship.Coordinates(), harbour.Coordinates())
+		// If path found set itinerary and follow
+		if path != nil {
+			ship.SetItinerary(path)
+			ship.SetAction("flee")
+		} else {
+			ship.SetAction("wait")
 		}
+		return
 	}
 
 	// Else if path to follow not finished, follow it
@@ -308,17 +582,247 @@ func merchantShipLevelUp(ship *Ship, env *Environment, step int) {
 
 func privateerShipPercept(ship *Ship, env *Environment, step int) {
 	//fmt.Println("Privateer ship percept...")
-	// //fmt.Println(AgentsNearby(ag.ship)) // AgentsNearby is a function that returns the agents nearby
+	kraken := env.KrakenNearby(ship)
+	pirate := env.ClosestPirate(ship)
+	merchant := env.ClosestMerchantNationality(ship)
+	privateer := env.ClosestPrivateerNationality(ship)
+	army := env.ClosestArmyNationality(ship)
 
+	// retreive closest potential target between kraken pirate and privateer and merchant
+	var distancesSlice = make([]int, 5)
+	distancesSlice[0] = math.MaxInt // kraken to current ship distance
+	distancesSlice[1] = math.MaxInt // pirate to current ship distance
+	distancesSlice[2] = math.MaxInt // privateer to current ship distance
+	distancesSlice[3] = math.MaxInt // merchant to current ship distance
+
+	if kraken != nil {
+		distancesSlice[0] = Heuristic((*kraken).Coordinates(), ship.coordinates)
+	}
+	if pirate != nil {
+		distancesSlice[1] = Heuristic((*pirate).Coordinates(), ship.coordinates)
+	}
+	if privateer != nil {
+		distancesSlice[2] = Heuristic((*privateer).Coordinates(), ship.coordinates)
+	}
+	if merchant != nil {
+		distancesSlice[3] = Heuristic((*merchant).Coordinates(), ship.coordinates)
+	}
+	if army != nil {
+		distancesSlice[4] = Heuristic((*army).Coordinates(), ship.coordinates)
+	}
+
+	distanceMin := distancesSlice[0]
+	indiceMin := 0
+
+	for i, d := range distancesSlice {
+		if d < distanceMin {
+			indiceMin = i
+			distanceMin = d
+		}
+	}
+
+	if indiceMin == 0 && kraken != nil {
+		fmt.Println((*kraken).Id())
+		fmt.Println((*kraken).Coordinates())
+		ship.SetTarget(kraken)
+	} else if indiceMin == 1 && pirate != nil {
+		fmt.Println((*pirate).Id())
+		fmt.Println((*pirate).Coordinates())
+		ship.SetTarget(pirate)
+	} else if indiceMin == 2 && privateer != nil {
+		fmt.Println((*privateer).Id())
+		fmt.Println((*privateer).Coordinates())
+		ship.SetTarget(privateer)
+	} else if indiceMin == 3 && merchant != nil {
+		fmt.Println((*merchant).Id())
+		fmt.Println((*merchant).Coordinates())
+		ship.SetTarget(merchant)
+	} else if indiceMin == 4 && army != nil {
+		fmt.Println((*army).Id())
+		fmt.Println((*army).Coordinates())
+		ship.SetTarget(army)
+	} else {
+		fmt.Println("Privateer ship doesn't detect any target")
+	}
 }
 
 func privateerShipDeliberate(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Privateer ship deliberate...")
+	//fmt.Println("Pirate ship deliberate...")
+
+	// if docked and not full life, fix or sell ressources
+	if ship.Docked() != nil {
+
+		// If not max health, repair ship
+		if ship.Health() != constants.ShipConfigs["Privateer"].Health && ship.Money() >= 1 {
+			ship.SetAction("repair")
+			return
+		}
+
+		// If ressources in ship that can be sold at harbour, sell
+		if env.HasRessourcesToSellAtHarbour(ship) && ship.Quantity() >= 1 {
+			ship.SetAction("sell")
+			return
+		}
+
+	}
+
+	// if docked, set itinerary to another harbour
+	if ship.Docked() != nil {
+		// If no itinerary and nothing to do at harbour, recalculate itinerary
+		totalResources := ship.Quantity()
+
+		if totalResources > 0 {
+			// Go to the closest harbor where resources can be sold
+			harbours := env.Harbours()
+			closestHarbour := harbours[0]
+			shortestDistance := float32(-1)
+
+			for _, harbour := range harbours {
+				resources := harbour.SellableRessources()
+
+				if len(resources) == 0 {
+					continue
+				}
+
+				for ressource, available := range resources {
+					if !available {
+						continue
+					}
+
+					if ship.Ressources()[ressource] > 0 {
+						// Calculate distance to the harbor
+						distance := float32(Heuristic(ship.Coordinates(), harbour.Coordinates()))
+						if distance < shortestDistance || shortestDistance == -1 {
+							shortestDistance = distance
+							closestHarbour = harbour
+						}
+
+					}
+				}
+			}
+
+			// Set ship itinerary to the closest harbor where resources can be sold
+			path := AStar(ship.Coordinates(), closestHarbour.Coordinates())
+			if path != nil {
+				ship.SetItinerary(path)
+			}
+
+		} else {
+			harbours := env.Harbours()
+			numberHarbour := mathrand.Intn(len(harbours) - 1)
+			destinationHarbour := harbours[numberHarbour]
+
+			// Set ship itinerary to random harbor
+			path := AStar(ship.Coordinates(), destinationHarbour.Coordinates())
+			if path != nil {
+				ship.SetItinerary(path)
+			}
+
+		}
+
+		fmt.Println("Privateer ship deliberate - go to sell ressources in a harbour - follow")
+		ship.SetAction("follow")
+
+		return
+	}
+
+	// if life under 20, set itinerary to closest harbour
+	if ship.Health() <= 20 {
+
+		// retreive harbours from environment
+		harbours := env.Harbours()
+		closestHarbour := harbours[0]
+		shortestDistance := float32(-1)
+
+		for _, harbour := range harbours {
+			// Calculate distance to harbor
+			distance := float32(Heuristic(ship.Coordinates(), harbour.Coordinates()))
+
+			if distance < shortestDistance {
+				shortestDistance = distance
+				closestHarbour = harbour
+			}
+
+		}
+
+		// Set ship itinerary to the closest harbor
+		path := AStar(ship.Coordinates(), closestHarbour.Coordinates())
+		if path != nil {
+			ship.SetItinerary(path)
+		}
+
+		fmt.Println("Privateer ship deliberate - life under 20, set itinerary to closest harbour - follow")
+		ship.SetAction("follow")
+		return
+	}
+
+	// if ship has a target
+	if ship.Target() != nil {
+		distance := Heuristic(ship.Coordinates(), (*ship.Target()).Coordinates())
+
+		if distance <= ship.Speed() { // if ship is next to a target, attack target
+
+			fmt.Println("Privateer ship deliberate - target - attack")
+			ship.SetAction("attack")
+		} else { // else, follow target
+			// Pathfinding to the target
+			path := AStar(ship.Coordinates(), (*ship.Target()).Coordinates())
+			// If path found set itinerary and follow
+			if path != nil {
+				ship.SetItinerary(path)
+				fmt.Println("Privateer ship deliberate - target - follow")
+				ship.SetAction("follow")
+			}
+		}
+		return
+	}
+
+	// ship itinerary is null
+	// retreive harbours from environment
+	harbours := env.Harbours()
+
+	// get random harbour from the list
+	numberHarbour := mathrand.Intn(len(harbours) - 1)
+	destinationHarbour := harbours[numberHarbour]
+
+	// Set ship itinerary to chosen harbor
+	path := AStar(ship.Coordinates(), destinationHarbour.Coordinates())
+	if path != nil {
+		ship.SetItinerary(path)
+	}
+
+	fmt.Println("Privateer ship deliberate - no target, no itinerary - follow")
+	ship.SetAction("follow")
+
 }
 
 func privateerShipAct(ship *Ship, env *Environment, step int) {
 	//fmt.Println("Privateer ship act...")
-	// Privateer ship can attack Pirate ship, Merchant ship, Filibusteer ship, Army ship
+	switch ship.Action() {
+	case "repair":
+		ship.SetHealth(constants.ShipConfigs["Privateer"].Health)
+	case "attack":
+		// Go to target and attack
+		ship.FollowItinerary()
+		// Remove the target from the environment
+		env.AttackAgent(*ship.Target(), ship)
+	case "follow":
+		// Follow target
+		ship.FollowItinerary()
+
+		if ship.Docked() != nil {
+			env.UndockShip(ship)
+		}
+
+		if len(ship.Itinerary()) == 0 {
+			harbour, ok := env.IsHarbour(ship)
+			if ok {
+				env.DockShip(ship, harbour)
+			}
+		}
+	default:
+		// Do nothing
+	}
 }
 
 func privateerShipLevelUp(ship *Ship, env *Environment, step int) {
@@ -388,7 +892,7 @@ func armyShipDeliberate(ship *Ship, env *Environment, step int) {
 	// actions in priority order
 
 	// if docked and not full life, fix
-	if ship.Docked() != nil && ship.Health() < maxHealth {
+	if ship.Docked() != nil && ship.Health() < constants.ShipConfigs["Army"].Health {
 		fmt.Println("Army ship deliberate - repair")
 		ship.SetAction("repair")
 		return
@@ -505,7 +1009,7 @@ func armyShipAct(ship *Ship, env *Environment, step int) {
 
 	switch ship.Action() {
 	case "repair":
-		ship.SetHealth(maxHealth)
+		ship.SetHealth(constants.ShipConfigs["Army"].Health)
 	case "attack":
 		// Go to target and attack
 		ship.FollowItinerary()
@@ -536,50 +1040,6 @@ func armyShipLevelUp(ship *Ship, env *Environment, step int) {
 	//fmt.Println("Army ship level up is not possible...")
 	// Army ship can't level up i think
 
-}
-
-// ------------------- Filibusteer ship -------------------
-
-func filibusteerShipPercept(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Filibusteer ship percept...")
-	// //fmt.Println(AgentsNearby(ag.ship)) // AgentsNearby is a function that returns the agents nearby
-
-}
-
-func filibusteerShipDeliberate(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Filibusteer ship deliberate...")
-}
-
-func filibusteerShipAct(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Filibusteer ship act...")
-}
-
-func filibusteerShipLevelUp(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Filibusteer ship level up...")
-	// filibusteerpShipLevelUp(ship *Ship, env *Environment)
-}
-
-// ------------------- Pirate hunter ship -------------------
-
-func piratehunterShipPercept(ship *Ship, env *Environment, step int) {
-	//fmt.Println("PirateHunter ship percept...")
-	// //fmt.Println(AgentsNearby(ag.ship)) // AgentsNearby is a function that returns the agents nearby
-
-}
-
-func piratehunterShipDeliberate(ship *Ship, env *Environment, step int) {
-	//fmt.Println("PirateHunter ship deliberate...")
-}
-
-func piratehunterShipAct(ship *Ship, env *Environment, step int) {
-	//fmt.Println("PirateHunter ship act...")
-	// PirateHunter ship can attack Pirate ship, Filibusteer ship, Privateer ship
-
-}
-
-func piratehunterShipLevelUp(ship *Ship, env *Environment, step int) {
-	//fmt.Println("PirateHunter ship level up...")
-	// piratehunterShipLevelUp(ship *Ship, env *Environment)
 }
 
 // ------------------- Zoro ship -------------------
@@ -635,7 +1095,7 @@ func zoroShipDeliberate(ship *Ship, env *Environment, step int) {
 	//fmt.Println("Zoro ship deliberate...")
 
 	// if docked and not full life, fix
-	if ship.Docked() != nil && ship.Health() < maxHealth {
+	if ship.Docked() != nil && ship.Health() < constants.ShipConfigs["Zoro"].Health {
 		fmt.Println("Zoro deliberate - repair")
 		ship.SetAction("repair")
 		return
@@ -703,7 +1163,7 @@ func zoroShipAct(ship *Ship, env *Environment, step int) {
 
 	switch ship.Action() {
 	case "repair":
-		ship.SetHealth(maxHealth)
+		ship.SetHealth(constants.ShipConfigs["Zoro"].Health)
 	case "attack":
 		// Go to target and attack
 		ship.FollowItinerary()
@@ -735,17 +1195,276 @@ func zoroShipLevelUp(ship *Ship, env *Environment, step int) {
 // ------------------- Rackham ship -------------------
 
 func rackhamShipPercept(ship *Ship, env *Environment, step int) {
+	kraken := env.KrakenNearby(ship)
+	pirate := env.ClosestPirate(ship)
+	merchant := env.ClosestMerchant(ship)
+	privateer := env.ClosestPrivateer(ship)
+	army := env.ClosestArmy(ship)
 
-	//fmt.Println("Rackham ship percept...")
+	// retreive closest potential target between kraken pirate and privateer and merchant
+	var distancesSlice = make([]int, 5)
+	distancesSlice[0] = math.MaxInt // kraken to current ship distance
+	distancesSlice[1] = math.MaxInt // pirate to current ship distance
+	distancesSlice[2] = math.MaxInt // privateer to current ship distance
+	distancesSlice[3] = math.MaxInt // merchant to current ship distance
+	distancesSlice[4] = math.MaxInt // merchant to current ship distance
+
+	if kraken != nil {
+		distancesSlice[0] = Heuristic((*kraken).Coordinates(), ship.coordinates)
+	}
+	if pirate != nil {
+		distancesSlice[1] = Heuristic((*pirate).Coordinates(), ship.coordinates)
+	}
+	if privateer != nil { // target only other nationality privateer
+		distancesSlice[2] = Heuristic((*privateer).Coordinates(), ship.coordinates)
+	}
+	if merchant != nil { // target all nationality merchant
+		distancesSlice[3] = Heuristic((*merchant).Coordinates(), ship.coordinates)
+	}
+
+	if army != nil { // target all nationality army
+		distancesSlice[4] = Heuristic((*army).Coordinates(), ship.coordinates)
+	}
+
+	distanceMin := distancesSlice[0]
+	indiceMin := 0
+
+	for i, d := range distancesSlice {
+		if d < distanceMin {
+			indiceMin = i
+			distanceMin = d
+		}
+	}
+
+	if indiceMin == 0 && kraken != nil {
+		fmt.Println((*kraken).Id())
+		fmt.Println((*kraken).Coordinates())
+		ship.SetTarget(kraken)
+	} else if indiceMin == 1 && pirate != nil {
+		fmt.Println((*pirate).Id())
+		fmt.Println((*pirate).Coordinates())
+		ship.SetTarget(pirate)
+	} else if indiceMin == 2 && privateer != nil {
+		fmt.Println((*privateer).Id())
+		fmt.Println((*privateer).Coordinates())
+		ship.SetTarget(privateer)
+	} else if indiceMin == 3 && merchant != nil {
+		fmt.Println((*merchant).Id())
+		fmt.Println((*merchant).Coordinates())
+		ship.SetTarget(merchant)
+	} else if indiceMin == 4 && army != nil {
+		fmt.Println((*army).Id())
+		fmt.Println((*army).Coordinates())
+		ship.SetTarget(army)
+	} else {
+		fmt.Println("Rackham ship doesn't detect any target")
+	}
 }
 
 func rackhamShipDeliberate(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Rackham ship deliberate...")
+	// if docked and not full life, fix or sell ressources
+	if ship.Docked() != nil {
+
+		// If not max health, repair ship
+		if ship.Health() != constants.ShipConfigs["Rackham"].Health && ship.Money() >= 1 {
+			ship.SetAction("repair")
+			return
+		}
+
+		// If ressources in ship that can be sold at harbour, sell
+		if env.HasRessourcesToSellAtHarbour(ship) && ship.Quantity() >= 1 {
+			ship.SetAction("sell")
+			return
+		}
+
+	}
+
+	// if docked, set itinerary to another harbour
+	if ship.Docked() != nil {
+		// If no itinerary and nothing to do at harbour, recalculate itinerary
+		totalResources := ship.Quantity()
+
+		if totalResources > 0 {
+			// Go to the closest harbor where resources can be sold
+			harbours := env.Harbours()
+			closestHarbour := harbours[0]
+			shortestDistance := float32(-1)
+
+			for _, harbour := range harbours {
+				resources := harbour.SellableRessources()
+
+				if len(resources) == 0 {
+					continue
+				}
+
+				for ressource, available := range resources {
+					if !available {
+						continue
+					}
+
+					if ship.Ressources()[ressource] > 0 {
+						// Calculate distance to the harbor
+						distance := float32(Heuristic(ship.Coordinates(), harbour.Coordinates()))
+						if distance < shortestDistance || shortestDistance == -1 {
+							shortestDistance = distance
+							closestHarbour = harbour
+						}
+
+					}
+				}
+			}
+
+			// Set ship itinerary to the closest harbor where resources can be sold
+			path := AStar(ship.Coordinates(), closestHarbour.Coordinates())
+			if path != nil {
+				ship.SetItinerary(path)
+			}
+
+		} else {
+			harbours := env.Harbours()
+			numberHarbour := mathrand.Intn(len(harbours) - 1)
+			destinationHarbour := harbours[numberHarbour]
+
+			// Set ship itinerary to random harbor
+			path := AStar(ship.Coordinates(), destinationHarbour.Coordinates())
+			if path != nil {
+				ship.SetItinerary(path)
+			}
+
+		}
+
+		fmt.Println("Rackham ship deliberate - go to sell ressources in a harbour - follow")
+		ship.SetAction("follow")
+
+		return
+	}
+
+	// if life under 20, set itinerary to closest harbour
+	if ship.Health() <= 20 {
+
+		// retreive harbours from environment
+		harbours := env.Harbours()
+		closestHarbour := harbours[0]
+		shortestDistance := float32(-1)
+
+		for _, harbour := range harbours {
+			// Calculate distance to harbor
+			distance := float32(Heuristic(ship.Coordinates(), harbour.Coordinates()))
+
+			if distance < shortestDistance {
+				shortestDistance = distance
+				closestHarbour = harbour
+			}
+
+		}
+
+		// Set ship itinerary to the closest harbor
+		path := AStar(ship.Coordinates(), closestHarbour.Coordinates())
+		if path != nil {
+			ship.SetItinerary(path)
+		}
+
+		fmt.Println("Rackham ship deliberate - life under 20, set itinerary to closest harbour - follow")
+		ship.SetAction("follow")
+		return
+	}
+
+	// if ship has a target
+	if ship.Target() != nil {
+		distance := Heuristic(ship.Coordinates(), (*ship.Target()).Coordinates())
+
+		if distance <= ship.Speed() { // if ship is next to a target, attack target
+
+			fmt.Println("Rackham ship deliberate - target - attack")
+			ship.SetAction("attack")
+		} else { // else, follow target
+			// Pathfinding to the target
+			path := AStar(ship.Coordinates(), (*ship.Target()).Coordinates())
+			// If path found set itinerary and follow
+			if path != nil {
+				ship.SetItinerary(path)
+				fmt.Println("Rackham ship deliberate - target - follow")
+				ship.SetAction("follow")
+			}
+		}
+		return
+	}
+
+	// ship itinerary is null
+	// retreive harbours from environment
+	harbours := env.Harbours()
+
+	// get random harbour from the list
+	numberHarbour := mathrand.Intn(len(harbours) - 1)
+	destinationHarbour := harbours[numberHarbour]
+
+	// Set ship itinerary to chosen harbor
+	path := AStar(ship.Coordinates(), destinationHarbour.Coordinates())
+	if path != nil {
+		ship.SetItinerary(path)
+	}
+
+	if ship.Danger() != nil {
+		fmt.Println("Rackham ship deliberate - flee army ship - flee")
+		ship.SetAction("flee")
+	} else {
+		fmt.Println("Rackham ship deliberate - no target, no itinerary - follow")
+		ship.SetAction("follow")
+	}
 }
 
 func rackhamShipAct(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Rackham ship act...")
+	//fmt.Println("Pirate ship act...")
+	switch ship.Action() {
 
+	case "flee":
+		// Continue itinerary to flee
+		ship.FollowItinerary()
+	case "repair":
+		ship.SetHealth(constants.ShipConfigs["Army"].Health)
+	case "attack":
+		// Go to target and attack
+		ship.FollowItinerary()
+		// Remove the target from the environment
+		env.AttackAgent(*ship.Target(), ship) // need to stell ressources from the target
+	case "follow":
+		// Follow target
+		ship.FollowItinerary()
+
+		if ship.Docked() != nil {
+			env.UndockShip(ship)
+		}
+
+		if len(ship.Itinerary()) == 0 {
+			harbour, ok := env.IsHarbour(ship)
+			if ok {
+				env.DockShip(ship, harbour)
+			}
+		}
+	case "sell":
+		for ressource, available := range ship.Docked().SellableRessources() {
+			// Check if the resource is sellable
+			if !available {
+				continue
+			}
+
+			// Check if the ship has this resource and the quantity is greater than 0
+			quantity := ship.Ressources()[ressource]
+			if quantity <= 0 {
+				continue
+			}
+
+			//Get the Ressource Object of the ressource
+			ressourceObj, ok := GetRessource(ressource)
+			if ok {
+				// Sell
+				env.Market().Sell(ship, ressourceObj, step)
+			}
+		}
+
+	default:
+		// Do nothing
+	}
 }
 
 func rackhamShipLevelUp(ship *Ship, env *Environment, step int) {

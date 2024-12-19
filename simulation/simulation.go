@@ -19,21 +19,22 @@ import (
 // It is responsible for the simulation loop where our agents can interact
 
 type Simulation struct {
-	env        Environment
-	agents     []Agent
-	objects    []Object
-	parameters Parameters
+	env        *Environment
+	parameters *Parameters
 }
 
 func (simu *Simulation) Environment() *Environment {
-	return &simu.env
+	return simu.env
 }
 
-// Agents returns the list of agents
+// Getter Agents returns the list of agents
 func (simu *Simulation) Agents() []Agent {
-	simu.Environment().agentLock.RLock()
-	defer simu.Environment().agentLock.RUnlock()
 	return simu.Environment().Agents()
+}
+
+// Getter Parameters
+func (simu *Simulation) Parameters() *Parameters {
+	return simu.parameters
 }
 
 // NewRandomCoordinates generates random coordinates that is not land
@@ -53,177 +54,155 @@ func NewRandomCoordinates() Coordinates {
 // NewSimulation initializes the Simulation
 func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	simu = &Simulation{}
-	simu.agents = make([]Agent, 0)
-	simu.objects = make([]Object, 0)
+	simu.env = NewEnvironment([]Agent{}, []Harbour{})
+	simu.parameters = NewParameters(maxDuration, maxStep)
 
-	simu.env = *NewEnvironment([]Agent{}, []Object{}, []Harbour{})
-
-	simu.parameters = Parameters{
-		maxDuration: maxDuration,
-		maxStep:     maxStep,
-		timeSpeed:   1,
-	}
-
-	// Create the harbour
+	// Create harbours with available and sellable resources
 	dockedHarbour1 := NewHarbour("Canada", Coordinates{13, 5})
-	simu.env.AddHarbour(*dockedHarbour1)
 	dockedHarbour1.AddAvailableRessources("Gold")
 	dockedHarbour1.AddSellableRessources("Sugar")
+	simu.env.AddHarbour(*dockedHarbour1)
 
 	dockedHarbour2 := NewHarbour("Port à Coutollenc", Coordinates{22, 11})
-	simu.env.AddHarbour(*dockedHarbour2)
 	dockedHarbour2.AddSellableRessources("Gold")
 	dockedHarbour2.AddAvailableRessources("Tipiak")
+	simu.env.AddHarbour(*dockedHarbour2)
 
-	// Create the harbour
 	dockedHarbour3 := NewHarbour("Africa", Coordinates{20, 25})
-	simu.env.AddHarbour(*dockedHarbour3)
 	dockedHarbour3.AddAvailableRessources("Coffee")
 	dockedHarbour3.AddSellableRessources("Tipiak")
+	simu.env.AddHarbour(*dockedHarbour3)
 
 	dockedHarbour4 := NewHarbour("Brasil", Coordinates{10, 22})
-	simu.env.AddHarbour(*dockedHarbour4)
 	dockedHarbour4.AddSellableRessources("Coffee")
 	dockedHarbour4.AddAvailableRessources("Sugar")
+	simu.env.AddHarbour(*dockedHarbour4)
 
-	// Nationalities to choose from for ships
+	// Define nationalities
 	nationalities := []constants.Nationality{
 		constants.France,
 		constants.England,
 		constants.Spain,
 	}
 
-	// Number of ships to create for each type
-	numPirate := 0
-	numMerchant := 1
-	numPrivateer := 0
-	numArmy := 1
+	// Specify how many merchant ships each nationality should have
+	merchantCounts := map[constants.Nationality]int{
+		constants.France:  5,
+		constants.Spain:   10,
+		constants.England: 3,
+	}
 
-	// Create Pirate Ships
-	for i := 0; i < numPirate; i++ {
+	privateerCounts := map[constants.Nationality]int{
+		constants.France:  2,
+		constants.England: 1,
+		constants.Spain:   4,
+	}
+
+	armyCounts := map[constants.Nationality]int{
+		constants.France:  1,
+		constants.England: 2,
+		constants.Spain:   1,
+	}
+
+	numPirates := 1
+
+	// Set up a list of harbours to randomly assign merchant ships to
+	merchantHarbours := []*Harbour{dockedHarbour1, dockedHarbour2, dockedHarbour3, dockedHarbour4}
+
+	// Create Pirate Ships (no nationality)
+	for i := 0; i < numPirates; i++ {
 		id := fmt.Sprintf("Pirate Ship #%d", i)
 		coor := NewRandomCoordinates()
 		ship := NewShipPirate(id, coor, nil)
-		simu.agents = append(simu.agents, ship)
 		simu.env.AddAgent(ship)
 	}
 
-	// Create Merchant Ships
-	for i := 0; i < numMerchant; i++ {
-		id := fmt.Sprintf("Merchant 1 Ship #%d", i)
-		nat := nationalities[i%len(nationalities)]
-		ship := NewShipMerchant(id, nat, dockedHarbour1.Coordinates(), dockedHarbour1)
-		simu.agents = append(simu.agents, ship)
-		simu.env.AddAgent(ship)
+	// Create Merchant Ships per nationality
+	for _, nat := range nationalities {
+		count := merchantCounts[nat]
+		for i := 0; i < count; i++ {
+			harbour := merchantHarbours[i%len(merchantHarbours)]
+			id := fmt.Sprintf("Merchant Ship [%s] #%d", nat, i)
+			ship := NewShipMerchant(id, nat, harbour.Coordinates(), harbour)
+			simu.env.AddAgent(ship)
+		}
 	}
 
-	// Create Merchant Ships
-	for i := 0; i < numMerchant; i++ {
-		id := fmt.Sprintf("Merchant 2 Ship #%d", i)
-		nat := nationalities[i%len(nationalities)]
-		ship := NewShipMerchant(id, nat, dockedHarbour4.Coordinates(), dockedHarbour4)
-		simu.agents = append(simu.agents, ship)
-		simu.env.AddAgent(ship)
+	for _, nat := range nationalities {
+		for i := 0; i < privateerCounts[nat]; i++ {
+			id := fmt.Sprintf("Privateer Ship [%s] #%d", nat, i)
+			coor := NewRandomCoordinates()
+			ship := NewShipPrivateer(id, nat, coor, nil)
+			simu.env.AddAgent(ship)
+		}
 	}
 
-	// Create Merchant Ships
-	for i := 0; i < numMerchant; i++ {
-		id := fmt.Sprintf("Merchant 3 Ship #%d", i)
-		nat := nationalities[i%len(nationalities)]
-		ship := NewShipMerchant(id, nat, dockedHarbour3.Coordinates(), dockedHarbour3)
-		simu.agents = append(simu.agents, ship)
-		simu.env.AddAgent(ship)
+	for _, nat := range nationalities {
+		for i := 0; i < armyCounts[nat]; i++ {
+			id := fmt.Sprintf("Army Ship [%s] #%d", nat, i)
+			coor := NewRandomCoordinates()
+			ship := NewShipArmy(id, nat, coor, nil)
+			simu.env.AddAgent(ship)
+		}
 	}
 
-	// Create Merchant Ships
-	for i := 0; i < numMerchant; i++ {
-		id := fmt.Sprintf("Merchant 4 Ship #%d", i)
-		nat := nationalities[i%len(nationalities)]
-		ship := NewShipMerchant(id, nat, dockedHarbour2.Coordinates(), dockedHarbour2)
-		simu.agents = append(simu.agents, ship)
-		simu.env.AddAgent(ship)
-	}
-
-	// Create Privateer Ships
-	for i := 0; i < numPrivateer; i++ {
-		id := fmt.Sprintf("Privateer Ship #%d", i)
-		coor := NewRandomCoordinates()
-		nat := nationalities[i%len(nationalities)]
-		ship := NewShipPrivateer(id, nat, coor, nil)
-		simu.agents = append(simu.agents, ship)
-		simu.env.AddAgent(ship)
-	}
-
-	// Create Army Ships
-	for i := 0; i < numArmy; i++ {
-		id := fmt.Sprintf("Army Ship #%d", i)
-		coor := NewRandomCoordinates()
-		nat := nationalities[i%len(nationalities)]
-		ship := NewShipArmy(id, nat, coor, nil)
-		simu.agents = append(simu.agents, ship)
-		simu.env.AddAgent(ship)
-	}
-
-	// Create one Zoro Ship (no nationality)
+	// Special ships (no nationality)
 	zoro := NewShipZoro("Zoro", NewRandomCoordinates(), nil)
-	simu.agents = append(simu.agents, zoro)
 	simu.env.AddAgent(zoro)
 
-	// Create one Rackham Ship (no nationality)
 	rackham := NewShipRackham("Rackham", NewRandomCoordinates(), nil)
-	simu.agents = append(simu.agents, rackham)
 	simu.env.AddAgent(rackham)
 
-	// Create one Kraken
 	kraken := NewKraken("Kraken", Coordinates{x: 13, y: 12})
-	simu.agents = append(simu.agents, kraken)
 	simu.env.AddAgent(kraken)
 
 	return simu
 }
 
-// Run Simulation [[professor code]]
+// Run Simulation
 func (simu *Simulation) Run() {
-	// Démarrage du micro-service de Log
+	// Start the log microservice
 	go simu.Log()
-	// Démarrage du micro-service d'affichage
-	//go simu.Print()
 
-	// On sauvegarde la date du début de la simulation
-	simu.parameters.start = time.Now()
+	// Save the simulation's start time using the setter
+	simu.Parameters().SetStart(time.Now())
 
-	// Boucle de simulation
+	// Simulation loop
 Loop:
 	for {
 		var wg sync.WaitGroup
-		simu.parameters.step += 1
 
-		simu.Environment().agentLock.Lock()
-		for _, agt := range simu.agents {
+		// Increment the step using the getter and setter
+		simu.Parameters().AddStep()
+		currentStep := simu.Parameters().Step()
+
+		if currentStep == 10 {
+			time := simu.Parameters().TimeSpeed()
+			simu.Parameters().SetTimeSpeed(time * 10)
+		}
+
+		agents := simu.Agents()
+
+		for _, agt := range agents {
 			wg.Add(1)
 
 			go func(agt Agent) { // workers
 				defer wg.Done()
-				agt.Percept(&simu.env, simu.parameters.step)
-				agt.Deliberate(&simu.env, simu.parameters.step)
-				agt.Act(&simu.env, simu.parameters.step)
-
+				agt.Percept(simu.Environment(), currentStep)
+				agt.Deliberate(simu.Environment(), currentStep)
+				agt.Act(simu.Environment(), currentStep)
 			}(agt)
-
 		}
 		wg.Wait()
 
-		if (simu.parameters.maxStep > 0 && simu.parameters.step >= simu.parameters.maxStep) || time.Since(simu.parameters.start) > simu.parameters.maxDuration {
-			fmt.Println()
+		// Check termination conditions using getters
+		if (simu.Parameters().MaxStep() > 0 && simu.Parameters().Step() >= simu.Parameters().MaxStep()) || time.Since(simu.Parameters().Start()) > simu.Parameters().MaxDuration() {
 			break Loop
 		}
 
-		simu.Environment().agentLock.Unlock()
-
-		time.Sleep(time.Second / 4)
-
+		// Adjust the sleep duration based on timeSpeed using the getter
+		time.Sleep(time.Second / (2 * time.Duration(simu.Parameters().TimeSpeed()))) // 2 steps/s default and time speed
 	}
-
 }
 
 func (simu *Simulation) Print() {
