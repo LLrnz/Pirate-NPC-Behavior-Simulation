@@ -46,7 +46,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	defer g.agentLock.RUnlock()
 
 	// Clear the screen with a background color.
-	img, err := getImageFromFilePath("assets/mapMonde.png")
+	img, err := getImageFromFilePath("assets/worldMap_big.png")
 	if err != nil {
 		fmt.Println("Error loading image:", err)
 		return // or handle gracefully

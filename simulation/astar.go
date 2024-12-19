@@ -99,7 +99,7 @@ func GetNeighbors(p Coordinates, width, height int) []Coordinates {
 
 // A* algorithm
 func AStar(start, goal Coordinates) []Coordinates {
-	var grid [27][48]int = constants.MapGrid
+	var grid [54][96]int = constants.MapGrid
 
 	width := len(grid[0])
 	height := len(grid)

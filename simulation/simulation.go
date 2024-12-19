@@ -104,7 +104,6 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 		constants.Spain:   1,
 	}
 
-	// For pirates or special ships (no nationality), just set fixed numbers:
 	numPirates := 1
 
 	// Set up a list of harbours to randomly assign merchant ships to
@@ -176,6 +175,11 @@ Loop:
 		// Increment the step using the getter and setter
 		simu.Parameters().AddStep()
 		currentStep := simu.Parameters().Step()
+
+		if currentStep == 10 {
+			time := simu.Parameters().TimeSpeed()
+			simu.Parameters().SetTimeSpeed(time * 10)
+		}
 
 		agents := simu.Agents()
 

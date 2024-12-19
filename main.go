@@ -14,7 +14,7 @@ func main() {
 	simu := simulation.NewSimulation(600*time.Second, 0)
 
 	// Init the View
-	game := view.NewGame(simu, 800, 600)
+	game := view.NewGame(simu, 1536, 864)
 
 	// Run the simulation in a separate goroutine so it works at the same time as the game
 	go simu.Run()
