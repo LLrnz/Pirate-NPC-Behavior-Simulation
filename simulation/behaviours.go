@@ -436,7 +436,6 @@ func merchantShipDeliberate(ship *Ship, env *Environment, step int) {
 }
 
 func merchantShipAct(ship *Ship, env *Environment, step int) {
-	print(ship.Action(), "\n")
 	switch ship.Action() {
 	case "flee":
 		// Continue itinerary to flee
@@ -593,6 +592,50 @@ func privateerShipPercept(ship *Ship, env *Environment, step int) {
 
 func privateerShipDeliberate(ship *Ship, env *Environment, step int) {
 
+	totalResources := ship.Quantity()
+
+	if totalResources > 0 && ship.Docked() == nil {
+		print("ok2")
+		// Go to the closest harbor where resources can be sold
+		harbours := env.Harbours()
+		closestHarbour := harbours[0]
+		shortestDistance := float32(-1)
+
+		for _, harbour := range harbours {
+			resources := harbour.SellableRessources()
+
+			if len(resources) == 0 {
+				continue
+			}
+
+			for ressource, available := range resources {
+				if !available {
+					continue
+				}
+
+				if ship.Ressources()[ressource] > 0 {
+					// Calculate distance to the harbor
+					distance := float32(Heuristic(ship.Coordinates(), harbour.Coordinates()))
+					if distance < shortestDistance || shortestDistance == -1 {
+						shortestDistance = distance
+						closestHarbour = harbour
+					}
+
+				}
+			}
+		}
+
+		// Set ship itinerary to the closest harbor where resources can be sold
+		path := AStar(ship.Coordinates(), closestHarbour.Coordinates())
+		if path != nil {
+			ship.SetItinerary(path)
+		}
+
+		ship.SetAction("follow")
+		return
+
+	}
+
 	// if docked and not full life, fix or sell ressources
 	if ship.Docked() != nil {
 
@@ -744,6 +787,26 @@ func privateerShipAct(ship *Ship, env *Environment, step int) {
 		ship.FollowItinerary()
 		// Remove the target from the environment
 		env.AttackAgent(ship.Target(), ship)
+	case "sell":
+		for ressource, available := range ship.Docked().SellableRessources() {
+			// Check if the resource is sellable
+			if !available {
+				continue
+			}
+
+			// Check if the ship has this resource and the quantity is greater than 0
+			quantity := ship.Ressources()[ressource]
+			if quantity <= 0 {
+				continue
+			}
+
+			//Get the Ressource Object of the ressource
+			ressourceObj, ok := GetRessource(ressource)
+			if ok {
+				// Sell
+				env.Market().Sell(ship, ressourceObj, step)
+			}
+		}
 	case "follow":
 		// Follow target
 		ship.FollowItinerary()

@@ -59,9 +59,10 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 
 	// Haiti (Coordinates{4, 39})
 	dockedHarbourHaiti := NewHarbour("Haiti", Coordinates{4, 39})
-	dockedHarbourHaiti.AddAvailableRessources("Gold")
+	// Removed Gold (most valuable) from availability
 	dockedHarbourHaiti.AddAvailableRessources("Tobacco")
 	dockedHarbourHaiti.AddAvailableRessources("Tipiak")
+	// Keep lesser-value resources as sellable
 	dockedHarbourHaiti.AddSellableRessources("Spices")
 	dockedHarbourHaiti.AddSellableRessources("Sugar")
 	dockedHarbourHaiti.AddSellableRessources("Cotton")
@@ -79,7 +80,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	dockedHarbourCanada := NewHarbour("Canada", Coordinates{21, 18})
 	dockedHarbourCanada.AddAvailableRessources("Coffee")
 	dockedHarbourCanada.AddAvailableRessources("Cocoa")
-	dockedHarbourCanada.AddAvailableRessources("Ivory")
+	// Removed Ivory (most valuable) from availability
 	dockedHarbourCanada.AddSellableRessources("Sugar")
 	dockedHarbourCanada.AddSellableRessources("Rum")
 	dockedHarbourCanada.AddSellableRessources("Tipiak")
@@ -89,15 +90,16 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	dockedHarbourArgentine := NewHarbour("Argentine", Coordinates{24, 39})
 	dockedHarbourArgentine.AddAvailableRessources("Spices")
 	dockedHarbourArgentine.AddAvailableRessources("Weapons")
+	// Pearls (most valuable) now only available here
 	dockedHarbourArgentine.AddAvailableRessources("Pearls")
-	dockedHarbourArgentine.AddSellableRessources("Gold")
+	// Removed Gold from sellable
 	dockedHarbourArgentine.AddSellableRessources("Tipiak")
 	simu.env.AddHarbour(dockedHarbourArgentine)
 
 	// Groenland (Coordinates{37, 8})
 	dockedHarbourGroenland := NewHarbour("Groenland", Coordinates{37, 8})
 	dockedHarbourGroenland.AddAvailableRessources("Sugar")
-	dockedHarbourGroenland.AddAvailableRessources("Silk")
+	// Removed Silk (most valuable) from availability
 	dockedHarbourGroenland.AddSellableRessources("Silver")
 	dockedHarbourGroenland.AddSellableRessources("Weapons")
 	simu.env.AddHarbour(dockedHarbourGroenland)
@@ -105,19 +107,17 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	// Compiègne (Coordinates{42, 22})
 	dockedHarbourFrance := NewHarbour("Compiègne", Coordinates{42, 22})
 	dockedHarbourFrance.AddAvailableRessources("Rum")
-	dockedHarbourFrance.AddAvailableRessources("Pearls")
+	// Removed Pearls (most valuable) from availability
+	// Removed Silk and Ivory from sellable
 	dockedHarbourFrance.AddSellableRessources("Coffee")
-	dockedHarbourFrance.AddSellableRessources("Silk")
-	dockedHarbourFrance.AddSellableRessources("Ivory")
 	simu.env.AddHarbour(dockedHarbourFrance)
 
 	// Afrique du Sud (Coordinates{49, 40})
 	dockedHarbourAfriqueDuSud := NewHarbour("Afrique du Sud", Coordinates{49, 40})
 	dockedHarbourAfriqueDuSud.AddAvailableRessources("Coffee")
 	dockedHarbourAfriqueDuSud.AddAvailableRessources("Cotton")
-	dockedHarbourAfriqueDuSud.AddSellableRessources("Pearls")
+	// Removed Pearls and Ivory from sellable
 	dockedHarbourAfriqueDuSud.AddSellableRessources("Tobacco")
-	dockedHarbourAfriqueDuSud.AddSellableRessources("Ivory")
 	simu.env.AddHarbour(dockedHarbourAfriqueDuSud)
 
 	// Russie (Coordinates{57, 14})
@@ -125,13 +125,14 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	dockedHarbourRussie.AddAvailableRessources("Spices")
 	dockedHarbourRussie.AddAvailableRessources("Tipiak")
 	dockedHarbourRussie.AddAvailableRessources("Tobacco")
-	dockedHarbourRussie.AddSellableRessources("Gold")
+	// Removed Gold (most valuable) from sellable
 	dockedHarbourRussie.AddSellableRessources("Cocoa")
 	simu.env.AddHarbour(dockedHarbourRussie)
 
 	// Inde (Coordinates{64, 30})
 	dockedHarbourInde := NewHarbour("Inde", Coordinates{64, 30})
 	dockedHarbourInde.AddAvailableRessources("Sugar")
+	// Ivory (most valuable) now only available here
 	dockedHarbourInde.AddAvailableRessources("Ivory")
 	dockedHarbourInde.AddAvailableRessources("Rum")
 	dockedHarbourInde.AddSellableRessources("Silver")
@@ -139,11 +140,13 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 
 	// Japon (Coordinates{79, 27})
 	dockedHarbourJapon := NewHarbour("Japon", Coordinates{79, 27})
+	// Gold (most valuable) only available here
 	dockedHarbourJapon.AddAvailableRessources("Gold")
+	// Silk (most valuable) only available here
 	dockedHarbourJapon.AddAvailableRessources("Silk")
+	// Removed Pearls from sellable
 	dockedHarbourJapon.AddSellableRessources("Coffee")
 	dockedHarbourJapon.AddSellableRessources("Rum")
-	dockedHarbourJapon.AddSellableRessources("Pearls")
 	dockedHarbourJapon.AddSellableRessources("Weapons")
 	simu.env.AddHarbour(dockedHarbourJapon)
 
@@ -152,8 +155,8 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	dockedHarbourAustralie.AddAvailableRessources("Silver")
 	dockedHarbourAustralie.AddAvailableRessources("Cocoa")
 	dockedHarbourAustralie.AddAvailableRessources("Weapons")
+	// Removed Silk from sellable
 	dockedHarbourAustralie.AddSellableRessources("Spices")
-	dockedHarbourAustralie.AddSellableRessources("Silk")
 	dockedHarbourAustralie.AddSellableRessources("Cotton")
 	simu.env.AddHarbour(dockedHarbourAustralie)
 
@@ -166,14 +169,14 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 
 	// Specify how many merchant ships each nationality should have
 	merchantCounts := map[constants.Nationality]int{
-		constants.France:  25,
+		constants.France:  1,
 		constants.Spain:   0,
 		constants.England: 0,
 	}
 
 	privateerCounts := map[constants.Nationality]int{
 		constants.France:  0,
-		constants.England: 0,
+		constants.England: 4,
 		constants.Spain:   0,
 	}
 
@@ -296,7 +299,7 @@ Loop:
 		}*/
 
 		// Adjust the sleep duration based on timeSpeed using the getter
-		time.Sleep(time.Second / (2 * time.Duration(simu.Parameters().TimeSpeed()))) // 2 steps/s default and time speed
+		time.Sleep(time.Second / (1 * time.Duration(simu.Parameters().TimeSpeed()))) // 2 steps/s default and time speed
 	}
 }
 

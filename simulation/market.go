@@ -117,10 +117,10 @@ func (m *Market) CalculateRessourcePrice(step int, ressource Ressource) float32 
 	m.Lock()
 	defer m.Unlock()
 
-	// Only get the transactions in the last 365 steps (365 days)
+	// Only get the transactions in the last 730 steps (730 days)
 	var quantitySoldBefore int
 	for _, transaction := range transactions {
-		if transaction.ressource.name == ressource.name && transaction.step >= step-365 {
+		if transaction.ressource.name == ressource.name && transaction.step >= step-730 {
 			quantitySoldBefore += transaction.quantity
 		}
 	}
@@ -150,7 +150,7 @@ func (m *Market) RessourcePrice(step int, ressource Ressource) (float32, float32
 
 	for _, transaction := range transactions {
 		if transaction.ressource.name == ressource.name {
-			if transaction.step >= currentStep-365 {
+			if transaction.step >= currentStep-730 {
 				quantitySoldBefore += transaction.quantity
 			}
 			if transaction.step == currentStep {

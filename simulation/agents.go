@@ -1,7 +1,6 @@
 package simulation
 
 import (
-	"fmt"
 	"sync"
 
 	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
@@ -740,15 +739,24 @@ func (ag *Kraken) Percept(env *Environment, step int) {
 	if closest != nil {
 		ag.SetTarget(closest)
 	} else {
-		print("pas de target")
 		ag.SetTarget(nil)
 	}
 }
 
 func (ag *Kraken) Deliberate(env *Environment, step int) {
 	// If the Kraken is low life or has no target = rest to gain PV
-	if ag.Health() <= int(float32(constants.KrakenParameters.Health)*0.05) || ag.Target() == nil {
+	if ag.Health() <= int(float32(constants.KrakenParameters.Health)*0.05) {
 		ag.SetAction("rest")
+		return
+	}
+
+	if ag.Target() == nil {
+		destination := NewRandomCoordinates()
+		path := AStar(ag.Coordinates(), destination)
+		if path != nil {
+			ag.SetItinerary(path)
+		}
+		ag.SetAction("follow")
 		return
 	}
 
@@ -782,7 +790,6 @@ func (ag *Kraken) Act(env *Environment, step int) {
 	case "attack":
 		ship, ok := (ag.Target()).(*Ship)
 		if ok && ship.Docked() != nil {
-			fmt.Print("Act : Kraken target is docked ship: %s", ship.Id())
 			break
 		}
 		// Go to target and attack
