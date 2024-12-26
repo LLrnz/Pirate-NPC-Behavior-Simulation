@@ -2,6 +2,8 @@ package simulation
 
 import (
 	"sync"
+
+	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
 )
 
 /*
@@ -14,11 +16,55 @@ import (
 type Market struct {
 	sync.RWMutex
 	transactions []Transaction
+
+	france  float32
+	spain   float32
+	england float32
 }
 
 // NewMarket initializes a Market struct
 func NewMarket() (market *Market) {
 	return &Market{}
+}
+
+// Getter returns France money
+func (m *Market) France() float32 {
+	m.RLock()
+	defer m.RUnlock()
+
+	return m.france
+}
+
+// Getter returns Spain money
+func (m *Market) Spain() float32 {
+	m.RLock()
+	defer m.RUnlock()
+
+	return m.spain
+}
+
+// Getter returns England money
+func (m *Market) England() float32 {
+	m.RLock()
+	defer m.RUnlock()
+
+	return m.england
+}
+
+// Getter returns England money
+func (m *Market) AddMoneyToCountry(ship *Ship, tax float32) {
+	m.Lock()
+	defer m.Unlock()
+
+	nationality := ship.Nationality()
+
+	if nationality == constants.France {
+		m.france += tax
+	} else if nationality == constants.Spain {
+		m.spain += tax
+	} else if nationality == constants.England {
+		m.england += tax
+	}
 }
 
 // Getter returns all transactions
@@ -46,12 +92,15 @@ func (m *Market) Sell(ship *Ship, ressource Ressource, step int) {
 	// Calculate the price for the quantity of the ressource
 	ressourcePrice := m.CalculateRessourcePrice(step, ressource)
 	totalPrice := ressourcePrice * float32(quantitySold)
+	tax := totalPrice * 0.2
 
 	// Deduct the sold quantity from the agent ressource
 	ship.RemoveRessources(ressource.name, quantitySold)
 
+	m.AddMoneyToCountry(ship, tax)
+
 	// Add the money to the Agent account
-	ship.AddMoney(totalPrice)
+	ship.AddMoney(totalPrice - tax)
 
 	// Create and record a new transaction
 	transaction := NewTransaction(step, ressource, quantitySold, ship, totalPrice)
@@ -68,10 +117,10 @@ func (m *Market) CalculateRessourcePrice(step int, ressource Ressource) float32 
 	m.Lock()
 	defer m.Unlock()
 
-	// Only get the transactions in the last 31 steps (31 days)
+	// Only get the transactions in the last 365 steps (365 days)
 	var quantitySoldBefore int
 	for _, transaction := range transactions {
-		if transaction.ressource.name == ressource.name && transaction.step >= step-31 {
+		if transaction.ressource.name == ressource.name && transaction.step >= step-365 {
 			quantitySoldBefore += transaction.quantity
 		}
 	}
@@ -101,7 +150,7 @@ func (m *Market) RessourcePrice(step int, ressource Ressource) (float32, float32
 
 	for _, transaction := range transactions {
 		if transaction.ressource.name == ressource.name {
-			if transaction.step >= currentStep-31 {
+			if transaction.step >= currentStep-365 {
 				quantitySoldBefore += transaction.quantity
 			}
 			if transaction.step == currentStep {

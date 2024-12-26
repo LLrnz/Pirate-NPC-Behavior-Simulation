@@ -38,7 +38,7 @@ var ShipConfigs = map[ShipType]ShipConfig{
 		FOV:      12,
 	},
 	Privateer: {
-		Speed:    2,
+		Speed:    1,
 		Attack:   60,
 		Health:   300,
 		Capacity: 20,

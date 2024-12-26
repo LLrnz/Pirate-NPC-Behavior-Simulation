@@ -14,14 +14,14 @@ import (
 
 type Environment struct {
 	agents   []Agent
-	harbours []Harbour
+	harbours []*Harbour
 	market   *Market
 
 	sync.RWMutex
 }
 
 // NewEnvironment initializes the Environment
-func NewEnvironment(agents []Agent, harbours []Harbour) (env *Environment) {
+func NewEnvironment(agents []Agent, harbours []*Harbour) (env *Environment) {
 	market := NewMarket()
 	return &Environment{
 		agents:   agents,
@@ -69,7 +69,7 @@ func (env *Environment) RemoveAgent(target Agent) {
 }
 
 // Get harbours in the environment
-func (env *Environment) Harbours() []Harbour {
+func (env *Environment) Harbours() []*Harbour {
 	env.RLock()
 	defer env.RUnlock()
 
@@ -77,7 +77,7 @@ func (env *Environment) Harbours() []Harbour {
 }
 
 // Add an Harbour to the Environment
-func (env *Environment) AddHarbour(h Harbour) {
+func (env *Environment) AddHarbour(h *Harbour) {
 	env.Lock()
 	defer env.Unlock()
 
@@ -100,7 +100,7 @@ func (env *Environment) IsHarbour(ship *Ship) (*Harbour, bool) {
 	// Loop through harbours
 	for _, harbour := range harbours {
 		if harbour.Coordinates() == shipCoordinates {
-			return &harbour, true
+			return harbour, true
 		}
 	}
 
@@ -129,7 +129,7 @@ func (env *Environment) ClosestHarbour(ag *Ship) *Harbour {
 		// Update the closest agent if the distance is smaller
 		if distance < minDistance {
 			minDistance = distance
-			closestHarbour = &harbour
+			closestHarbour = harbour
 		}
 	}
 
@@ -204,8 +204,8 @@ func (env *Environment) KrakenNearby(agt Agent) *Agent {
 }
 
 // ClosestShip returns the closest ship to the given ship that is not docked within it's fov
-func (env *Environment) ClosestShipFromKraken(agt *Kraken) *Agent {
-	var closestAgent *Agent
+func (env *Environment) ClosestShipFromKraken(agt *Kraken) Agent {
+	var closestAgent Agent
 	minDistance := math.MaxInt
 
 	// Get the coordinates of the agent
@@ -224,6 +224,7 @@ func (env *Environment) ClosestShipFromKraken(agt *Kraken) *Agent {
 
 		// Skip docked ships because they are safe
 		ship, ok := otherAgent.(*Ship)
+		//print("Ship ", ship.Id(), "docked ", ship.Docked())
 		if ok && ship.Docked() != nil {
 			continue
 		}
@@ -240,7 +241,7 @@ func (env *Environment) ClosestShipFromKraken(agt *Kraken) *Agent {
 		// Update the closest agent if the distance is smaller
 		if distance < minDistance {
 			minDistance = distance
-			closestAgent = &otherAgent
+			closestAgent = otherAgent
 		}
 	}
 
@@ -248,8 +249,8 @@ func (env *Environment) ClosestShipFromKraken(agt *Kraken) *Agent {
 }
 
 // ClosestPirate returns the closest pirate ship not docked within it's fov
-func (env *Environment) ClosestPirate(ag *Ship) *Agent {
-	var closestAgent *Agent
+func (env *Environment) ClosestPirate(ag *Ship) Agent {
+	var closestAgent Agent
 	minDistance := math.MaxInt
 
 	// Get the coordinates of the agent
@@ -284,7 +285,7 @@ func (env *Environment) ClosestPirate(ag *Ship) *Agent {
 		// Update the closest agent if the distance is smaller
 		if distance < minDistance {
 			minDistance = distance
-			closestAgent = &otherAgent
+			closestAgent = otherAgent
 		}
 	}
 
@@ -292,8 +293,8 @@ func (env *Environment) ClosestPirate(ag *Ship) *Agent {
 }
 
 // ClosestPrivateer returns the closest privateer ship not docked within it's fov and not same nationality
-func (env *Environment) ClosestPrivateerNationality(ag *Ship) *Agent {
-	var closestAgent *Agent
+func (env *Environment) ClosestPrivateerNationality(ag *Ship) Agent {
+	var closestAgent Agent
 	minDistance := math.MaxInt
 
 	// Get the coordinates of the agent
@@ -328,7 +329,7 @@ func (env *Environment) ClosestPrivateerNationality(ag *Ship) *Agent {
 		// Update the closest agent if the distance is smaller
 		if distance < minDistance {
 			minDistance = distance
-			closestAgent = &otherAgent
+			closestAgent = otherAgent
 		}
 	}
 
@@ -336,8 +337,8 @@ func (env *Environment) ClosestPrivateerNationality(ag *Ship) *Agent {
 }
 
 // ClosestShip returns the closest ship to the given ship that is not docked within it's fov
-func (env *Environment) ClosestShipFromShip(agt *Ship) *Agent {
-	var closestAgent *Agent
+func (env *Environment) ClosestShipFromShip(agt *Ship) Agent {
+	var closestAgent Agent
 	minDistance := math.MaxInt
 
 	// Get the coordinates of the agent
@@ -372,7 +373,7 @@ func (env *Environment) ClosestShipFromShip(agt *Ship) *Agent {
 		// Update the closest agent if the distance is smaller
 		if distance < minDistance {
 			minDistance = distance
-			closestAgent = &otherAgent
+			closestAgent = otherAgent
 		}
 	}
 
@@ -380,8 +381,8 @@ func (env *Environment) ClosestShipFromShip(agt *Ship) *Agent {
 }
 
 // ClosestMerchant returns the closest merchant ship not docked within it's fov
-func (env *Environment) ClosestMerchant(ag *Ship) *Agent {
-	var closestAgent *Agent
+func (env *Environment) ClosestMerchant(ag *Ship) Agent {
+	var closestAgent Agent
 	minDistance := math.MaxInt
 
 	// Get the coordinates of the agent
@@ -416,7 +417,7 @@ func (env *Environment) ClosestMerchant(ag *Ship) *Agent {
 		// Update the closest agent if the distance is smaller
 		if distance < minDistance {
 			minDistance = distance
-			closestAgent = &otherAgent
+			closestAgent = otherAgent
 		}
 	}
 
@@ -424,8 +425,8 @@ func (env *Environment) ClosestMerchant(ag *Ship) *Agent {
 }
 
 // ClosestMerchantNationality returns the closest army ship not docked within it's fov and not same nationality
-func (env *Environment) ClosestMerchantNationality(ag *Ship) *Agent {
-	var closestAgent *Agent
+func (env *Environment) ClosestMerchantNationality(ag *Ship) Agent {
+	var closestAgent Agent
 	minDistance := math.MaxInt
 
 	// Get the coordinates of the agent
@@ -460,7 +461,7 @@ func (env *Environment) ClosestMerchantNationality(ag *Ship) *Agent {
 		// Update the closest agent if the distance is smaller
 		if distance < minDistance {
 			minDistance = distance
-			closestAgent = &otherAgent
+			closestAgent = otherAgent
 		}
 	}
 
@@ -468,8 +469,8 @@ func (env *Environment) ClosestMerchantNationality(ag *Ship) *Agent {
 }
 
 // ClosestPrivateer returns the closest privateer ship not docked within it's fov
-func (env *Environment) ClosestPrivateer(ag *Ship) *Agent {
-	var closestAgent *Agent
+func (env *Environment) ClosestPrivateer(ag *Ship) Agent {
+	var closestAgent Agent
 	minDistance := math.MaxInt
 
 	// Get the coordinates of the agent
@@ -504,7 +505,7 @@ func (env *Environment) ClosestPrivateer(ag *Ship) *Agent {
 		// Update the closest agent if the distance is smaller
 		if distance < minDistance {
 			minDistance = distance
-			closestAgent = &otherAgent
+			closestAgent = otherAgent
 		}
 	}
 
@@ -512,8 +513,8 @@ func (env *Environment) ClosestPrivateer(ag *Ship) *Agent {
 }
 
 // ClosestPrivateer returns the closest army ship not docked within it's fov
-func (env *Environment) ClosestArmy(ag *Ship) *Agent {
-	var closestAgent *Agent
+func (env *Environment) ClosestArmy(ag *Ship) Agent {
+	var closestAgent Agent
 	minDistance := math.MaxInt
 
 	// Get the coordinates of the agent
@@ -548,7 +549,7 @@ func (env *Environment) ClosestArmy(ag *Ship) *Agent {
 		// Update the closest agent if the distance is smaller
 		if distance < minDistance {
 			minDistance = distance
-			closestAgent = &otherAgent
+			closestAgent = otherAgent
 		}
 	}
 
@@ -556,8 +557,8 @@ func (env *Environment) ClosestArmy(ag *Ship) *Agent {
 }
 
 // ClosestArmyNationality returns the closest army ship not docked within it's fov and not same nationality
-func (env *Environment) ClosestArmyNationality(ag *Ship) *Agent {
-	var closestAgent *Agent
+func (env *Environment) ClosestArmyNationality(ag *Ship) Agent {
+	var closestAgent Agent
 	minDistance := math.MaxInt
 
 	// Get the coordinates of the agent
@@ -592,7 +593,7 @@ func (env *Environment) ClosestArmyNationality(ag *Ship) *Agent {
 		// Update the closest agent if the distance is smaller
 		if distance < minDistance {
 			minDistance = distance
-			closestAgent = &otherAgent
+			closestAgent = otherAgent
 		}
 	}
 

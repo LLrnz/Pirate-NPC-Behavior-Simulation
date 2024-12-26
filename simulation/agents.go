@@ -1,6 +1,7 @@
 package simulation
 
 import (
+	"fmt"
 	"sync"
 
 	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
@@ -35,8 +36,8 @@ type Agent interface {
 	AddHealth(health int)
 	RemoveHealth(health int)
 
-	Target() *Agent
-	SetTarget(target *Agent)
+	Target() Agent
+	SetTarget(target Agent)
 	Action() string
 	SetAction(action string)
 	Itinerary() []Coordinates
@@ -67,7 +68,7 @@ type BaseAgent struct {
 	attack int
 	health int
 
-	target    *Agent
+	target    Agent
 	action    string
 	itinerary []Coordinates
 	direction Direction
@@ -155,12 +156,12 @@ func (agt *BaseAgent) RemoveHealth(health int) {
 }
 
 // Getter Target
-func (agt *BaseAgent) Target() *Agent {
+func (agt *BaseAgent) Target() Agent {
 	return agt.target
 }
 
 // Setter Target
-func (agt *BaseAgent) SetTarget(target *Agent) {
+func (agt *BaseAgent) SetTarget(target Agent) {
 	agt.target = target
 }
 
@@ -284,7 +285,7 @@ type Ship struct {
 
 	docked *Harbour
 
-	danger *Agent
+	danger Agent
 
 	behaviourPercept    func(*Ship, *Environment, int)
 	behaviourDeliberate func(*Ship, *Environment, int)
@@ -637,12 +638,12 @@ func (ag *Ship) SetDocked(harbour *Harbour) {
 }
 
 // Getter Danger
-func (ag *Ship) Danger() *Agent {
+func (ag *Ship) Danger() Agent {
 	return ag.danger
 }
 
 // Setter Danger
-func (ag *Ship) SetDanger(danger *Agent) {
+func (ag *Ship) SetDanger(danger Agent) {
 	ag.danger = danger
 }
 
@@ -739,48 +740,54 @@ func (ag *Kraken) Percept(env *Environment, step int) {
 	if closest != nil {
 		ag.SetTarget(closest)
 	} else {
+		print("pas de target")
 		ag.SetTarget(nil)
 	}
 }
 
 func (ag *Kraken) Deliberate(env *Environment, step int) {
-
-	//If the Kraken is low life or has no target = rest to gain PV
+	// If the Kraken is low life or has no target = rest to gain PV
 	if ag.Health() <= int(float32(constants.KrakenParameters.Health)*0.05) || ag.Target() == nil {
 		ag.SetAction("rest")
 		return
 	}
 
 	// Calculate the distance to the target agent (Manhattan)
-	distance := Heuristic(ag.Coordinates(), (*ag.Target()).Coordinates())
+	distance := Heuristic(ag.Coordinates(), (ag.Target()).Coordinates())
+
+	// Ensure the target is a ship and not docked
+	ship, ok := (ag.Target()).(*Ship)
+	if ok && ship.Docked() != nil {
+		ag.SetAction("rest")
+		return
+	}
 
 	// If the Kraken can attack, it should attack the ship
-	// Else it should follow the nearest agent as a target
-	// Skip docked ships because they are safe
-	ship, ok := (*ag.Target()).(*Ship)
-
-	if (distance < ag.Speed() && ok && ship.Docked() == nil) || (distance < ag.Speed() && !ok) {
+	if distance < ag.Speed() {
 		ag.SetAction("attack")
 	} else {
 		// Pathfinding to the target
-		path := AStar(ag.Coordinates(), (*ag.Target()).Coordinates())
+		path := AStar(ag.Coordinates(), (ag.Target()).Coordinates())
 		// If path found set itinerary and follow
 		if path != nil {
 			ag.SetItinerary(path)
 			ag.SetAction("follow")
 		}
 	}
-
 }
 
 func (ag *Kraken) Act(env *Environment, step int) {
 
 	switch ag.Action() {
 	case "attack":
+		ship, ok := (ag.Target()).(*Ship)
+		if ok && ship.Docked() != nil {
+			fmt.Print("Act : Kraken target is docked ship: %s", ship.Id())
+			break
+		}
 		// Go to target and attack
 		ag.FollowItinerary()
-		// Remove the target from the environment
-		env.AttackAgent(*ag.Target(), ag)
+		env.AttackAgent(ag.Target(), ag)
 	case "follow":
 		// Move towards target
 		ag.FollowItinerary()

@@ -8,20 +8,36 @@ type Ressource struct {
 	hyperbolicDecay float32
 }
 
-var Gold = Ressource{"Gold", 100.0, 50.0, 0.01}
-var Coffee = Ressource{"Coffee", 20.0, 10.0, 0.02}
-var Spices = Ressource{"Spices", 25.0, 12.0, 0.015}
-var Sugar = Ressource{"Sugar", 15.0, 8.0, 0.018}
-var Alcohol = Ressource{"Alcohol", 30.0, 15.0, 0.025}
-var Tipiak = Ressource{"Tipiak", 50.0, 25.0, 0.03}
+var Gold = Ressource{"Gold", 600.0, 40.0, 4.0}
+var Silver = Ressource{"Silver", 450.0, 300.0, 12.0}
+var Coffee = Ressource{"Coffee", 120.0, 90.0, 1.5}
+var Spices = Ressource{"Spices", 300.0, 200.0, 2.5}
+var Sugar = Ressource{"Sugar", 150.0, 100.0, 2.0}
+var Rum = Ressource{"Rum", 50.0, 30.0, 1.0}
+var Tobacco = Ressource{"Tobacco", 80.0, 60.0, 1.2}
+var Silk = Ressource{"Silk", 500.0, 350.0, 18.0}
+var Cocoa = Ressource{"Cocoa", 180.0, 140.0, 2.0}
+var Pearls = Ressource{"Pearls", 700.0, 500.0, 40.0}
+var Cotton = Ressource{"Cotton", 50.0, 35.0, 0.8}
+var Ivory = Ressource{"Ivory", 400.0, 250.0, 60.5}
+var Weapons = Ressource{"Weapons", 250.0, 180.0, 2.5}
+var Tipiak = Ressource{"Tipiak", 300.0, 200.0, 3.0}
 
 // Ressources
 var RessourceMap = map[string]Ressource{
 	"Gold":    Gold,
+	"Silver":  Silver,
 	"Coffee":  Coffee,
 	"Spices":  Spices,
 	"Sugar":   Sugar,
-	"Alcohol": Alcohol,
+	"Rum":     Rum,
+	"Tobacco": Tobacco,
+	"Silk":    Silk,
+	"Cocoa":   Cocoa,
+	"Pearls":  Pearls,
+	"Cotton":  Cotton,
+	"Ivory":   Ivory,
+	"Weapons": Weapons,
 	"Tipiak":  Tipiak,
 }
 

@@ -1,7 +1,6 @@
 package simulation
 
 import (
-	"fmt"
 	"math"
 	mathrand "math/rand"
 
@@ -9,7 +8,6 @@ import (
 )
 
 func pirateShipPercept(ship *Ship, env *Environment, step int) {
-	fmt.Println("Pirate ship percept...")
 
 	kraken := env.KrakenNearby(ship)
 	pirate := env.ClosestPirate(ship)
@@ -32,13 +30,13 @@ func pirateShipPercept(ship *Ship, env *Environment, step int) {
 			distancesSlice[0] = Heuristic((*kraken).Coordinates(), ship.coordinates)
 		}
 		if pirate != nil {
-			distancesSlice[1] = Heuristic((*pirate).Coordinates(), ship.coordinates)
+			distancesSlice[1] = Heuristic((pirate).Coordinates(), ship.coordinates)
 		}
 		if privateer != nil {
-			distancesSlice[2] = Heuristic((*privateer).Coordinates(), ship.coordinates)
+			distancesSlice[2] = Heuristic((privateer).Coordinates(), ship.coordinates)
 		}
 		if merchant != nil {
-			distancesSlice[3] = Heuristic((*merchant).Coordinates(), ship.coordinates)
+			distancesSlice[3] = Heuristic((merchant).Coordinates(), ship.coordinates)
 		}
 
 		distanceMin := distancesSlice[0]
@@ -52,29 +50,19 @@ func pirateShipPercept(ship *Ship, env *Environment, step int) {
 		}
 
 		if indiceMin == 0 && kraken != nil {
-			fmt.Println((*kraken).Id())
-			fmt.Println((*kraken).Coordinates())
-			ship.SetTarget(kraken)
+			ship.SetTarget(*kraken)
 		} else if indiceMin == 1 && pirate != nil {
-			fmt.Println((*pirate).Id())
-			fmt.Println((*pirate).Coordinates())
 			ship.SetTarget(pirate)
 		} else if indiceMin == 2 && privateer != nil {
-			fmt.Println((*privateer).Id())
-			fmt.Println((*privateer).Coordinates())
 			ship.SetTarget(privateer)
 		} else if indiceMin == 3 && merchant != nil {
-			fmt.Println((*merchant).Id())
-			fmt.Println((*merchant).Coordinates())
 			ship.SetTarget(merchant)
 		} else {
-			fmt.Println("Pirate ship doesn't detect any target")
 		}
 	}
 }
 
 func pirateShipDeliberate(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Pirate ship deliberate...")
 
 	// if docked and not full life, fix or sell ressources
 	if ship.Docked() != nil {
@@ -153,7 +141,6 @@ func pirateShipDeliberate(ship *Ship, env *Environment, step int) {
 
 		}
 
-		fmt.Println("Pirate ship deliberate - go to sell ressources in a harbour - follow")
 		ship.SetAction("follow")
 
 		return
@@ -184,26 +171,23 @@ func pirateShipDeliberate(ship *Ship, env *Environment, step int) {
 			ship.SetItinerary(path)
 		}
 
-		fmt.Println("Pirate ship deliberate - life under 20, set itinerary to closest harbour - follow")
 		ship.SetAction("follow")
 		return
 	}
 
 	// if ship has a target
 	if ship.Target() != nil {
-		distance := Heuristic(ship.Coordinates(), (*ship.Target()).Coordinates())
+		distance := Heuristic(ship.Coordinates(), (ship.Target()).Coordinates())
 
 		if distance <= ship.Speed() { // if ship is next to a target, attack target
 
-			fmt.Println("Pirate ship deliberate - target - attack")
 			ship.SetAction("attack")
 		} else { // else, follow target
 			// Pathfinding to the target
-			path := AStar(ship.Coordinates(), (*ship.Target()).Coordinates())
+			path := AStar(ship.Coordinates(), (ship.Target()).Coordinates())
 			// If path found set itinerary and follow
 			if path != nil {
 				ship.SetItinerary(path)
-				fmt.Println("Pirate ship deliberate - target - follow")
 				ship.SetAction("follow")
 			}
 		}
@@ -225,16 +209,13 @@ func pirateShipDeliberate(ship *Ship, env *Environment, step int) {
 	}
 
 	if ship.Danger() != nil {
-		fmt.Println("Pirate ship deliberate - flee army ship - flee")
 		ship.SetAction("flee")
 	} else {
-		fmt.Println("Pirate ship deliberate - no target, no itinerary - follow")
 		ship.SetAction("follow")
 	}
 }
 
 func pirateShipAct(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Pirate ship act...")
 	switch ship.Action() {
 	// case "flee":
 	// 	// Continue itinerary to flee # see if pirate can attack kraken or not
@@ -248,7 +229,7 @@ func pirateShipAct(ship *Ship, env *Environment, step int) {
 		// Go to target and attack
 		ship.FollowItinerary()
 		// Remove the target from the environment
-		env.AttackAgent(*ship.Target(), ship) // need to stell ressources from the target
+		env.AttackAgent(ship.Target(), ship) // need to stell ressources from the target
 	case "follow":
 		// Follow target
 		ship.FollowItinerary()
@@ -291,7 +272,6 @@ func pirateShipAct(ship *Ship, env *Environment, step int) {
 
 func pirateShipLevelUp(ship *Ship, env *Environment, step int) {
 	//
-	//fmt.Println("Pirate ship level up...")
 	// pirateShipLevelUp(ship *Ship, env *Environment) //regarde si elle est good pour level up
 }
 
@@ -303,7 +283,7 @@ func merchantShipPercept(ship *Ship, env *Environment, step int) {
 
 	if kraken != nil {
 		//If nearby we set danger
-		ship.SetDanger(kraken)
+		ship.SetDanger(*kraken)
 	} else {
 		//Else danger is nil
 		ship.SetDanger(nil)
@@ -315,40 +295,6 @@ func merchantShipDeliberate(ship *Ship, env *Environment, step int) {
 
 	// If kraken within fov go 3 cases away from it or as far as possible max 3 cases
 	if ship.Danger() != nil && ship.Docked() == nil {
-		// Get ship and kraken coordinates
-		/*shipCoords := ship.Coordinates()
-		krakenCoords := (*ship.Danger()).Coordinates()
-
-		// Calculate the direction where the ship should go
-		dx := shipCoords.X() - krakenCoords.X()
-		dy := shipCoords.Y() - krakenCoords.Y()
-
-		magnitude := math.Sqrt(float64(dx*dx + dy*dy))
-		dirX := int(math.Round(float64(dx) / magnitude))
-		dirY := int(math.Round(float64(dy) / magnitude))
-
-		// Attempt to move 3 cases away in the opposite direction
-		for cases := 3; cases > 0; cases-- {
-			targetX := shipCoords.X() + dirX*cases
-			targetY := shipCoords.Y() + dirY*cases
-
-			// Check if the target coordinate is within bounds and walkable
-			if targetX >= 0 && targetX < len(constants.MapGrid[0]) &&
-				targetY >= 0 && targetY < len(constants.MapGrid) &&
-				constants.MapGrid[targetY][targetX] == 0 {
-
-				// Pathfinding to the target
-				path := AStar(ship.Coordinates(), Coordinates{x: targetX, y: targetY})
-				// If path found set itinerary and follow
-				if path != nil {
-					ship.SetItinerary(path)
-					ship.SetAction("flee")
-				} else {
-					ship.SetAction("wait")
-				}
-				return
-			}
-		}*/
 		harbour := env.ClosestHarbour(ship)
 		path := AStar(ship.Coordinates(), harbour.Coordinates())
 		// If path found set itinerary and follow
@@ -490,10 +436,22 @@ func merchantShipDeliberate(ship *Ship, env *Environment, step int) {
 }
 
 func merchantShipAct(ship *Ship, env *Environment, step int) {
+	print(ship.Action(), "\n")
 	switch ship.Action() {
 	case "flee":
 		// Continue itinerary to flee
 		ship.FollowItinerary()
+
+		if ship.Docked() != nil {
+			env.UndockShip(ship)
+		}
+
+		if len(ship.Itinerary()) == 0 {
+			harbour, ok := env.IsHarbour(ship)
+			if ok {
+				env.DockShip(ship, harbour)
+			}
+		}
 	case "follow":
 		// Continue itinerary
 		ship.FollowItinerary()
@@ -569,19 +527,18 @@ func merchantShipAct(ship *Ship, env *Environment, step int) {
 	}
 
 	ship.target = nil
+	ship.danger = nil
 	ship.action = ""
 
 }
 
 func merchantShipLevelUp(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Merchant ship level up...")
 	// merchantShipLevelUp(ship *Ship, env *Environment) //regarde si elle est good pour level up
 }
 
 // ------------------- Privateer ship -------------------
 
 func privateerShipPercept(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Privateer ship percept...")
 	kraken := env.KrakenNearby(ship)
 	pirate := env.ClosestPirate(ship)
 	merchant := env.ClosestMerchantNationality(ship)
@@ -599,16 +556,16 @@ func privateerShipPercept(ship *Ship, env *Environment, step int) {
 		distancesSlice[0] = Heuristic((*kraken).Coordinates(), ship.coordinates)
 	}
 	if pirate != nil {
-		distancesSlice[1] = Heuristic((*pirate).Coordinates(), ship.coordinates)
+		distancesSlice[1] = Heuristic((pirate).Coordinates(), ship.coordinates)
 	}
 	if privateer != nil {
-		distancesSlice[2] = Heuristic((*privateer).Coordinates(), ship.coordinates)
+		distancesSlice[2] = Heuristic((privateer).Coordinates(), ship.coordinates)
 	}
 	if merchant != nil {
-		distancesSlice[3] = Heuristic((*merchant).Coordinates(), ship.coordinates)
+		distancesSlice[3] = Heuristic((merchant).Coordinates(), ship.coordinates)
 	}
 	if army != nil {
-		distancesSlice[4] = Heuristic((*army).Coordinates(), ship.coordinates)
+		distancesSlice[4] = Heuristic((army).Coordinates(), ship.coordinates)
 	}
 
 	distanceMin := distancesSlice[0]
@@ -622,32 +579,19 @@ func privateerShipPercept(ship *Ship, env *Environment, step int) {
 	}
 
 	if indiceMin == 0 && kraken != nil {
-		fmt.Println((*kraken).Id())
-		fmt.Println((*kraken).Coordinates())
-		ship.SetTarget(kraken)
+		ship.SetTarget(*kraken)
 	} else if indiceMin == 1 && pirate != nil {
-		fmt.Println((*pirate).Id())
-		fmt.Println((*pirate).Coordinates())
 		ship.SetTarget(pirate)
 	} else if indiceMin == 2 && privateer != nil {
-		fmt.Println((*privateer).Id())
-		fmt.Println((*privateer).Coordinates())
 		ship.SetTarget(privateer)
 	} else if indiceMin == 3 && merchant != nil {
-		fmt.Println((*merchant).Id())
-		fmt.Println((*merchant).Coordinates())
 		ship.SetTarget(merchant)
 	} else if indiceMin == 4 && army != nil {
-		fmt.Println((*army).Id())
-		fmt.Println((*army).Coordinates())
 		ship.SetTarget(army)
-	} else {
-		fmt.Println("Privateer ship doesn't detect any target")
 	}
 }
 
 func privateerShipDeliberate(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Pirate ship deliberate...")
 
 	// if docked and not full life, fix or sell ressources
 	if ship.Docked() != nil {
@@ -720,7 +664,6 @@ func privateerShipDeliberate(ship *Ship, env *Environment, step int) {
 
 		}
 
-		fmt.Println("Privateer ship deliberate - go to sell ressources in a harbour - follow")
 		ship.SetAction("follow")
 
 		return
@@ -751,26 +694,23 @@ func privateerShipDeliberate(ship *Ship, env *Environment, step int) {
 			ship.SetItinerary(path)
 		}
 
-		fmt.Println("Privateer ship deliberate - life under 20, set itinerary to closest harbour - follow")
 		ship.SetAction("follow")
 		return
 	}
 
 	// if ship has a target
 	if ship.Target() != nil {
-		distance := Heuristic(ship.Coordinates(), (*ship.Target()).Coordinates())
+		distance := Heuristic(ship.Coordinates(), (ship.Target()).Coordinates())
 
 		if distance <= ship.Speed() { // if ship is next to a target, attack target
 
-			fmt.Println("Privateer ship deliberate - target - attack")
 			ship.SetAction("attack")
 		} else { // else, follow target
 			// Pathfinding to the target
-			path := AStar(ship.Coordinates(), (*ship.Target()).Coordinates())
+			path := AStar(ship.Coordinates(), (ship.Target()).Coordinates())
 			// If path found set itinerary and follow
 			if path != nil {
 				ship.SetItinerary(path)
-				fmt.Println("Privateer ship deliberate - target - follow")
 				ship.SetAction("follow")
 			}
 		}
@@ -791,13 +731,11 @@ func privateerShipDeliberate(ship *Ship, env *Environment, step int) {
 		ship.SetItinerary(path)
 	}
 
-	fmt.Println("Privateer ship deliberate - no target, no itinerary - follow")
 	ship.SetAction("follow")
 
 }
 
 func privateerShipAct(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Privateer ship act...")
 	switch ship.Action() {
 	case "repair":
 		ship.SetHealth(constants.ShipConfigs["Privateer"].Health)
@@ -805,7 +743,7 @@ func privateerShipAct(ship *Ship, env *Environment, step int) {
 		// Go to target and attack
 		ship.FollowItinerary()
 		// Remove the target from the environment
-		env.AttackAgent(*ship.Target(), ship)
+		env.AttackAgent(ship.Target(), ship)
 	case "follow":
 		// Follow target
 		ship.FollowItinerary()
@@ -826,15 +764,12 @@ func privateerShipAct(ship *Ship, env *Environment, step int) {
 }
 
 func privateerShipLevelUp(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Privateer ship level up...")
 	// privateerShipLevelUp(ship *Ship, env *Environment) //regarde si elle est good pour level up
 }
 
 // ------------------- Army ship -------------------
 
 func armyShipPercept(ship *Ship, env *Environment, step int) {
-	fmt.Println("Army ship percept...")
-	// //fmt.Println(AgentsNearby(ag.ship)) // AgentsNearby is a function that returns the agents nearby
 
 	// army's targets are pirate ships, privateer ships (from different nationality) and kraken
 	// retreive potential target from environment
@@ -853,10 +788,10 @@ func armyShipPercept(ship *Ship, env *Environment, step int) {
 		distancesSlice[0] = Heuristic((*kraken).Coordinates(), ship.coordinates)
 	}
 	if pirate != nil {
-		distancesSlice[1] = Heuristic((*pirate).Coordinates(), ship.coordinates)
+		distancesSlice[1] = Heuristic((pirate).Coordinates(), ship.coordinates)
 	}
 	if privateer != nil {
-		distancesSlice[2] = Heuristic((*privateer).Coordinates(), ship.coordinates)
+		distancesSlice[2] = Heuristic((privateer).Coordinates(), ship.coordinates)
 	}
 
 	distanceMin := distancesSlice[0]
@@ -870,30 +805,20 @@ func armyShipPercept(ship *Ship, env *Environment, step int) {
 	}
 
 	if indiceMin == 0 && kraken != nil {
-		fmt.Println((*kraken).Id())
-		fmt.Println((*kraken).Coordinates())
-		ship.SetTarget(kraken)
+		ship.SetTarget(*kraken)
 	} else if indiceMin == 1 && pirate != nil {
-		fmt.Println((*pirate).Id())
-		fmt.Println((*pirate).Coordinates())
 		ship.SetTarget(pirate)
 	} else if indiceMin == 2 && privateer != nil {
-		fmt.Println((*privateer).Id())
-		fmt.Println((*privateer).Coordinates())
 		ship.SetTarget(privateer)
-	} else {
-		fmt.Println("Army ship doesn't detect any target")
 	}
 }
 
 func armyShipDeliberate(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Army ship deliberate...")
 
 	// actions in priority order
 
 	// if docked and not full life, fix
 	if ship.Docked() != nil && ship.Health() < constants.ShipConfigs["Army"].Health {
-		fmt.Println("Army ship deliberate - repair")
 		ship.SetAction("repair")
 		return
 	}
@@ -921,7 +846,6 @@ func armyShipDeliberate(ship *Ship, env *Environment, step int) {
 			ship.SetItinerary(path)
 		}
 
-		fmt.Println("Army ship deliberate - docked, set itinerary to another harbour - follow")
 		ship.SetAction("follow")
 
 		return
@@ -952,26 +876,23 @@ func armyShipDeliberate(ship *Ship, env *Environment, step int) {
 			ship.SetItinerary(path)
 		}
 
-		fmt.Println("Army ship deliberate - life under 20, set itinerary to closest harbour - follow")
 		ship.SetAction("follow")
 		return
 	}
 
 	// if ship has a target
 	if ship.Target() != nil {
-		distance := Heuristic(ship.Coordinates(), (*ship.Target()).Coordinates())
+		distance := Heuristic(ship.Coordinates(), (ship.Target()).Coordinates())
 
 		if distance <= ship.Speed() { // if ship is next to a target, attack target
 
-			fmt.Println("Army ship deliberate - target - attack")
 			ship.SetAction("attack")
 		} else { // else, follow target
 			// Pathfinding to the target
-			path := AStar(ship.Coordinates(), (*ship.Target()).Coordinates())
+			path := AStar(ship.Coordinates(), (ship.Target()).Coordinates())
 			// If path found set itinerary and follow
 			if path != nil {
 				ship.SetItinerary(path)
-				fmt.Println("Army ship deliberate - target - follow")
 				ship.SetAction("follow")
 			}
 		}
@@ -980,7 +901,6 @@ func armyShipDeliberate(ship *Ship, env *Environment, step int) {
 
 	// if ship has no target, follow current itinerary
 	if len(ship.Itinerary()) != 0 || ship.Itinerary() != nil {
-		fmt.Println("Army ship deliberate - no target, follow current itinerary - follow")
 		ship.SetAction("follow")
 		return
 	}
@@ -999,12 +919,10 @@ func armyShipDeliberate(ship *Ship, env *Environment, step int) {
 		ship.SetItinerary(path)
 	}
 
-	fmt.Println("Army ship deliberate - no target, no itinerary - follow")
 	ship.SetAction("follow")
 }
 
 func armyShipAct(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Army ship act...")
 	// Army ship can attack Pirate ship,  Filibusteer ship, Privateer ship
 
 	switch ship.Action() {
@@ -1013,7 +931,7 @@ func armyShipAct(ship *Ship, env *Environment, step int) {
 	case "attack":
 		// Go to target and attack
 		ship.FollowItinerary()
-		env.AttackAgent(*ship.Target(), ship)
+		env.AttackAgent(ship.Target(), ship)
 	case "follow":
 		ship.FollowItinerary()
 
@@ -1037,7 +955,6 @@ func armyShipAct(ship *Ship, env *Environment, step int) {
 }
 
 func armyShipLevelUp(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Army ship level up is not possible...")
 	// Army ship can't level up i think
 
 }
@@ -1045,8 +962,6 @@ func armyShipLevelUp(ship *Ship, env *Environment, step int) {
 // ------------------- Zoro ship -------------------
 
 func zoroShipPercept(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Zoro ship percept...")
-	// //fmt.Println(AgentsNearby(ag.ship)) // AgentsNearby is a function that returns the agents nearby
 
 	// Zoro percepts a target within its fov
 	// Zoro's target is any ship/kraken who's closest to him
@@ -1062,7 +977,7 @@ func zoroShipPercept(ship *Ship, env *Environment, step int) {
 		distancesSlice[0] = Heuristic((*kraken).Coordinates(), ship.coordinates)
 	}
 	if targetShip != nil {
-		distancesSlice[0] = Heuristic((*targetShip).Coordinates(), ship.coordinates)
+		distancesSlice[0] = Heuristic((targetShip).Coordinates(), ship.coordinates)
 	}
 
 	distanceMin := distancesSlice[0]
@@ -1076,27 +991,17 @@ func zoroShipPercept(ship *Ship, env *Environment, step int) {
 	}
 
 	if indiceMin == 0 && kraken != nil {
-		fmt.Println("Zoro detects the Kraken as target:")
-		fmt.Println((*kraken).Id())
-		fmt.Println((*kraken).Coordinates())
-		ship.SetTarget(kraken)
+		ship.SetTarget(*kraken)
 	} else if indiceMin == 1 && targetShip != nil {
-		fmt.Println("Zoro detects a ship as target:")
-		fmt.Println((*targetShip).Id())
-		fmt.Println((*targetShip).Coordinates())
 		ship.SetTarget(targetShip)
 	} else {
-		fmt.Println("Zoro doesn't detect any target")
 	}
 
 }
 
 func zoroShipDeliberate(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Zoro ship deliberate...")
-
 	// if docked and not full life, fix
 	if ship.Docked() != nil && ship.Health() < constants.ShipConfigs["Zoro"].Health {
-		fmt.Println("Zoro deliberate - repair")
 		ship.SetAction("repair")
 		return
 	}
@@ -1110,26 +1015,22 @@ func zoroShipDeliberate(ship *Ship, env *Environment, step int) {
 		if path != nil {
 			ship.SetItinerary(path)
 		}
-		fmt.Println("Zoro deliberate - Zoro leaves harbour to somewhere else (oh no) - follow")
 		ship.SetAction("follow")
 		return
 	}
 
 	// If Zoro has a target, attack/follow it
 	if ship.Target() != nil {
-		distance := Heuristic(ship.Coordinates(), (*ship.Target()).Coordinates())
+		distance := Heuristic(ship.Coordinates(), (ship.Target()).Coordinates())
 
 		if distance <= ship.Speed() { // if ship is next to a target, attack target
-
-			fmt.Println("Zoro deliberate - target - attack")
 			ship.SetAction("attack")
 		} else { // else, follow target // should never happen since Zoro should only detect agt on the same coordinates as him
 			// Pathfinding to the target
-			path := AStar(ship.Coordinates(), (*ship.Target()).Coordinates())
+			path := AStar(ship.Coordinates(), (ship.Target()).Coordinates())
 			// if path found set itinerary and follow
 			if path != nil {
 				ship.SetItinerary(path)
-				fmt.Println("Zoro deliberate - target - follow")
 				ship.SetAction("follow")
 			}
 		}
@@ -1138,7 +1039,6 @@ func zoroShipDeliberate(ship *Ship, env *Environment, step int) {
 
 	// If Zoro has no target, follow current itinerary
 	if ship.Itinerary() != nil {
-		fmt.Println("Zoro deliberate - no target, follow current itinerary - follow")
 		ship.SetAction("follow")
 		return
 	}
@@ -1153,12 +1053,10 @@ func zoroShipDeliberate(ship *Ship, env *Environment, step int) {
 		ship.SetItinerary(path)
 	}
 
-	fmt.Println("Zoro deliberate - no target, no itinerary - follow")
 	ship.SetAction("follow")
 }
 
 func zoroShipAct(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Zoro ship act...")
 	//LostZoro(ship, env)
 
 	switch ship.Action() {
@@ -1167,7 +1065,7 @@ func zoroShipAct(ship *Ship, env *Environment, step int) {
 	case "attack":
 		// Go to target and attack
 		ship.FollowItinerary()
-		env.AttackAgent(*ship.Target(), ship)
+		env.AttackAgent(ship.Target(), ship)
 	case "follow":
 		ship.FollowItinerary()
 
@@ -1188,7 +1086,6 @@ func zoroShipAct(ship *Ship, env *Environment, step int) {
 }
 
 func zoroShipLevelUp(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Zoro ship level up is not possible...")
 	// no level up for zoro ship, can't access to the port
 }
 
@@ -1213,17 +1110,17 @@ func rackhamShipPercept(ship *Ship, env *Environment, step int) {
 		distancesSlice[0] = Heuristic((*kraken).Coordinates(), ship.coordinates)
 	}
 	if pirate != nil {
-		distancesSlice[1] = Heuristic((*pirate).Coordinates(), ship.coordinates)
+		distancesSlice[1] = Heuristic((pirate).Coordinates(), ship.coordinates)
 	}
 	if privateer != nil { // target only other nationality privateer
-		distancesSlice[2] = Heuristic((*privateer).Coordinates(), ship.coordinates)
+		distancesSlice[2] = Heuristic((privateer).Coordinates(), ship.coordinates)
 	}
 	if merchant != nil { // target all nationality merchant
-		distancesSlice[3] = Heuristic((*merchant).Coordinates(), ship.coordinates)
+		distancesSlice[3] = Heuristic((merchant).Coordinates(), ship.coordinates)
 	}
 
 	if army != nil { // target all nationality army
-		distancesSlice[4] = Heuristic((*army).Coordinates(), ship.coordinates)
+		distancesSlice[4] = Heuristic((army).Coordinates(), ship.coordinates)
 	}
 
 	distanceMin := distancesSlice[0]
@@ -1237,27 +1134,16 @@ func rackhamShipPercept(ship *Ship, env *Environment, step int) {
 	}
 
 	if indiceMin == 0 && kraken != nil {
-		fmt.Println((*kraken).Id())
-		fmt.Println((*kraken).Coordinates())
-		ship.SetTarget(kraken)
+		ship.SetTarget(*kraken)
 	} else if indiceMin == 1 && pirate != nil {
-		fmt.Println((*pirate).Id())
-		fmt.Println((*pirate).Coordinates())
 		ship.SetTarget(pirate)
 	} else if indiceMin == 2 && privateer != nil {
-		fmt.Println((*privateer).Id())
-		fmt.Println((*privateer).Coordinates())
 		ship.SetTarget(privateer)
 	} else if indiceMin == 3 && merchant != nil {
-		fmt.Println((*merchant).Id())
-		fmt.Println((*merchant).Coordinates())
 		ship.SetTarget(merchant)
 	} else if indiceMin == 4 && army != nil {
-		fmt.Println((*army).Id())
-		fmt.Println((*army).Coordinates())
 		ship.SetTarget(army)
 	} else {
-		fmt.Println("Rackham ship doesn't detect any target")
 	}
 }
 
@@ -1333,7 +1219,6 @@ func rackhamShipDeliberate(ship *Ship, env *Environment, step int) {
 
 		}
 
-		fmt.Println("Rackham ship deliberate - go to sell ressources in a harbour - follow")
 		ship.SetAction("follow")
 
 		return
@@ -1364,26 +1249,23 @@ func rackhamShipDeliberate(ship *Ship, env *Environment, step int) {
 			ship.SetItinerary(path)
 		}
 
-		fmt.Println("Rackham ship deliberate - life under 20, set itinerary to closest harbour - follow")
 		ship.SetAction("follow")
 		return
 	}
 
 	// if ship has a target
 	if ship.Target() != nil {
-		distance := Heuristic(ship.Coordinates(), (*ship.Target()).Coordinates())
+		distance := Heuristic(ship.Coordinates(), (ship.Target()).Coordinates())
 
 		if distance <= ship.Speed() { // if ship is next to a target, attack target
 
-			fmt.Println("Rackham ship deliberate - target - attack")
 			ship.SetAction("attack")
 		} else { // else, follow target
 			// Pathfinding to the target
-			path := AStar(ship.Coordinates(), (*ship.Target()).Coordinates())
+			path := AStar(ship.Coordinates(), (ship.Target()).Coordinates())
 			// If path found set itinerary and follow
 			if path != nil {
 				ship.SetItinerary(path)
-				fmt.Println("Rackham ship deliberate - target - follow")
 				ship.SetAction("follow")
 			}
 		}
@@ -1405,16 +1287,13 @@ func rackhamShipDeliberate(ship *Ship, env *Environment, step int) {
 	}
 
 	if ship.Danger() != nil {
-		fmt.Println("Rackham ship deliberate - flee army ship - flee")
 		ship.SetAction("flee")
 	} else {
-		fmt.Println("Rackham ship deliberate - no target, no itinerary - follow")
 		ship.SetAction("follow")
 	}
 }
 
 func rackhamShipAct(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Pirate ship act...")
 	switch ship.Action() {
 
 	case "flee":
@@ -1426,7 +1305,7 @@ func rackhamShipAct(ship *Ship, env *Environment, step int) {
 		// Go to target and attack
 		ship.FollowItinerary()
 		// Remove the target from the environment
-		env.AttackAgent(*ship.Target(), ship) // need to stell ressources from the target
+		env.AttackAgent(ship.Target(), ship) // need to stell ressources from the target
 	case "follow":
 		// Follow target
 		ship.FollowItinerary()
@@ -1468,5 +1347,4 @@ func rackhamShipAct(ship *Ship, env *Environment, step int) {
 }
 
 func rackhamShipLevelUp(ship *Ship, env *Environment, step int) {
-	//fmt.Println("Rackham ship level up is not possible...")
 }
