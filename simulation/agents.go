@@ -2,8 +2,10 @@ package simulation
 
 import (
 	"sync"
+	"time"
 
 	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
+	"golang.org/x/exp/rand"
 )
 
 /*
@@ -35,14 +37,15 @@ type Agent interface {
 	AddHealth(health int)
 	RemoveHealth(health int)
 
-	Target() *Agent
-	SetTarget(target *Agent)
+	Target() Agent
+	SetTarget(target Agent)
 	Action() string
 	SetAction(action string)
 	Itinerary() []Coordinates
 	SetItinerary(itinerary []Coordinates)
+	ResetItinerary()
 
-	FollowItinerary()
+	FollowItinerary(mistake bool)
 
 	Percept(env *Environment, step int)
 	Deliberate(env *Environment, step int)
@@ -67,7 +70,7 @@ type BaseAgent struct {
 	attack int
 	health int
 
-	target    *Agent
+	target    Agent
 	action    string
 	itinerary []Coordinates
 	direction Direction
@@ -155,12 +158,12 @@ func (agt *BaseAgent) RemoveHealth(health int) {
 }
 
 // Getter Target
-func (agt *BaseAgent) Target() *Agent {
+func (agt *BaseAgent) Target() Agent {
 	return agt.target
 }
 
 // Setter Target
-func (agt *BaseAgent) SetTarget(target *Agent) {
+func (agt *BaseAgent) SetTarget(target Agent) {
 	agt.target = target
 }
 
@@ -182,6 +185,10 @@ func (agt *BaseAgent) Itinerary() []Coordinates {
 // Setter Itinerary
 func (agt *BaseAgent) SetItinerary(itinerary []Coordinates) {
 	agt.itinerary = itinerary
+}
+
+func (ag *BaseAgent) ResetItinerary() {
+	ag.SetItinerary([]Coordinates{})
 }
 
 // Getter Direction
@@ -237,28 +244,54 @@ func (agt *BaseAgent) Act(env *Environment) {
 }
 
 // FollowItinerary at speed of agent
-func (ag *BaseAgent) FollowItinerary() {
+func (ag *BaseAgent) FollowItinerary(mistake bool) {
 
-	itinerary := ag.Itinerary()
-	speed := ag.Speed()
+	if mistake == false {
 
-	// If there is not enough coordinates to go through
-	if len(itinerary) == 0 {
-		return
+		itinerary := ag.Itinerary()
+		speed := ag.Speed()
+
+		// If there is not enough coordinates to go through
+		if len(itinerary) == 0 {
+			return
+		}
+
+		// Move based on the Agent speed
+		moves := speed
+		if moves > len(itinerary) {
+			moves = len(itinerary) // Max to the end of the array
+		}
+
+		// Update the Agent coordinates to the last point within the move range
+		newCoordinates := itinerary[moves-1]
+		ag.SetCoordinates(newCoordinates)
+
+		// Remove the used coordinates from the itinerary
+		ag.SetItinerary(itinerary[moves:])
+	} else {
+		// Get current coordinates
+		currentCoordinates := ag.Coordinates()
+
+		// Get neighbors
+		neighbors := GetNeighbors(currentCoordinates, constants.GridWidth, constants.GridHeight)
+
+		// Filter neighbors that are navigable
+		var passableNeighbors []Coordinates
+		for _, neighbor := range neighbors {
+			if constants.MapGrid[neighbor.Y()][neighbor.X()] != 1 {
+				passableNeighbors = append(passableNeighbors, neighbor)
+			}
+		}
+
+		// Select a random valid neighbor
+		if len(passableNeighbors) > 0 {
+			rand.Seed(uint64(time.Now().UnixNano()))
+			randomIndex := rand.Intn(len(passableNeighbors))
+			randomNeighbor := passableNeighbors[randomIndex]
+
+			ag.SetCoordinates(randomNeighbor)
+		}
 	}
-
-	// Move based on the Agent speed
-	moves := speed
-	if moves > len(itinerary) {
-		moves = len(itinerary) // Max to the end of the array
-	}
-
-	// Update the Agent coordinates to the last point within the move range
-	newCoordinates := itinerary[moves-1]
-	ag.SetCoordinates(newCoordinates)
-
-	// Remove the used coordinates from the itinerary
-	ag.SetItinerary(itinerary[moves:])
 }
 
 /*
@@ -284,7 +317,7 @@ type Ship struct {
 
 	docked *Harbour
 
-	danger *Agent
+	danger Agent
 
 	behaviourPercept    func(*Ship, *Environment, int)
 	behaviourDeliberate func(*Ship, *Environment, int)
@@ -637,12 +670,12 @@ func (ag *Ship) SetDocked(harbour *Harbour) {
 }
 
 // Getter Danger
-func (ag *Ship) Danger() *Agent {
+func (ag *Ship) Danger() Agent {
 	return ag.danger
 }
 
 // Setter Danger
-func (ag *Ship) SetDanger(danger *Agent) {
+func (ag *Ship) SetDanger(danger Agent) {
 	ag.danger = danger
 }
 
@@ -744,46 +777,74 @@ func (ag *Kraken) Percept(env *Environment, step int) {
 }
 
 func (ag *Kraken) Deliberate(env *Environment, step int) {
-
-	//If the Kraken is low life or has no target = rest to gain PV
-	if ag.Health() <= int(float32(constants.KrakenParameters.Health)*0.05) || ag.Target() == nil {
+	// If the Kraken is low life or has no target = rest to gain PV
+	if ag.Health() <= int(float32(constants.KrakenParameters.Health)*0.05) {
 		ag.SetAction("rest")
 		return
 	}
 
+	if ag.Target() == nil && len(ag.Itinerary()) == 0 {
+		destination := NewRandomCoordinates()
+		path := AStar(ag.Coordinates(), destination)
+		if path != nil {
+			ag.SetItinerary(path)
+		}
+		ag.SetAction("follow")
+		return
+	}
+
+	//If not finsihed itinerary just follow
+	if ag.Target() == nil && len(ag.Itinerary()) > 0 {
+		ag.SetAction("follow")
+		return
+	}
+
 	// Calculate the distance to the target agent (Manhattan)
-	distance := Heuristic(ag.Coordinates(), (*ag.Target()).Coordinates())
+	distance := Heuristic(ag.Coordinates(), (ag.Target()).Coordinates())
+
+	// Ensure the target is a ship and not docked
+	ship, ok := (ag.Target()).(*Ship)
+	if ok && ship.Docked() != nil {
+		ag.SetAction("rest")
+		return
+	}
 
 	// If the Kraken can attack, it should attack the ship
-	// Else it should follow the nearest agent as a target
-	// Skip docked ships because they are safe
-	ship, ok := (*ag.Target()).(*Ship)
-
-	if (distance < ag.Speed() && ok && ship.Docked() == nil) || (distance < ag.Speed() && !ok) {
+	if distance < ag.Speed() {
 		ag.SetAction("attack")
 	} else {
 		// Pathfinding to the target
-		path := AStar(ag.Coordinates(), (*ag.Target()).Coordinates())
+		path := AStar(ag.Coordinates(), (ag.Target()).Coordinates())
 		// If path found set itinerary and follow
 		if path != nil {
 			ag.SetItinerary(path)
 			ag.SetAction("follow")
 		}
 	}
-
 }
 
 func (ag *Kraken) Act(env *Environment, step int) {
 
+	//5% chance of mistake
+	rand.Seed(uint64(time.Now().UnixNano()))
+	mistake := rand.Intn(20)
+
+	if mistake == 0 {
+		ag.SetAction("rest")
+	}
+
 	switch ag.Action() {
 	case "attack":
+		ship, ok := (ag.Target()).(*Ship)
+		if ok && ship.Docked() != nil {
+			break
+		}
 		// Go to target and attack
-		ag.FollowItinerary()
-		// Remove the target from the environment
-		env.AttackAgent(*ag.Target(), ag)
+		ag.FollowItinerary(true)
+		env.AttackAgent(ag.Target(), ag)
 	case "follow":
 		// Move towards target
-		ag.FollowItinerary()
+		ag.FollowItinerary(false)
 	case "rest":
 		ag.RestAndGainHealth()
 	default:
