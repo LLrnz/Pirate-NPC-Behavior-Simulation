@@ -170,9 +170,9 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 
 	// Specify how many merchant ships each nationality should have
 	merchantCounts := map[constants.Nationality]int{
-		constants.France:  50,
-		constants.Spain:   50,
-		constants.England: 50,
+		constants.France:  250,
+		constants.Spain:   250,
+		constants.England: 250,
 	}
 
 	privateerCounts := map[constants.Nationality]int{

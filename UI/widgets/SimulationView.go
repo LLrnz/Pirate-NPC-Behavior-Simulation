@@ -146,9 +146,9 @@ func (s *SimulationView) Render(screen *ebiten.Image) {
 
 	// Draw the money values at the top-right with flags
 	moneyStrings := []string{
-		fmt.Sprintf("%.2f€", s.franceMoney),
-		fmt.Sprintf("%.2f€", s.spainMoney),
-		fmt.Sprintf("%.2f€", s.englandMoney),
+		fmt.Sprintf("%.2f coins", s.franceMoney),
+		fmt.Sprintf("%.2f coins", s.spainMoney),
+		fmt.Sprintf("%.2f coins", s.englandMoney),
 	}
 
 	flagPaths := []string{
