@@ -65,3 +65,7 @@ func LoadButtonImage() (*widget.ButtonImage, error) {
 		Pressed: pressed,
 	}, nil
 }
+
+func LoadFile(path string) ([]byte, error) {
+	return os.ReadFile(path)
+}

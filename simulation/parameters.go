@@ -107,3 +107,10 @@ func (p *Parameters) SetTimeSpeed(timeSpeed int) {
 	defer p.Unlock()
 	p.timeSpeed = timeSpeed
 }
+
+// Setter timeSpeed
+func (p *Parameters) IncreaseSpeed() {
+	p.Lock()
+	defer p.Unlock()
+	p.timeSpeed += 1
+}
