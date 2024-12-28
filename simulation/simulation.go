@@ -74,6 +74,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	dockedHarbourPeru.AddAvailableRessources("Cotton")
 	dockedHarbourPeru.AddSellableRessources("Cocoa")
 	dockedHarbourPeru.AddSellableRessources("Tobacco")
+	dockedHarbourPeru.AddSellableRessources("Tipiak")
 	simu.env.AddHarbour(dockedHarbourPeru)
 
 	// Canada (Coordinates{21, 18})
@@ -147,7 +148,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	// Removed Pearls from sellable
 	dockedHarbourJapon.AddSellableRessources("Coffee")
 	dockedHarbourJapon.AddSellableRessources("Rum")
-	dockedHarbourJapon.AddSellableRessources("Weapons")
+	dockedHarbourJapon.AddSellableRessources("Cocoa")
 	simu.env.AddHarbour(dockedHarbourJapon)
 
 	// Australie (Coordinates{75, 42})
@@ -169,39 +170,24 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 
 	// Specify how many merchant ships each nationality should have
 	merchantCounts := map[constants.Nationality]int{
-		constants.France:  1,
-		constants.Spain:   0,
-		constants.England: 0,
+		constants.France:  50,
+		constants.Spain:   50,
+		constants.England: 50,
 	}
 
 	privateerCounts := map[constants.Nationality]int{
-		constants.France:  0,
-		constants.England: 4,
-		constants.Spain:   0,
+		constants.France:  4,
+		constants.England: 5,
+		constants.Spain:   2,
 	}
 
 	armyCounts := map[constants.Nationality]int{
-		constants.France:  0,
-		constants.England: 0,
-		constants.Spain:   0,
+		constants.France:  5,
+		constants.England: 2,
+		constants.Spain:   4,
 	}
 
 	numPirates := 0
-
-	// Set up a list of harbours to randomly assign merchant ships to
-	merchantHarbours := []*Harbour{
-		dockedHarbourHaiti,
-		dockedHarbourPeru,
-		dockedHarbourCanada,
-		dockedHarbourArgentine,
-		dockedHarbourGroenland,
-		dockedHarbourFrance,
-		dockedHarbourAfriqueDuSud,
-		dockedHarbourRussie,
-		dockedHarbourInde,
-		dockedHarbourJapon,
-		dockedHarbourAustralie,
-	}
 
 	// Create Pirate Ships (no nationality)
 	for i := 0; i < numPirates; i++ {
@@ -241,16 +227,14 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	}
 
 	// Special ships (no nationality)
-	//zoro := NewShipZoro("Zoro", NewRandomCoordinates(), nil)
-	//simu.env.AddAgent(zoro)
+	zoro := NewShipZoro("Zoro", NewRandomCoordinates(), nil)
+	simu.env.AddAgent(zoro)
 
 	//rackham := NewShipRackham("Rackham", NewRandomCoordinates(), nil)
 	//simu.env.AddAgent(rackham)
 
 	kraken := NewKraken("Kraken", Coordinates{x: 13, y: 12})
 	simu.env.AddAgent(kraken)
-
-	print(merchantHarbours)
 
 	return simu
 }
@@ -299,7 +283,7 @@ Loop:
 		}*/
 
 		// Adjust the sleep duration based on timeSpeed using the getter
-		time.Sleep(time.Second / (1 * time.Duration(simu.Parameters().TimeSpeed()))) // 2 steps/s default and time speed
+		time.Sleep(time.Second / (2 * time.Duration(simu.Parameters().TimeSpeed()))) // 2 steps/s default and time speed
 	}
 }
 

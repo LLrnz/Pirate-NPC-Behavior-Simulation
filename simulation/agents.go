@@ -2,8 +2,10 @@ package simulation
 
 import (
 	"sync"
+	"time"
 
 	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
+	"golang.org/x/exp/rand"
 )
 
 /*
@@ -41,8 +43,9 @@ type Agent interface {
 	SetAction(action string)
 	Itinerary() []Coordinates
 	SetItinerary(itinerary []Coordinates)
+	ResetItinerary()
 
-	FollowItinerary()
+	FollowItinerary(mistake bool)
 
 	Percept(env *Environment, step int)
 	Deliberate(env *Environment, step int)
@@ -184,6 +187,10 @@ func (agt *BaseAgent) SetItinerary(itinerary []Coordinates) {
 	agt.itinerary = itinerary
 }
 
+func (ag *BaseAgent) ResetItinerary() {
+	ag.SetItinerary([]Coordinates{})
+}
+
 // Getter Direction
 func (agt *BaseAgent) Direction() Direction {
 	return agt.direction
@@ -237,28 +244,54 @@ func (agt *BaseAgent) Act(env *Environment) {
 }
 
 // FollowItinerary at speed of agent
-func (ag *BaseAgent) FollowItinerary() {
+func (ag *BaseAgent) FollowItinerary(mistake bool) {
 
-	itinerary := ag.Itinerary()
-	speed := ag.Speed()
+	if mistake == false {
 
-	// If there is not enough coordinates to go through
-	if len(itinerary) == 0 {
-		return
+		itinerary := ag.Itinerary()
+		speed := ag.Speed()
+
+		// If there is not enough coordinates to go through
+		if len(itinerary) == 0 {
+			return
+		}
+
+		// Move based on the Agent speed
+		moves := speed
+		if moves > len(itinerary) {
+			moves = len(itinerary) // Max to the end of the array
+		}
+
+		// Update the Agent coordinates to the last point within the move range
+		newCoordinates := itinerary[moves-1]
+		ag.SetCoordinates(newCoordinates)
+
+		// Remove the used coordinates from the itinerary
+		ag.SetItinerary(itinerary[moves:])
+	} else {
+		// Get current coordinates
+		currentCoordinates := ag.Coordinates()
+
+		// Get neighbors
+		neighbors := GetNeighbors(currentCoordinates, constants.GridWidth, constants.GridHeight)
+
+		// Filter neighbors that are navigable
+		var passableNeighbors []Coordinates
+		for _, neighbor := range neighbors {
+			if constants.MapGrid[neighbor.Y()][neighbor.X()] != 1 {
+				passableNeighbors = append(passableNeighbors, neighbor)
+			}
+		}
+
+		// Select a random valid neighbor
+		if len(passableNeighbors) > 0 {
+			rand.Seed(uint64(time.Now().UnixNano()))
+			randomIndex := rand.Intn(len(passableNeighbors))
+			randomNeighbor := passableNeighbors[randomIndex]
+
+			ag.SetCoordinates(randomNeighbor)
+		}
 	}
-
-	// Move based on the Agent speed
-	moves := speed
-	if moves > len(itinerary) {
-		moves = len(itinerary) // Max to the end of the array
-	}
-
-	// Update the Agent coordinates to the last point within the move range
-	newCoordinates := itinerary[moves-1]
-	ag.SetCoordinates(newCoordinates)
-
-	// Remove the used coordinates from the itinerary
-	ag.SetItinerary(itinerary[moves:])
 }
 
 /*
@@ -750,12 +783,18 @@ func (ag *Kraken) Deliberate(env *Environment, step int) {
 		return
 	}
 
-	if ag.Target() == nil {
+	if ag.Target() == nil && len(ag.Itinerary()) == 0 {
 		destination := NewRandomCoordinates()
 		path := AStar(ag.Coordinates(), destination)
 		if path != nil {
 			ag.SetItinerary(path)
 		}
+		ag.SetAction("follow")
+		return
+	}
+
+	//If not finsihed itinerary just follow
+	if ag.Target() == nil && len(ag.Itinerary()) > 0 {
 		ag.SetAction("follow")
 		return
 	}
@@ -786,6 +825,14 @@ func (ag *Kraken) Deliberate(env *Environment, step int) {
 
 func (ag *Kraken) Act(env *Environment, step int) {
 
+	//5% chance of mistake
+	rand.Seed(uint64(time.Now().UnixNano()))
+	mistake := rand.Intn(20)
+
+	if mistake == 0 {
+		ag.SetAction("rest")
+	}
+
 	switch ag.Action() {
 	case "attack":
 		ship, ok := (ag.Target()).(*Ship)
@@ -793,11 +840,11 @@ func (ag *Kraken) Act(env *Environment, step int) {
 			break
 		}
 		// Go to target and attack
-		ag.FollowItinerary()
+		ag.FollowItinerary(true)
 		env.AttackAgent(ag.Target(), ag)
 	case "follow":
 		// Move towards target
-		ag.FollowItinerary()
+		ag.FollowItinerary(false)
 	case "rest":
 		ag.RestAndGainHealth()
 	default:

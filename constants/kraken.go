@@ -11,7 +11,7 @@ type KrakenConfig struct {
 // Kraken config for the simulation
 var KrakenParameters = KrakenConfig{
 	Speed:  1,
-	Attack: 20,
+	Attack: 100,
 	Health: 100,
 	FOV:    2,
 }

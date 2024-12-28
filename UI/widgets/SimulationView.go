@@ -92,8 +92,8 @@ func NewSimulationView(events chan Events) *SimulationView {
 		log.Fatal(err)
 	}
 
-	// Set the start date to March 1, 1660
-	startDate := time.Date(1660, time.March, 1, 0, 0, 0, 0, time.UTC)
+	// Set the start date to 1st January 1716 (age d'or de la piraterie)
+	startDate := time.Date(1716, time.January, 1, 0, 0, 0, 0, time.UTC)
 
 	return &SimulationView{
 		Container:  rootContainer,

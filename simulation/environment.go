@@ -3,6 +3,8 @@ package simulation
 import (
 	"math"
 	"sync"
+
+	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
 )
 
 /*
@@ -614,25 +616,35 @@ func (env *Environment) AttackAgent(target Agent, attacker Agent) {
 
 			if agent.Health() <= 0 {
 				ship, ok := agent.(*Ship)
-				if ok && ship.Quantity() != 0 {
-					// Get target ressources
-					currentRessources := ship.Ressources()
-					modifiedRessources := make(map[string]int)
+				if ok {
+					if ship.Quantity() != 0 {
+						// Get target ressources
+						currentRessources := ship.Ressources()
+						modifiedRessources := make(map[string]int)
 
-					// Only get 60% of what it had because it burnt
-					for ressource, quantity := range currentRessources {
-						modifiedQuantity := int(float64(quantity) * 0.6)
-						modifiedRessources[ressource] = modifiedQuantity
+						// Only get 60% of what it had because it burnt
+						for ressource, quantity := range currentRessources {
+							modifiedQuantity := int(float64(quantity) * 0.6)
+							modifiedRessources[ressource] = modifiedQuantity
+						}
+
+						shipAttacker, ok := attacker.(*Ship)
+						if ok {
+							shipAttacker.SetRessources(modifiedRessources)
+						} else {
+							env.agents = append(env.agents[:i], env.agents[i+1:]...)
+							return
+						}
 					}
 
-					shipAttacker, ok := attacker.(*Ship)
-					if ok {
-
-						shipAttacker.SetRessources(modifiedRessources)
+					if ship.ShipType() == "Merchant" {
+						emptyRessources := make(map[string]int)
+						ship.SetRessources(emptyRessources)
+						agent.SetHealth(constants.ShipConfigs["Merchant"].Health)
 					}
+				} else {
+					env.agents = append(env.agents[:i], env.agents[i+1:]...)
 				}
-
-				env.agents = append(env.agents[:i], env.agents[i+1:]...)
 			}
 			return
 		}

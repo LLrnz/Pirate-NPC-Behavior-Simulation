@@ -92,7 +92,7 @@ func (m *Market) Sell(ship *Ship, ressource Ressource, step int) {
 	// Calculate the price for the quantity of the ressource
 	ressourcePrice := m.CalculateRessourcePrice(step, ressource)
 	totalPrice := ressourcePrice * float32(quantitySold)
-	tax := totalPrice * 0.2
+	tax := totalPrice * 0.5
 
 	// Deduct the sold quantity from the agent ressource
 	ship.RemoveRessources(ressource.name, quantitySold)
