@@ -640,7 +640,7 @@ func (env *Environment) AttackAgent(target Agent, attacker Agent) {
 					if ship.ShipType() == "Merchant" {
 						emptyRessources := make(map[string]int)
 						ship.SetRessources(emptyRessources)
-						agent.SetHealth(constants.ShipConfigs["Merchant"].Health)
+						agent.SetHealth(int(float32(constants.ShipConfigs["Merchant"].Health) * 0.1))
 					}
 				} else {
 					env.agents = append(env.agents[:i], env.agents[i+1:]...)
