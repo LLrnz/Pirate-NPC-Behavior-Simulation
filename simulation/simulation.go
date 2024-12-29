@@ -57,17 +57,19 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	simu.env = NewEnvironment([]Agent{}, []*Harbour{})
 	simu.parameters = NewParameters(maxDuration, maxStep)
 
-	// Haiti (Coordinates{4, 39})
-	dockedHarbourHaiti := NewHarbour("Haiti", Coordinates{4, 39})
-	// Removed Gold (most valuable) from availability
-	dockedHarbourHaiti.AddAvailableRessources("Tobacco")
-	dockedHarbourHaiti.AddAvailableRessources("Tipiak")
-	// Keep lesser-value resources as sellable
-	dockedHarbourHaiti.AddSellableRessources("Spices")
-	dockedHarbourHaiti.AddSellableRessources("Sugar")
-	dockedHarbourHaiti.AddSellableRessources("Cotton")
-	simu.env.AddHarbour(dockedHarbourHaiti)
+	//-------------------------------------------------------------
+	// Californie (Coordinates{12, 24})
+	dockedHarbourCalifornie := NewHarbour("Californie", Coordinates{12, 24})
+	// Original
+	dockedHarbourCalifornie.AddAvailableRessources("Tobacco")
+	dockedHarbourCalifornie.AddAvailableRessources("Cotton")
+	dockedHarbourCalifornie.AddSellableRessources("Coffee")
+	dockedHarbourCalifornie.AddSellableRessources("Spices")
+	// ADDED from Haiti’s Available
+	dockedHarbourCalifornie.AddAvailableRessources("Tipiak")
+	simu.env.AddHarbour(dockedHarbourCalifornie)
 
+	//-------------------------------------------------------------
 	// Peru (Coordinates{17, 32})
 	dockedHarbourPeru := NewHarbour("Peru", Coordinates{17, 32})
 	dockedHarbourPeru.AddAvailableRessources("Silver")
@@ -77,89 +79,169 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	dockedHarbourPeru.AddSellableRessources("Tipiak")
 	simu.env.AddHarbour(dockedHarbourPeru)
 
+	//-------------------------------------------------------------
 	// Canada (Coordinates{21, 18})
 	dockedHarbourCanada := NewHarbour("Canada", Coordinates{21, 18})
 	dockedHarbourCanada.AddAvailableRessources("Coffee")
 	dockedHarbourCanada.AddAvailableRessources("Cocoa")
-	// Removed Ivory (most valuable) from availability
 	dockedHarbourCanada.AddSellableRessources("Sugar")
 	dockedHarbourCanada.AddSellableRessources("Rum")
 	dockedHarbourCanada.AddSellableRessources("Tipiak")
 	simu.env.AddHarbour(dockedHarbourCanada)
 
+	//-------------------------------------------------------------
+	// Mexique (Coordinates{23, 28})
+	dockedHarbourMexique := NewHarbour("Mexique", Coordinates{23, 28})
+	dockedHarbourMexique.AddAvailableRessources("Cocoa")
+	dockedHarbourMexique.AddAvailableRessources("Cotton")
+	dockedHarbourMexique.AddSellableRessources("Tobacco")
+	dockedHarbourMexique.AddSellableRessources("Coffee")
+	// ADDED from Haiti’s Sellable
+	dockedHarbourMexique.AddSellableRessources("Spices")
+	dockedHarbourMexique.AddSellableRessources("Sugar")
+	simu.env.AddHarbour(dockedHarbourMexique)
+
+	//-------------------------------------------------------------
 	// Argentine (Coordinates{24, 39})
 	dockedHarbourArgentine := NewHarbour("Argentine", Coordinates{24, 39})
 	dockedHarbourArgentine.AddAvailableRessources("Spices")
 	dockedHarbourArgentine.AddAvailableRessources("Weapons")
-	// Pearls (most valuable) now only available here
-	dockedHarbourArgentine.AddAvailableRessources("Pearls")
-	// Removed Gold from sellable
+	dockedHarbourArgentine.AddAvailableRessources("Pearls") // Exclusive
 	dockedHarbourArgentine.AddSellableRessources("Tipiak")
+	dockedHarbourArgentine.AddSellableRessources("Rum")
 	simu.env.AddHarbour(dockedHarbourArgentine)
 
+	//-------------------------------------------------------------
+	// Guadeloupe (Coordinates{25, 25})
+	dockedHarbourGuadeloupe := NewHarbour("Guadeloupe", Coordinates{25, 25})
+	dockedHarbourGuadeloupe.AddAvailableRessources("Sugar")
+	dockedHarbourGuadeloupe.AddAvailableRessources("Spices")
+	dockedHarbourGuadeloupe.AddSellableRessources("Rum")
+	dockedHarbourGuadeloupe.AddSellableRessources("Tobacco")
+	// ADDED from Haiti’s Sellable
+	dockedHarbourGuadeloupe.AddSellableRessources("Cotton")
+	simu.env.AddHarbour(dockedHarbourGuadeloupe)
+
+	//-------------------------------------------------------------
+	// Brésil (Coordinates{28, 31})
+	dockedHarbourBresil := NewHarbour("Brésil", Coordinates{28, 31})
+	dockedHarbourBresil.AddAvailableRessources("Coffee")
+	dockedHarbourBresil.AddAvailableRessources("Sugar")
+	dockedHarbourBresil.AddSellableRessources("Tobacco")
+	dockedHarbourBresil.AddSellableRessources("Cotton")
+	simu.env.AddHarbour(dockedHarbourBresil)
+
+	//-------------------------------------------------------------
 	// Groenland (Coordinates{37, 8})
 	dockedHarbourGroenland := NewHarbour("Groenland", Coordinates{37, 8})
 	dockedHarbourGroenland.AddAvailableRessources("Sugar")
-	// Removed Silk (most valuable) from availability
+	dockedHarbourGroenland.AddAvailableRessources("Tobacco")
 	dockedHarbourGroenland.AddSellableRessources("Silver")
 	dockedHarbourGroenland.AddSellableRessources("Weapons")
 	simu.env.AddHarbour(dockedHarbourGroenland)
 
-	// Compiègne (Coordinates{42, 22})
+	//-------------------------------------------------------------
+	// Compiègne / France (Coordinates{42, 22})
 	dockedHarbourFrance := NewHarbour("Compiègne", Coordinates{42, 22})
 	dockedHarbourFrance.AddAvailableRessources("Rum")
-	// Removed Pearls (most valuable) from availability
-	// Removed Silk and Ivory from sellable
+	dockedHarbourFrance.AddAvailableRessources("Cotton")
 	dockedHarbourFrance.AddSellableRessources("Coffee")
+	dockedHarbourFrance.AddSellableRessources("Sugar")
 	simu.env.AddHarbour(dockedHarbourFrance)
 
+	//-------------------------------------------------------------
+	// Espagne (Coordinates{43, 25})
+	dockedHarbourEspagne := NewHarbour("Espagne", Coordinates{43, 25})
+	dockedHarbourEspagne.AddAvailableRessources("Rum")
+	dockedHarbourEspagne.AddAvailableRessources("Tobacco")
+	dockedHarbourEspagne.AddSellableRessources("Cotton")
+	dockedHarbourEspagne.AddSellableRessources("Cocoa")
+	simu.env.AddHarbour(dockedHarbourEspagne)
+
+	//-------------------------------------------------------------
+	// Angleterre (Coordinates{46, 18})
+	dockedHarbourAngleterre := NewHarbour("Angleterre", Coordinates{46, 18})
+	dockedHarbourAngleterre.AddAvailableRessources("Sugar")
+	dockedHarbourAngleterre.AddAvailableRessources("Weapons")
+	dockedHarbourAngleterre.AddSellableRessources("Rum")
+	dockedHarbourAngleterre.AddSellableRessources("Cocoa")
+	simu.env.AddHarbour(dockedHarbourAngleterre)
+
+	//-------------------------------------------------------------
+	// Congo (Coordinates{46, 35})
+	dockedHarbourCongo := NewHarbour("Congo", Coordinates{46, 35})
+	dockedHarbourCongo.AddAvailableRessources("Cotton")
+	dockedHarbourCongo.AddAvailableRessources("Tobacco")
+	dockedHarbourCongo.AddSellableRessources("Coffee")
+	dockedHarbourCongo.AddSellableRessources("Cocoa")
+	simu.env.AddHarbour(dockedHarbourCongo)
+
+	//-------------------------------------------------------------
+	// Algérie (Coordinates{50, 27})
+	dockedHarbourAlgerie := NewHarbour("Algérie", Coordinates{50, 27})
+	dockedHarbourAlgerie.AddAvailableRessources("Coffee")
+	dockedHarbourAlgerie.AddAvailableRessources("Spices")
+	dockedHarbourAlgerie.AddSellableRessources("Cotton")
+	dockedHarbourAlgerie.AddSellableRessources("Tobacco")
+	simu.env.AddHarbour(dockedHarbourAlgerie)
+
+	//-------------------------------------------------------------
 	// Afrique du Sud (Coordinates{49, 40})
 	dockedHarbourAfriqueDuSud := NewHarbour("Afrique du Sud", Coordinates{49, 40})
 	dockedHarbourAfriqueDuSud.AddAvailableRessources("Coffee")
 	dockedHarbourAfriqueDuSud.AddAvailableRessources("Cotton")
-	// Removed Pearls and Ivory from sellable
 	dockedHarbourAfriqueDuSud.AddSellableRessources("Tobacco")
+	dockedHarbourAfriqueDuSud.AddSellableRessources("Rum")
 	simu.env.AddHarbour(dockedHarbourAfriqueDuSud)
 
+	//-------------------------------------------------------------
 	// Russie (Coordinates{57, 14})
 	dockedHarbourRussie := NewHarbour("Russie", Coordinates{57, 14})
 	dockedHarbourRussie.AddAvailableRessources("Spices")
 	dockedHarbourRussie.AddAvailableRessources("Tipiak")
 	dockedHarbourRussie.AddAvailableRessources("Tobacco")
-	// Removed Gold (most valuable) from sellable
 	dockedHarbourRussie.AddSellableRessources("Cocoa")
+	dockedHarbourRussie.AddSellableRessources("Coffee")
 	simu.env.AddHarbour(dockedHarbourRussie)
 
+	//-------------------------------------------------------------
 	// Inde (Coordinates{64, 30})
 	dockedHarbourInde := NewHarbour("Inde", Coordinates{64, 30})
 	dockedHarbourInde.AddAvailableRessources("Sugar")
-	// Ivory (most valuable) now only available here
-	dockedHarbourInde.AddAvailableRessources("Ivory")
+	dockedHarbourInde.AddAvailableRessources("Ivory") // Exclusive
 	dockedHarbourInde.AddAvailableRessources("Rum")
 	dockedHarbourInde.AddSellableRessources("Silver")
+	dockedHarbourInde.AddSellableRessources("Spices")
 	simu.env.AddHarbour(dockedHarbourInde)
 
-	// Japon (Coordinates{79, 27})
-	dockedHarbourJapon := NewHarbour("Japon", Coordinates{79, 27})
-	// Gold (most valuable) only available here
-	dockedHarbourJapon.AddAvailableRessources("Gold")
-	// Silk (most valuable) only available here
-	dockedHarbourJapon.AddAvailableRessources("Silk")
-	// Removed Pearls from sellable
-	dockedHarbourJapon.AddSellableRessources("Coffee")
-	dockedHarbourJapon.AddSellableRessources("Rum")
-	dockedHarbourJapon.AddSellableRessources("Cocoa")
-	simu.env.AddHarbour(dockedHarbourJapon)
+	//-------------------------------------------------------------
+	// Chine (Coordinates{74, 25})
+	dockedHarbourChine := NewHarbour("Chine", Coordinates{74, 25})
+	dockedHarbourChine.AddAvailableRessources("Weapons")
+	dockedHarbourChine.AddAvailableRessources("Tobacco")
+	dockedHarbourChine.AddSellableRessources("Spices")
+	dockedHarbourChine.AddSellableRessources("Sugar")
+	simu.env.AddHarbour(dockedHarbourChine)
 
+	//-------------------------------------------------------------
 	// Australie (Coordinates{75, 42})
 	dockedHarbourAustralie := NewHarbour("Australie", Coordinates{75, 42})
 	dockedHarbourAustralie.AddAvailableRessources("Silver")
 	dockedHarbourAustralie.AddAvailableRessources("Cocoa")
 	dockedHarbourAustralie.AddAvailableRessources("Weapons")
-	// Removed Silk from sellable
 	dockedHarbourAustralie.AddSellableRessources("Spices")
 	dockedHarbourAustralie.AddSellableRessources("Cotton")
 	simu.env.AddHarbour(dockedHarbourAustralie)
+
+	//-------------------------------------------------------------
+	// Japon (Coordinates{79, 27})
+	dockedHarbourJapon := NewHarbour("Japon", Coordinates{79, 27})
+	dockedHarbourJapon.AddAvailableRessources("Gold") // Exclusive
+	dockedHarbourJapon.AddAvailableRessources("Silk") // Exclusive
+	dockedHarbourJapon.AddSellableRessources("Coffee")
+	dockedHarbourJapon.AddSellableRessources("Rum")
+	dockedHarbourJapon.AddSellableRessources("Cocoa")
+	simu.env.AddHarbour(dockedHarbourJapon)
 
 	// Define nationalities
 	nationalities := []constants.Nationality{
@@ -170,21 +252,21 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 
 	// Specify how many merchant ships each nationality should have
 	merchantCounts := map[constants.Nationality]int{
-		constants.France:  250,
-		constants.Spain:   250,
-		constants.England: 250,
+		constants.France:  2,
+		constants.Spain:   0,
+		constants.England: 0,
 	}
 
 	privateerCounts := map[constants.Nationality]int{
-		constants.France:  4,
-		constants.England: 5,
-		constants.Spain:   2,
+		constants.France:  0,
+		constants.England: 0,
+		constants.Spain:   0,
 	}
 
 	armyCounts := map[constants.Nationality]int{
-		constants.France:  5,
-		constants.England: 2,
-		constants.Spain:   4,
+		constants.France:  0,
+		constants.England: 0,
+		constants.Spain:   0,
 	}
 
 	numPirates := 0
@@ -283,7 +365,7 @@ Loop:
 		}*/
 
 		// Adjust the sleep duration based on timeSpeed using the getter
-		time.Sleep(time.Second / (2 * time.Duration(simu.Parameters().TimeSpeed()))) // 2 steps/s default and time speed
+		time.Sleep(time.Second / (10 * time.Duration(simu.Parameters().TimeSpeed()))) // 2 steps/s default and time speed
 	}
 }
 
