@@ -20,7 +20,7 @@ const (
 	TileSize = 16 * Zoom
 
 	//Asset of the background
-	MapImage = "assets/worldMap_big.png"
+	MapImage = "assets/worldMap_big_2.png"
 
 	//TODO : add all the asset path ?
 )

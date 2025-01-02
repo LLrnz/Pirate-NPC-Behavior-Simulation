@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"log"
+	"math"
 	"time"
 
 	"gitlab.utc.fr/arsaintm/ia04-projet/UI/utils"
@@ -18,7 +19,6 @@ import (
 	"golang.org/x/image/font/opentype"
 )
 
-// SimulationView represents the simulation display, including a map and simulation objects
 type SimulationView struct {
 	*widget.Container
 	background *ebiten.Image
@@ -43,21 +43,18 @@ func NewSimulationView(events chan Events) *SimulationView {
 		),
 	)
 
-	// Load the background image
 	fond, err := utils.NewImageFromPath(utils.MapImage)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Convert simulation objects to view objects
 	viewAgents, err1 := views.ConvertAllAgentsToView([]simulation.Agent{})
 	if err1 != nil {
 		log.Fatal(err1)
 	}
 
-	// Load font
 	fontPath := "assets/font/money.otf"
-	fontData, err := utils.LoadFile(fontPath) // Implement LoadFile to read font bytes
+	fontData, err := utils.LoadFile(fontPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,7 +63,6 @@ func NewSimulationView(events chan Events) *SimulationView {
 		log.Fatal(err)
 	}
 
-	// Create font faces for different sizes
 	fontTitle, err := opentype.NewFace(ttFont, &opentype.FaceOptions{
 		Size:    60,
 		DPI:     72,
@@ -92,7 +88,6 @@ func NewSimulationView(events chan Events) *SimulationView {
 		log.Fatal(err)
 	}
 
-	// Set the start date to 1st January 1716 (age d'or de la piraterie)
 	startDate := time.Date(1716, time.January, 1, 0, 0, 0, 0, time.UTC)
 
 	return &SimulationView{
@@ -115,71 +110,81 @@ func (s *SimulationView) Update(simu *simulation.Simulation) {
 	}
 
 	s.objects = viewAgents
-	s.step = simu.Parameters().Step() // Keep track of the simulation step
+	s.step = simu.Parameters().Step()
 
-	// NEW: Store the current money values from the simulation
 	s.franceMoney = simu.Environment().Market().France()
 	s.spainMoney = simu.Environment().Market().Spain()
 	s.englandMoney = simu.Environment().Market().England()
 }
 
 func (s *SimulationView) Render(screen *ebiten.Image) {
-	// Draw the background
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(0, 0)
 	screen.DrawImage(s.background, op)
 
-	// Draw all simulation objects
 	for _, obj := range s.objects {
 		obj.Draw(screen)
 	}
 
-	// Calculate the current date based on the simulation step
 	currentDate := s.startDate.AddDate(0, 0, s.step)
 	dateStr := fmt.Sprintf("%s %d", currentDate.Month(), currentDate.Year())
 
-	// Draw the title "Piraaaaaates" at the top-left corner
 	text.Draw(screen, "Piraaaaaates", s.fontTitle, 25, 70, color.White)
 
-	// Draw the date just below the title
 	text.Draw(screen, dateStr, s.fontDate, 25, 95, color.White)
 
-	// Draw the money values at the top-right with flags
-	moneyStrings := []string{
-		fmt.Sprintf("%.2f coins", s.franceMoney),
-		fmt.Sprintf("%.2f coins", s.spainMoney),
-		fmt.Sprintf("%.2f coins", s.englandMoney),
+	moneyValues := []int{
+		int(math.Floor(float64(s.franceMoney))),
+		int(math.Floor(float64(s.spainMoney))),
+		int(math.Floor(float64(s.englandMoney))),
 	}
-
 	flagPaths := []string{
 		"assets/flags/france.png",
 		"assets/flags/spain.png",
 		"assets/flags/england.png",
 	}
 
-	// Fixed flag dimensions
+	coinImg, err := utils.NewImageFromPath("assets/coin.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	flagWidth, flagHeight := 40.0, 30.0
+	coinWidth, coinHeight := 20.0, 20.0
 
-	x := utils.GameWidth - 225 // Fixed offset for aligning text
-	y := 20                    // Starting y position
+	x := utils.GameWidth - 225
+	y := 20
 
-	for i, moneyStr := range moneyStrings {
-		// Load the flag image
+	for i, val := range moneyValues {
 		flag, err := utils.NewImageFromPath(flagPaths[i])
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		// Draw the flag image with fixed dimensions
 		flagOp := &ebiten.DrawImageOptions{}
-		scaleX := flagWidth / float64(flag.Bounds().Dx())
-		scaleY := flagHeight / float64(flag.Bounds().Dy())
-		flagOp.GeoM.Scale(scaleX, scaleY)
-		flagOp.GeoM.Translate(float64(x-50), float64(y)) // Adjust icon position
+		scaleFlagX := flagWidth / float64(flag.Bounds().Dx())
+		scaleFlagY := flagHeight / float64(flag.Bounds().Dy())
+		flagOp.GeoM.Scale(scaleFlagX, scaleFlagY)
+		flagOp.GeoM.Translate(float64(x-50), float64(y))
 		screen.DrawImage(flag, flagOp)
 
-		// Draw the money string next to the flag
+		moneyStr := fmt.Sprintf("%d", val)
+
 		text.Draw(screen, moneyStr, s.fontMoney, x, y+22, color.White)
-		y += 40 // Increment y position for the next line
+
+		bound := text.BoundString(s.fontMoney, moneyStr)
+		textWidth := bound.Dx()
+
+		coinOp := &ebiten.DrawImageOptions{}
+		scaleCoinX := coinWidth / float64(coinImg.Bounds().Dx())
+		scaleCoinY := coinHeight / float64(coinImg.Bounds().Dy())
+		coinOp.GeoM.Scale(scaleCoinX, scaleCoinY)
+		coinOp.GeoM.Translate(
+			float64(x+textWidth+5),
+			float64(y+6),
+		)
+		screen.DrawImage(coinImg, coinOp)
+
+		y += 40
 	}
 }
