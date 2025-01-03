@@ -3,8 +3,6 @@ package simulation
 import (
 	"math"
 	"sync"
-
-	"gitlab.utc.fr/arsaintm/ia04-projet/constants"
 )
 
 /*
@@ -632,7 +630,11 @@ func (env *Environment) AttackAgent(target Agent, attacker Agent) {
 						if ok {
 							shipAttacker.SetRessources(modifiedRessources)
 						} else {
-							env.agents = append(env.agents[:i], env.agents[i+1:]...)
+							if len(env.agents[i+1:]) > 0 {
+								env.agents = append(env.agents[:i], env.agents[i+1:]...)
+							} else {
+								env.agents = env.agents[:i]
+							}
 							return
 						}
 					}
@@ -640,10 +642,22 @@ func (env *Environment) AttackAgent(target Agent, attacker Agent) {
 					if ship.ShipType() == "Merchant" {
 						emptyRessources := make(map[string]int)
 						ship.SetRessources(emptyRessources)
-						agent.SetHealth(int(float32(constants.ShipConfigs["Merchant"].Health) * 0.1))
+						agent.SetHealth(0)
+					} else {
+						if len(env.agents[i+1:]) > 0 {
+							env.agents = append(env.agents[:i], env.agents[i+1:]...)
+						} else {
+							env.agents = env.agents[:i]
+						}
+						return
 					}
 				} else {
-					env.agents = append(env.agents[:i], env.agents[i+1:]...)
+					if len(env.agents[i+1:]) > 0 {
+						env.agents = append(env.agents[:i], env.agents[i+1:]...)
+					} else {
+						env.agents = env.agents[:i]
+					}
+					return
 				}
 			}
 			return

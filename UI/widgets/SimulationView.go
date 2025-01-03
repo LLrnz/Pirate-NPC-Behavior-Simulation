@@ -21,21 +21,27 @@ import (
 
 type SimulationView struct {
 	*widget.Container
+
+	fontTitle font.Face
+	fontDate  font.Face
+	fontMoney font.Face
+
 	background *ebiten.Image
 	objects    []views.IViewAgent
-	events     chan Events
-	fontTitle  font.Face
-	fontDate   font.Face
-	fontMoney  font.Face
-	startDate  time.Time
-	step       int
 
-	franceMoney  float32
-	spainMoney   float32
-	englandMoney float32
+	controlView   *ControlView
+	infoPanelView *InfoPanelView
+	events        chan Events
+
+	startDate     time.Time
+	step          int
+	franceMoney   float32
+	spainMoney    float32
+	englandMoney  float32
+	selectedAgent simulation.Agent
 }
 
-func NewSimulationView(events chan Events) *SimulationView {
+func NewSimulationView(simu *simulation.Simulation, events chan Events, infoPanel *InfoPanelView) *SimulationView {
 	rootContainer := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 0, 0, 255})),
 		widget.ContainerOpts.WidgetOpts(
@@ -43,27 +49,29 @@ func NewSimulationView(events chan Events) *SimulationView {
 		),
 	)
 
+	controlView := NewControlView(simu)
+
 	fond, err := utils.NewImageFromPath(utils.MapImage)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	viewAgents, err1 := views.ConvertAllAgentsToView([]simulation.Agent{})
+	viewAgents, _, err1 := views.ConvertAllAgentsToView([]simulation.Agent{})
 	if err1 != nil {
 		log.Fatal(err1)
 	}
 
-	fontPath := "assets/font/money.otf"
-	fontData, err := utils.LoadFile(fontPath)
+	fontData, err := utils.LoadFile("assets/font/money.otf")
 	if err != nil {
-		log.Fatal(err)
-	}
-	ttFont, err := opentype.Parse(fontData)
-	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to load font file:", err)
 	}
 
-	fontTitle, err := opentype.NewFace(ttFont, &opentype.FaceOptions{
+	parsedOT, err := opentype.Parse(fontData)
+	if err != nil {
+		log.Fatal("Failed to parse font data:", err)
+	}
+
+	fontTitle, err := opentype.NewFace(parsedOT, &opentype.FaceOptions{
 		Size:    60,
 		DPI:     72,
 		Hinting: font.HintingFull,
@@ -71,7 +79,8 @@ func NewSimulationView(events chan Events) *SimulationView {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fontDate, err := opentype.NewFace(ttFont, &opentype.FaceOptions{
+
+	fontDate, err := opentype.NewFace(parsedOT, &opentype.FaceOptions{
 		Size:    16,
 		DPI:     72,
 		Hinting: font.HintingFull,
@@ -79,7 +88,8 @@ func NewSimulationView(events chan Events) *SimulationView {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fontMoney, err := opentype.NewFace(ttFont, &opentype.FaceOptions{
+
+	fontMoney, err := opentype.NewFace(parsedOT, &opentype.FaceOptions{
 		Size:    16,
 		DPI:     72,
 		Hinting: font.HintingFull,
@@ -91,30 +101,62 @@ func NewSimulationView(events chan Events) *SimulationView {
 	startDate := time.Date(1716, time.January, 1, 0, 0, 0, 0, time.UTC)
 
 	return &SimulationView{
-		Container:  rootContainer,
-		background: fond,
-		objects:    viewAgents,
-		events:     events,
-		fontTitle:  fontTitle,
-		fontDate:   fontDate,
-		fontMoney:  fontMoney,
-		startDate:  startDate,
-		step:       0,
+		Container:     rootContainer,
+		background:    fond,
+		objects:       viewAgents,
+		events:        events,
+		fontTitle:     fontTitle,
+		fontDate:      fontDate,
+		fontMoney:     fontMoney,
+		startDate:     startDate,
+		step:          0,
+		controlView:   controlView,
+		infoPanelView: infoPanel,
 	}
 }
 
+func isMouseOver(mouseX, mouseY int, obj views.IViewAgent) bool {
+	pos := obj.Position()
+	spriteWidth := 16
+	spriteHeight := 16
+
+	if mouseX >= pos.X && mouseX <= (pos.X+spriteWidth) &&
+		mouseY >= pos.Y && mouseY <= (pos.Y+spriteHeight) {
+		return true
+	}
+	return false
+}
+
 func (s *SimulationView) Update(simu *simulation.Simulation) {
-	viewAgents, err := views.ConvertAllAgentsToView(simu.Agents())
+	s.controlView.Update()
+
+	viewAgents, agentMapping, err := views.ConvertAllAgentsToView(simu.Agents())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	s.objects = viewAgents
 	s.step = simu.Parameters().Step()
-
 	s.franceMoney = simu.Environment().Market().France()
 	s.spainMoney = simu.Environment().Market().Spain()
 	s.englandMoney = simu.Environment().Market().England()
+
+	x, y := ebiten.CursorPosition()
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		for _, obj := range s.objects {
+			if isMouseOver(x, y, obj) {
+				originalAgent := agentMapping[obj]
+
+				s.selectedAgent = originalAgent
+
+				s.infoPanelView.UpdateInfo(originalAgent)
+				break
+			}
+		}
+	}
+
+	s.infoPanelView.UpdateInfo(s.selectedAgent)
+
 }
 
 func (s *SimulationView) Render(screen *ebiten.Image) {
@@ -152,7 +194,7 @@ func (s *SimulationView) Render(screen *ebiten.Image) {
 	flagWidth, flagHeight := 40.0, 30.0
 	coinWidth, coinHeight := 20.0, 20.0
 
-	x := utils.GameWidth - 225
+	x := utils.GameWidth - 100
 	y := 20
 
 	for i, val := range moneyValues {
@@ -187,4 +229,10 @@ func (s *SimulationView) Render(screen *ebiten.Image) {
 
 		y += 40
 	}
+
+	s.controlView.Render(screen)
+
+	panelX := 25
+	panelY := utils.GameHeight - 295
+	s.infoPanelView.Render(screen, panelX, panelY)
 }

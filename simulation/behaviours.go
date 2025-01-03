@@ -463,10 +463,6 @@ func merchantShipDeliberate(ship *Ship, env *Environment, step int) {
 
 func merchantShipAct(ship *Ship, env *Environment, step int) {
 
-	if ship.Id() == "Merchant Ship [French] #0" {
-		print(ship.Action())
-	}
-
 	//10% chance of mistake
 	rand.Seed(uint64(time.Now().UnixNano()))
 	mistake := rand.Intn(10)

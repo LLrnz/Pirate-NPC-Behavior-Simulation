@@ -25,9 +25,12 @@ func NewMainWindow(model *simulation.Simulation, refreshRate float64) (*widget.C
 	eventChan := make(chan widgets.Events)
 	// Create the children
 	// the control view
-	controlView := widgets.NewControlView(eventChan)
+	controlView := widgets.NewControlView(model)
+
+	infoPanelView := widgets.NewInfoPanelView()
+
 	// the simulation view
-	viewSimu := widgets.NewSimulationView(eventChan)
+	viewSimu := widgets.NewSimulationView(model, eventChan, infoPanelView)
 
 	//creates the view controller
 	controller := controllers.NewSimulationController(model, viewSimu, controlView, eventChan, refreshRate)
@@ -36,8 +39,6 @@ func NewMainWindow(model *simulation.Simulation, refreshRate float64) (*widget.C
 	rootroot.AddChild(
 		viewSimu,
 		widgets.NewLogView(),
-		widgets.NewInfoPanelView(),
-		controlView,
 	)
 	return rootroot, *controller
 }
