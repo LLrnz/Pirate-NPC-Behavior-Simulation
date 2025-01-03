@@ -114,3 +114,12 @@ func (p *Parameters) IncreaseSpeed() {
 	defer p.Unlock()
 	p.timeSpeed += 1
 }
+
+func (p *Parameters) DecreaseSpeed() {
+	p.Lock()
+	defer p.Unlock()
+	p.timeSpeed -= 1
+	if p.timeSpeed <= 0 {
+		p.timeSpeed = 1
+	}
+}

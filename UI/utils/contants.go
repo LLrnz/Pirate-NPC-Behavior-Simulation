@@ -11,9 +11,9 @@ const (
 	GameWidth  = MapWidth * Zoom
 	GameHeight = MapHeigt * Zoom
 
-	WindowWidth     = MapWidth + 100
+	WindowWidth     = MapWidth + 145
 	WindowHeight    = MapHeigt
-	MaxWindowWidth  = MapWidth + 200
+	MaxWindowWidth  = MapWidth
 	MaxWindowHeight = +100
 
 	//Size of a tile on screen
