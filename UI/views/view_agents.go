@@ -44,7 +44,7 @@ func NewViewKraken(a *simulation.Kraken) (IViewAgent, error) {
 		return &ViewKraken{}, err
 	}
 
-	agt := ViewAgent{pos, a.Direction(), sprites, 0, ToInfo}
+	agt := ViewAgent{pos, a.Direction(), sprites, int(a.KrakenState()), ToInfo}
 	return &ViewKraken{agt}, nil
 }
 
@@ -138,7 +138,7 @@ type ViewPrivateer struct {
 }
 
 func getPrivateerSprites() ([]ebiten.Image, error) {
-	im, err := utils.NewImageFromPath("assets/privateer.png")
+	im, err := utils.NewImageFromPath("assets/privateership.png")
 	im1, err1 := utils.NewImageFromPath("assets/privateer_fire.png")
 	im2, err2 := utils.NewImageFromPath("assets/privateer_attack.png")
 
@@ -222,9 +222,9 @@ type ViewRackham struct {
 }
 
 func getRackhamSprites() ([]ebiten.Image, error) {
-	im, err := utils.NewImageFromPath("assets/zoroship.png")
-	im1, err1 := utils.NewImageFromPath("assets/zoroship_fire.png")
-	im2, err2 := utils.NewImageFromPath("assets/zoroship_attack.png")
+	im, err := utils.NewImageFromPath("assets/rackhamship.png")
+	im1, err1 := utils.NewImageFromPath("assets/rackhamship_fire.png")
+	im2, err2 := utils.NewImageFromPath("assets/rackhamship_attack.png")
 
 	if err1 != nil {
 		return nil, err1

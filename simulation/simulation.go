@@ -69,6 +69,7 @@ func (simu *Simulation) Parameters() *Parameters {
 func NewRandomCoordinates() Coordinates {
 	for {
 		rand.Seed(uint64(time.Now().UnixNano()))
+		time.Sleep(1 * time.Millisecond)
 		x := rand.Intn(96)
 		y := rand.Intn(54)
 
@@ -336,20 +337,20 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	}
 
 	privateerCounts := map[constants.Nationality]int{
-		constants.France:  20,
-		constants.England: 10,
-		constants.Spain:   5,
+		constants.France:  15,
+		constants.England: 8,
+		constants.Spain:   0,
 	}
 
 	armyCounts := map[constants.Nationality]int{
 		constants.France:  0,
-		constants.England: 5,
-		constants.Spain:   7,
+		constants.England: 7,
+		constants.Spain:   15,
 	}
 
 	numPirates := 50
 
-	krakens := 2
+	krakens := 1
 
 	// Create Merchant Ships per nationality
 	for _, nat := range nationalities {
@@ -384,7 +385,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	zoro := NewShipZoro("Zoro", NewRandomCoordinates(), nil)
 	simu.env.AddAgent(zoro)
 
-	rackham := NewShipRackham("Rackham", Coordinates{x: 0, y: 0}, nil)
+	rackham := NewShipRackham("Rackham", NewRandomCoordinates(), nil)
 	simu.env.AddAgent(rackham)
 
 	for i := 0; i < krakens; i++ {
