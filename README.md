@@ -25,7 +25,7 @@ Les agents du projet interagissent entre eux et se déplacent dans l'environneme
 - Rachkam le Rouge : Rackham le Rouge est très fier et très cruel. Il n'hésite pas à attaquer tout navire entrant dans son champ de vision. Cela dit, son attaque est très basse, donc il ne fait pratiquement pas de dégâts... Mais il a la détermination. C'est au moins cela.
 - Kraken : le kraken est une créature mythique que peu peuvent se targer d'avoir rencontrée (et d'être encore en vie pour le raconter). Il arpente les mers, et attaque tout navire entrant dans son champ de vision.
 
-Note : Les agents peuvent poursuivre leurs cibles avant de les attaquer lorsqu'ils en sont suffisamment proches.
+Note : Lorsqu'ils détectent une cible à attaquer, les agents peuvent poursuivre ces-dernières avant de les attaquer lorsqu'ils en sont suffisamment proches.
 
 ### Objets
 Les ports sont des objets avec lesquels les agents navires peuvent interagir. Les navires peuvent accoster dans un port pour y faire du commerce (vendre et acheter des ressources), peuvent se réparer (si le nombre de points de vie sont inférieur au nombre de points de vie maximum, et s'ils ont suffisamment d'argent pour effectuer lesdites réparations), et s'y réfugier. Lorsque les navires sont à quais, ils ne peuvent attaquer, ni être attaqués (que ce soit par d'autres navires, ou bien par le kraken).
