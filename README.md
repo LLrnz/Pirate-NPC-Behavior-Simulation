@@ -36,4 +36,4 @@ Les points forts de notre projet sont les suivants :
 Les points d'amélioration de notre projet sont les suivants :
 - niveaux : originellement, nous souhaitions ajouter des niveaux aux agents. Un navire pourrait augmenter de niveau en payant une certaine somme. Une augmentation de niveau mènerait à un navire aux capacités plus importantes (vie, attaque, vitesse plus grandes).
 - constantes : les constantes pourraient être définies avec plus de précision en réalisant 
-- communication inter-agents :
+- communication inter-agents : nous avons pensé (la veille du rendu) à mettre en place des échanges de messages entre les agents navires : un navire marchand attaqué pourrait joindre le navire de l'armée de sa nationalité le plus proche (sous réserve que celui-ci ne soit pas en train d'attaquer un autre agent), afin qu'il puisse lui venir en aide.
