@@ -65,6 +65,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	dockedHarbourCalifornie.AddAvailableRessources("Cotton")
 	dockedHarbourCalifornie.AddSellableRessources("Coffee")
 	dockedHarbourCalifornie.AddSellableRessources("Spices")
+	dockedHarbourCalifornie.AddSellableRessources("Ivory")
 	// ADDED from Haiti’s Available
 	dockedHarbourCalifornie.AddAvailableRessources("Tipiak")
 	simu.env.AddHarbour(dockedHarbourCalifornie)
@@ -106,7 +107,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	dockedHarbourArgentine := NewHarbour("Argentine", Coordinates{24, 39})
 	dockedHarbourArgentine.AddAvailableRessources("Spices")
 	dockedHarbourArgentine.AddAvailableRessources("Weapons")
-	dockedHarbourArgentine.AddAvailableRessources("Pearls") // Exclusive
+	dockedHarbourArgentine.AddAvailableRessources("Pearls")
 	dockedHarbourArgentine.AddSellableRessources("Tipiak")
 	dockedHarbourArgentine.AddSellableRessources("Rum")
 	simu.env.AddHarbour(dockedHarbourArgentine)
@@ -202,6 +203,8 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	dockedHarbourRussie.AddAvailableRessources("Tobacco")
 	dockedHarbourRussie.AddSellableRessources("Cocoa")
 	dockedHarbourRussie.AddSellableRessources("Coffee")
+	dockedHarbourArgentine.AddSellableRessources("Pearls")
+
 	simu.env.AddHarbour(dockedHarbourRussie)
 
 	//-------------------------------------------------------------
@@ -221,6 +224,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	dockedHarbourChine.AddAvailableRessources("Tobacco")
 	dockedHarbourChine.AddSellableRessources("Spices")
 	dockedHarbourChine.AddSellableRessources("Sugar")
+	dockedHarbourChine.AddSellableRessources("Silk")
 	simu.env.AddHarbour(dockedHarbourChine)
 
 	//-------------------------------------------------------------
@@ -231,13 +235,14 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	dockedHarbourAustralie.AddAvailableRessources("Weapons")
 	dockedHarbourAustralie.AddSellableRessources("Spices")
 	dockedHarbourAustralie.AddSellableRessources("Cotton")
+	dockedHarbourAustralie.AddSellableRessources("Gold")
 	simu.env.AddHarbour(dockedHarbourAustralie)
 
 	//-------------------------------------------------------------
 	// Japon (Coordinates{79, 27})
 	dockedHarbourJapon := NewHarbour("Japon", Coordinates{79, 27})
-	dockedHarbourJapon.AddAvailableRessources("Gold") // Exclusive
-	dockedHarbourJapon.AddAvailableRessources("Silk") // Exclusive
+	dockedHarbourJapon.AddAvailableRessources("Gold")
+	dockedHarbourJapon.AddAvailableRessources("Silk")
 	dockedHarbourJapon.AddSellableRessources("Coffee")
 	dockedHarbourJapon.AddSellableRessources("Rum")
 	dockedHarbourJapon.AddSellableRessources("Cocoa")
@@ -252,24 +257,26 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 
 	// Specify how many merchant ships each nationality should have
 	merchantCounts := map[constants.Nationality]int{
-		constants.France:  2,
-		constants.Spain:   0,
-		constants.England: 0,
+		constants.France:  50,
+		constants.Spain:   50,
+		constants.England: 50,
 	}
 
 	privateerCounts := map[constants.Nationality]int{
-		constants.France:  0,
-		constants.England: 0,
-		constants.Spain:   0,
+		constants.France:  10,
+		constants.England: 10,
+		constants.Spain:   10,
 	}
 
 	armyCounts := map[constants.Nationality]int{
-		constants.France:  0,
-		constants.England: 0,
-		constants.Spain:   0,
+		constants.France:  1,
+		constants.England: 1,
+		constants.Spain:   1,
 	}
 
-	numPirates := 0
+	numPirates := 50
+
+	krakens := 2
 
 	// Create Pirate Ships (no nationality)
 	for i := 0; i < numPirates; i++ {
@@ -315,8 +322,12 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	//rackham := NewShipRackham("Rackham", NewRandomCoordinates(), nil)
 	//simu.env.AddAgent(rackham)
 
-	kraken := NewKraken("Kraken", Coordinates{x: 13, y: 12})
-	simu.env.AddAgent(kraken)
+	for i := 0; i < krakens; i++ {
+		id := fmt.Sprintf("Kraken #%d", i)
+		coor := NewRandomCoordinates()
+		kraken := NewKraken(id, coor)
+		simu.env.AddAgent(kraken)
+	}
 
 	return simu
 }
@@ -365,7 +376,7 @@ Loop:
 		}*/
 
 		// Adjust the sleep duration based on timeSpeed using the getter
-		time.Sleep(time.Second / (10 * time.Duration(simu.Parameters().TimeSpeed()))) // 2 steps/s default and time speed
+		time.Sleep(time.Second / (1 * time.Duration(simu.Parameters().TimeSpeed()))) // 1 step/s default and time speed
 	}
 }
 

@@ -1,79 +1,147 @@
 package widgets
 
 import (
+	"fmt"
 	"image/color"
+	"log"
 
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text"
 	"gitlab.utc.fr/arsaintm/ia04-projet/UI/utils"
-
-	"github.com/ebitenui/ebitenui/image"
-	"github.com/ebitenui/ebitenui/widget"
+	"gitlab.utc.fr/arsaintm/ia04-projet/simulation"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 )
 
-// Widget used for displaying buttons to control the simulation
 type ControlView struct {
-	*widget.Container
-	events chan Events
-	btn    *widget.Button
+	simu *simulation.Simulation
+
+	fontFace font.Face
+
+	isPlusPressed  bool
+	isMinusPressed bool
+
+	plusBtnX, plusBtnY          int
+	plusBtnWidth, plusBtnHeight int
+
+	minusBtnX, minusBtnY          int
+	minusBtnWidth, minusBtnHeight int
+
+	plusLabel  string
+	minusLabel string
 }
 
-func NewControlView(events chan Events) *ControlView {
-	// Create UI container
-	rootContainer := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.RGBA{100, 100, 0, 255})),
-		widget.ContainerOpts.WidgetOpts(
-			widget.WidgetOpts.MinSize(100, 50),
-		),
-		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Columns(1),
+func NewControlView(simu *simulation.Simulation) *ControlView {
+	// Load a font for the button text
+	fontData, err := utils.LoadFile("assets/font/money.otf")
+	if err != nil {
+		log.Fatal("Failed to load font file:", err)
+	}
+	parsedFont, err := opentype.Parse(fontData)
+	if err != nil {
+		log.Fatal("Failed to parse font:", err)
+	}
+	face, err := opentype.NewFace(parsedFont, &opentype.FaceOptions{
+		Size:    16,
+		DPI:     72,
+		Hinting: font.HintingFull,
+	})
+	if err != nil {
+		log.Fatal("Failed to create font face:", err)
+	}
 
-			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
-		)),
-	)
+	margin := 25
+	btnWidth := 30
+	btnHeight := 30
+	xStart := utils.MapWidth - margin - btnWidth*2
+	yStart := utils.MapHeigt - margin - btnHeight
 
-	buttonImage, _ := utils.LoadButtonImage()
+	return &ControlView{
+		simu: simu,
 
-	// load button text font
-	face, _ := utils.LoadFont(20)
+		fontFace: face,
 
-	// Creates the "Add Agent" button
-	var button *widget.Button
-	button = widget.NewButton(
-		widget.ButtonOpts.WidgetOpts(),
-		widget.ButtonOpts.Image(buttonImage),
+		plusBtnX:      xStart,
+		plusBtnY:      yStart,
+		plusBtnWidth:  btnWidth,
+		plusBtnHeight: btnHeight,
 
-		widget.ButtonOpts.Text("Add ship", face, &widget.ButtonTextColor{
-			Idle:    color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
-			Hover:   color.NRGBA{0, 255, 128, 255},
-			Pressed: color.NRGBA{255, 0, 0, 255},
-		}),
-		widget.ButtonOpts.TextProcessBBCode(true),
-		widget.ButtonOpts.TextPadding(widget.Insets{
-			Left:   30,
-			Right:  30,
-			Top:    5,
-			Bottom: 5,
-		}),
+		minusBtnX:      xStart + btnWidth + 10,
+		minusBtnY:      yStart,
+		minusBtnWidth:  btnWidth,
+		minusBtnHeight: btnHeight,
 
-		//When button presses
-		widget.ButtonOpts.PressedHandler(func(args *widget.ButtonPressedEventArgs) {
-			button.Text().Inset.Top = 4
-			button.Text().Inset.Left = 4
-			button.GetWidget().CustomData = true
-		}),
+		plusLabel:  "+",
+		minusLabel: "-",
+	}
+}
 
-		//When button released
-		widget.ButtonOpts.ReleasedHandler(func(args *widget.ButtonReleasedEventArgs) {
-			button.Text().Inset.Top = 0
-			button.Text().Inset.Left = 0
-			button.GetWidget().CustomData = false
-		}),
+func (cv *ControlView) Update() {
+	mouseX, mouseY := ebiten.CursorPosition()
+	mousePressed := ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
 
-		// When button clicked
-		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			events <- AddAgent
-		}))
+	if mouseX >= cv.plusBtnX && mouseX <= cv.plusBtnX+cv.plusBtnWidth &&
+		mouseY >= cv.plusBtnY && mouseY <= cv.plusBtnY+cv.plusBtnHeight {
+		cv.isPlusPressed = mousePressed
+		if mousePressed {
+			cv.simu.Parameters().IncreaseSpeed()
+		}
+	} else {
+		cv.isPlusPressed = false
+	}
 
-	rootContainer.AddChild(button)
+	if mouseX >= cv.minusBtnX && mouseX <= cv.minusBtnX+cv.minusBtnWidth &&
+		mouseY >= cv.minusBtnY && mouseY <= cv.minusBtnY+cv.minusBtnHeight {
+		cv.isMinusPressed = mousePressed
+		if mousePressed {
+			cv.simu.Parameters().DecreaseSpeed()
+		}
+	} else {
+		cv.isMinusPressed = false
+	}
+}
 
-	return &ControlView{rootContainer, events, button}
+func (cv *ControlView) Render(screen *ebiten.Image) {
+	plusOpacity := uint8(255)
+	if cv.isPlusPressed {
+		plusOpacity = 128
+	}
+	plusRect := ebiten.NewImage(cv.plusBtnWidth, cv.plusBtnHeight)
+	plusRect.Fill(color.RGBA{0, 0, 0, plusOpacity})
+	plusOp := &ebiten.DrawImageOptions{}
+	plusOp.GeoM.Translate(float64(cv.plusBtnX), float64(cv.plusBtnY))
+	screen.DrawImage(plusRect, plusOp)
+
+	plusLabelX := cv.plusBtnX + 12
+	plusLabelY := cv.plusBtnY + 20
+	text.Draw(screen, cv.plusLabel, cv.fontFace, plusLabelX, plusLabelY, color.White)
+
+	minusOpacity := uint8(255)
+	if cv.isMinusPressed {
+		minusOpacity = 128
+	}
+	minusRect := ebiten.NewImage(cv.minusBtnWidth, cv.minusBtnHeight)
+	minusRect.Fill(color.RGBA{0, 0, 0, minusOpacity})
+	minusOp := &ebiten.DrawImageOptions{}
+	minusOp.GeoM.Translate(float64(cv.minusBtnX), float64(cv.minusBtnY))
+	screen.DrawImage(minusRect, minusOp)
+
+	minusLabelX := cv.minusBtnX + 12
+	minusLabelY := cv.minusBtnY + 20
+	text.Draw(screen, cv.minusLabel, cv.fontFace, minusLabelX, minusLabelY, color.White)
+
+	// Display current steps/s next to the buttons to speed up the simulation
+	speed := int(cv.simu.Parameters().TimeSpeed())
+	if speed > 1 {
+		speedStr := fmt.Sprintf("%d steps/s", int(cv.simu.Parameters().TimeSpeed()))
+		speedX := cv.minusBtnX + cv.minusBtnWidth - 66
+		speedY := cv.minusBtnY - 15
+		text.Draw(screen, speedStr, cv.fontFace, speedX, speedY, color.White)
+	} else {
+		speedStr := fmt.Sprintf("%d step/s", int(cv.simu.Parameters().TimeSpeed()))
+		speedX := cv.minusBtnX + cv.minusBtnWidth - 61
+		speedY := cv.minusBtnY - 15
+		text.Draw(screen, speedStr, cv.fontFace, speedX, speedY, color.White)
+	}
+
 }

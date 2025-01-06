@@ -61,21 +61,21 @@ func AgentToView(a simulation.Agent) (IViewAgent, error) {
 }
 
 // Converts all agents of a slice to displayable views
-func ConvertAllAgentsToView(agents []simulation.Agent) ([]IViewAgent, error) {
+func ConvertAllAgentsToView(agents []simulation.Agent) ([]IViewAgent, map[IViewAgent]simulation.Agent, error) {
 	size := len(agents)
-	views := make([]IViewAgent, size)
+	viewAgents := make([]IViewAgent, size)
+	mapping := make(map[IViewAgent]simulation.Agent)
 
 	for i, agt := range agents {
 		view, err := AgentToView(agt)
-
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-
-		views[i] = view
+		viewAgents[i] = view
+		mapping[view] = agt
 	}
 
-	return views, nil
+	return viewAgents, mapping, nil
 }
 
 // Draws a displayable agent on screen
