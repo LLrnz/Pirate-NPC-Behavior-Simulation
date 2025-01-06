@@ -1,7 +1,12 @@
 # IA04 - Simulation multi-agents
 
 ## Sujet
-pbtq + conclusion sur nos itérations de simulations
+
+### Qu'aurait dû faire la France pour se propulser au sommet de la richesse pendant l'Âge d'or de la piraterie (1716 - 1726) ?
+
+Notre simulation se déroule lors de l'Âge d'or de la piraterie, entre 1716 et 1726. 
+
+TODO - conclusion sur nos itérations de simulations
 
 ## Lancer le projet
 
@@ -10,7 +15,7 @@ pbtq + conclusion sur nos itérations de simulations
 TODO
 
 ### Objets
-Ports
+Port
 
 ### Autres
 Marché
