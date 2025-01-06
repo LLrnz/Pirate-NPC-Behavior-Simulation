@@ -602,13 +602,11 @@ func (env *Environment) ClosestArmyNationality(ag *Ship) Agent {
 
 // Attack the agent in the env
 func (env *Environment) AttackAgent(target Agent, attacker Agent) {
-	agents := env.Agents()
-
 	env.Lock()
 	defer env.Unlock()
 
 	// Loop over the agents until the target is found
-	for i, agent := range agents {
+	for i, agent := range env.agents {
 		if agent.Id() == target.Id() {
 			agent.RemoveHealth(attacker.Attack())
 

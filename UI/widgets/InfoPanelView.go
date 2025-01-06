@@ -14,6 +14,8 @@ import (
 	"golang.org/x/image/font/opentype"
 )
 
+// Info panel shows the current agent targeted information
+
 type InfoPanelView struct {
 	background      *ebiten.Image
 	fontFace        font.Face
@@ -28,7 +30,7 @@ type InfoPanelView struct {
 func NewInfoPanelView() *InfoPanelView {
 	background, err := utils.NewImageFromPath("assets/chest_open.png")
 	if err != nil {
-		log.Println("Error loading background, using plain color:", err)
+		log.Println("Problem getting chest img : ", err)
 		background = ebiten.NewImage(100, 50)
 		background.Fill(color.NRGBA{0, 100, 100, 255})
 	} else {
@@ -46,12 +48,12 @@ func NewInfoPanelView() *InfoPanelView {
 	fontPath := "assets/font/money.otf"
 	fontData, err := utils.LoadFile(fontPath)
 	if err != nil {
-		log.Fatal("Failed to load font file:", err)
+		log.Println("Problem load font :", err)
 	}
 
 	ttFont, err := opentype.Parse(fontData)
 	if err != nil {
-		log.Fatal("Failed to parse font:", err)
+		log.Println("Problem parse font :", err)
 	}
 
 	fontFace, err := opentype.NewFace(ttFont, &opentype.FaceOptions{
@@ -60,20 +62,20 @@ func NewInfoPanelView() *InfoPanelView {
 		Hinting: font.HintingFull,
 	})
 	if err != nil {
-		log.Fatal("Failed to create font face:", err)
+		log.Println("Problem create font :", err)
 	}
 
 	// Load heart and coin images
 	heartImg, err := utils.NewImageFromPath("assets/heart.png")
 	if err != nil {
-		log.Println("Error loading heart image, using fallback:", err)
+		log.Println("Problem load img heart :", err)
 		heartImg = ebiten.NewImage(1, 1)
 		heartImg.Fill(color.NRGBA{R: 255, G: 0, B: 0, A: 255})
 	}
 
 	coinImg, err := utils.NewImageFromPath("assets/coin.png")
 	if err != nil {
-		log.Println("Error loading coin image, using fallback:", err)
+		log.Println("Problem load img coin :", err)
 		coinImg = ebiten.NewImage(1, 1)
 		coinImg.Fill(color.NRGBA{R: 255, G: 255, B: 0, A: 255})
 	}
@@ -81,7 +83,7 @@ func NewInfoPanelView() *InfoPanelView {
 	return &InfoPanelView{
 		background: background,
 		fontFace:   fontFace,
-		agentInfo:  "Cliquez sur un agent",
+		agentInfo:  "Cliquez sur un agent", // Par défaut en attendant du click
 
 		heartImg: heartImg,
 		coinImg:  coinImg,
@@ -93,7 +95,7 @@ func NewInfoPanelView() *InfoPanelView {
 
 func (i *InfoPanelView) UpdateInfo(agent simulation.Agent) {
 	if agent == nil {
-		i.agentInfo = "Cliquez sur un agent"
+		i.agentInfo = "Cliquez sur un agent" // Par défaut en attendant du click
 		i.nationalityFlag = nil
 		i.nationality = ""
 		return
@@ -108,8 +110,8 @@ func (i *InfoPanelView) UpdateInfo(agent simulation.Agent) {
 		i.nationality = ""
 
 		infoBuilder := strings.Builder{}
-		infoBuilder.WriteString(fmt.Sprintf("Name: %s\n", name))
-		infoBuilder.WriteString(fmt.Sprintf("Health: %d\n", health))
+		infoBuilder.WriteString(fmt.Sprintf("%s\n", name))
+		infoBuilder.WriteString(fmt.Sprintf("Vie : %d\n", health))
 		i.agentInfo = infoBuilder.String()
 
 	case "Ship":
@@ -118,7 +120,7 @@ func (i *InfoPanelView) UpdateInfo(agent simulation.Agent) {
 			i.nationalityFlag = nil
 			i.nationality = ""
 
-			i.agentInfo = fmt.Sprintf("Name: %s\nHealth: %d\n", name, health)
+			i.agentInfo = fmt.Sprintf("%s\nVie : %d\n", name, health)
 			return
 		}
 
@@ -205,13 +207,13 @@ func (i *InfoPanelView) Render(screen *ebiten.Image, x, y int) {
 			iconOp := &ebiten.DrawImageOptions{}
 			scale := 0.1
 			iconOp.GeoM.Scale(scale, scale)
-			iconOp.GeoM.Translate(float64(drawX+75), float64(drawY-14))
+			iconOp.GeoM.Translate(float64(drawX+63), float64(drawY-14))
 			screen.DrawImage(i.heartImg, iconOp)
 		} else if strings.HasPrefix(line, "Argent :") {
 			iconOp := &ebiten.DrawImageOptions{}
 			scale := 0.1
 			iconOp.GeoM.Scale(scale, scale)
-			iconOp.GeoM.Translate(float64(drawX+75), float64(drawY-14))
+			iconOp.GeoM.Translate(float64(drawX+85), float64(drawY-14))
 			screen.DrawImage(i.coinImg, iconOp)
 		}
 	}

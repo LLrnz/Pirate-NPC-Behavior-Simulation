@@ -25,7 +25,7 @@ type ShipConfig struct {
 var ShipConfigs = map[ShipType]ShipConfig{
 	Pirate: {
 		Speed:    1,
-		Attack:   50,
+		Attack:   40,
 		Health:   200,
 		Capacity: 10,
 		FOV:      5,
@@ -34,19 +34,19 @@ var ShipConfigs = map[ShipType]ShipConfig{
 		Speed:    1,
 		Attack:   5,
 		Health:   300,
-		Capacity: 50,
+		Capacity: 100,
 		FOV:      6,
 	},
 	Privateer: {
 		Speed:    1,
-		Attack:   60,
+		Attack:   50,
 		Health:   300,
 		Capacity: 20,
 		FOV:      5,
 	},
 	Army: {
 		Speed:    1,
-		Attack:   100,
+		Attack:   80,
 		Health:   300,
 		Capacity: 15,
 		FOV:      6,
@@ -60,8 +60,8 @@ var ShipConfigs = map[ShipType]ShipConfig{
 	},
 	Rackham: {
 		Speed:    1,
-		Attack:   5,
-		Health:   400,
+		Attack:   1,
+		Health:   10000,
 		Capacity: 5,
 		FOV:      10,
 	},

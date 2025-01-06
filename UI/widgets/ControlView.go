@@ -13,6 +13,8 @@ import (
 	"golang.org/x/image/font/opentype"
 )
 
+// ControlView makes btns to choose the speed of simulation
+
 type ControlView struct {
 	simu *simulation.Simulation
 
@@ -26,9 +28,6 @@ type ControlView struct {
 
 	minusBtnX, minusBtnY          int
 	minusBtnWidth, minusBtnHeight int
-
-	plusLabel  string
-	minusLabel string
 }
 
 func NewControlView(simu *simulation.Simulation) *ControlView {
@@ -70,9 +69,6 @@ func NewControlView(simu *simulation.Simulation) *ControlView {
 		minusBtnY:      yStart,
 		minusBtnWidth:  btnWidth,
 		minusBtnHeight: btnHeight,
-
-		plusLabel:  "+",
-		minusLabel: "-",
 	}
 }
 
@@ -102,6 +98,7 @@ func (cv *ControlView) Update() {
 }
 
 func (cv *ControlView) Render(screen *ebiten.Image) {
+	// SHow btns + and - to modify speed
 	plusOpacity := uint8(255)
 	if cv.isPlusPressed {
 		plusOpacity = 128
@@ -114,7 +111,7 @@ func (cv *ControlView) Render(screen *ebiten.Image) {
 
 	plusLabelX := cv.plusBtnX + 12
 	plusLabelY := cv.plusBtnY + 20
-	text.Draw(screen, cv.plusLabel, cv.fontFace, plusLabelX, plusLabelY, color.White)
+	text.Draw(screen, "+", cv.fontFace, plusLabelX, plusLabelY, color.White)
 
 	minusOpacity := uint8(255)
 	if cv.isMinusPressed {
@@ -128,7 +125,7 @@ func (cv *ControlView) Render(screen *ebiten.Image) {
 
 	minusLabelX := cv.minusBtnX + 12
 	minusLabelY := cv.minusBtnY + 20
-	text.Draw(screen, cv.minusLabel, cv.fontFace, minusLabelX, minusLabelY, color.White)
+	text.Draw(screen, "-", cv.fontFace, minusLabelX, minusLabelY, color.White)
 
 	// Display current steps/s next to the buttons to speed up the simulation
 	speed := int(cv.simu.Parameters().TimeSpeed())
