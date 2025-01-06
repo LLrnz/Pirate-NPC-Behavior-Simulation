@@ -1,169 +1,324 @@
 @startuml ^Simulation Pirates^
 
 class Simulation {
-    env : Environment
-    object : []Object
-    agents : []Agent
-
-    Start()
+  - env  *Environment
+  - parameters  *Parameters
+  + Environment()  *Environment
+  + Agents()  []Agent
+  + Parameters()  *Parameters
+  + NewRandomCoordinates()  Coordinates
+  + NewSimulation(maxDuration time.Duration, maxStep int)  *Simulation
+  + Run() 
+  + Print()
+  + Log()
 }
 
 class Environment {
-    objects : []Object
-    agents : []Agent
-    pirates : []Ship
-    privateer : []Ship
-    merchant : []Ship
-    army : []Ship
-    filibuster : []Ship
-    zoro : []Ship
-    ports : []Port
+  - Mutex
+  - agents  []Agent
+  - harbours  []*Harbour
+  - market  *Market
+  + NewEnvironment(agents  []Agent, harbours  []*Harbour)  *Environment
+  + Market()  *Market
+  + Agents()  []Agent
+  + AddAgent(agt  Agent)
+  + RemoveAgent(target  Agent)
+  + Harbours()  []*Harbour
+  + AddHarbour(h  *Harbour)
+  + IsHarbour(ship  *Ship)  (*Harbour, bool)
+  + ClosestHarbour(ag  *Ship)  *Harbour
+  + DockShip(ship  *Ship, harbour  *Harbour)
+  + UnDockShip(ship  *Ship)
+  + HasRessourcesToSellAtHarbour(agt  *Ship)  bool
+  + KrakenNearby(agt  Agent)  *Agent
+  + ClosestShipFromKraken(agt  *Kraken)  Agent
+  + ClosestPirate(ag  *Ship)  Agent 
+  + ClosestPrivateerNationality(ag  *Ship)  Agent 
+  + ClosestShipFromShip(ag  *Ship)  Agent 
+  + ClosestMerchant(ag  *Ship)  Agent 
+  + ClosestMechantNationality(ag  *Ship)  Agent 
+  + ClosestPrivateer(ag  *Ship)  Agent 
+  + ClosestArmy(ag  *Ship)  Agent 
+  + ClosestarmyNationality(ag  *Ship)  Agent 
+  + AttackAgent(target  Agent, attacker  Agent)
 }
 
-class Object {
-    pos : Position
+interface Agent {
+  + Id()  string
+  + AgtType()  string
+  + Fov()  int
+  + SetFov(fov  int) 
+  + Speed()  int
+  + SetSpeed(speed  int)
+  + Attack()  int 
+  + SetAttack(attack  int)
+  + Health()  int
+  + SetHealth(health  int)
+  + AddHealth(health  int)
+  + RemoveHealth(health  int)
+  + Target()  Agent
+  + SetTarget(target  Agent)
+  + Action()  string
+  + SetAction(action  string)
+  + Itinerary()  []Coordinates
+  + SetItinerary(itinerary  []Coordinates)
+  + FollowItinerary()
+  + Percept(env  *Environment, step  int)
+  + Deliberate(env  *Environment, step  int)
+  + Act(env  Environment, step  int)
+  
 }
 
-class Port {
-    merchandises : []Resource
+
+class BehaviourPirate{
+  + pirateShipPercept(ship *Ship, env *Environment, step int)
+  + pirateShipDeliberate(ship *Ship, env *Environment, step int)
+  + pirateShipAct(ship *Ship, env *Environment, step int)
+  + pirateShipLevelUp(ship *Ship, env *Environment, step int)
+
 }
 
-class Resource {
-    type : ResourceType
-    quantity : int
+class BehaviourMerchant{
+  + merchantShipPercept(ship *Ship, env *Environment, step int)
+  + merchantShipDeliberate(ship *Ship, env *Environment, step int)
+  + merchantShipAct(ship *Ship, env *Environment, step int)
+  + merchantShipLevelUp(ship *Ship, env *Environment, step int)
 }
 
-enum ResourceType {
-    Gold
-    Spice
-    Sugar
-    Alcohol
-    Weapons
-    Provisions 
-    Tea
-    Coffee
-    Tipiak
+class BehaviourPrivateer{
+  + privateerShipPercept(ship *Ship, env *Environment, step int)
+  + privateerShipDeliberate(ship *Ship, env *Environment, step int)
+  + privateerShipAct(ship *Ship, env *Environment, step int)
+  + privateerShipLevelUp(ship *Ship, env *Environment, step int)
+}
+
+
+class BehaviourArmy{
+  + armyShipPercept(ship *Ship, env *Environment, step int)
+  + armyShipDeliberate(ship *Ship, env *Environment, step int)
+  + armyShipAct(ship *Ship, env *Environment, step int)
+  + armyShipLevelUp(ship *Ship, env *Environment, step int)
+}
+
+class BehaviourZoro{
+  + zoroShipPercept(ship *Ship, env *Environment, step int)
+  + zoroShipDeliberate(ship *Ship, env *Environment, step int)
+  + zoroShipAct(ship *Ship, env *Environment, step int)
+  + zoroShipLevelUp(ship *Ship, env *Environment, step int)
+}
+
+class BehaviourRackham{
+  + rackhamShipPercept(ship *Ship, env *Environment, step int)
+  + rackhamShipDeliberate(ship *Ship, env *Environment, step int)
+  + rackhamShipAct(ship *Ship, env Environment, step int)
+  + rackhamShipLevelUp(ship *Ship, env *Environment, step int)
+}
+
+
+class Ship {
+  - Mutex
+  - shipType  string
+  - nationality  Nationality
+  - shipState  ShipState
+  - level  int
+  - capacity  int
+  - ressources  map[string]int
+  - money  float32
+  - docked  *Harbour
+  - danger  Agent
+  + behaviourPercept(*Ship, *Environment, int)
+  + behaviourDeliberate(*Ship, *Environment, int)
+  + behaviourAct(*Ship, *Environment, int)
+  + behaviourLevelUp(*Ship, *Environment, int)
+  + NewShipPirate(id  string, coor  Coordinates, docked  *Harbour)  *Ship
+  + NewShipMerchant(id  string, nationality  Nationality, coor  Coordinates, docked  *Harbour)  *Ship
+  + NewShipArmy(id  string, nationality  Nationality, coor  Coordinates, docked  *Harbour)  *Ship
+  + NewShipZoro(id  string, coor  Coordinates, docked  *Harbour)  *Ship
+  + NewShipRackham(id  string, coor  Coordinates, docked  *Harbour)  *Ship
+  + Nationality()  nationality
+  + SetNationality(nationality  Nationality)
+  + ShipState()  ShipState
+  + SetShipState(state  ShipState)
+  + CurrentShipState()
+  + ShipType()  string
+  + Level()  int
+  + LevelUp(env  Environment, step  int)
+  + Capacity()  int
+  + SetCapacity(capacity  int)
+  + Ressources()  map[string]int
+  + SetRessources(ressources  map[string]int)
+  + AddRessources(ressource  string, quantity  int)
+  + RemoveRessources(ressource  string, quantity  int)
+  + Money()  float32
+  + SetMoney(money  flaot32)
+  + AddMoney(money  float32)
+  + RemoveMoney(money  float32)
+  + Docked()  *Harbour
+  + SetDocked(harbour  *Harbour)
+  + Danger()  Agent
+  + SetDanger(danger  Agent) 
+  + Repair()
+  + Quantity()  int
+
+}
+
+class Kraken {
+  - Mutex
+  - krakenState  KrakenState
+  + NewKraken(id  string, coor  Coordinates)  *Kraken
+  + KrakenState()  KrakenState
+  + SetKrakenState(krakenState  KrakenState)
+  + CurrentKrakenState()
+  + RestAndGainHealth()
+  
+}
+
+class BaseAgent {
+  - Mutex
+  - id  string
+  - agtType  string
+  - fov  int
+  - speed  int
+  - attack  int
+  - health  int
+  - target  Agent
+  - action  string
+  - itinetary  []Coordinates
+  - direction  Direction
+  +Id()
+}
+
+class Harbour {
+  - name  string
+  - sellableRessources  map[string]bool
+  - availableRessources  map[string]bool
+  + NewHarbour(name  string, coor  Coordinates)  *Harbour
+  + Name()  string
+  + SellableRessources()  map[string]bool
+  + AvailableRessources()  map[string]bool
+  + AddSellableRessources(ressource  string)
+  + AddAvailableRessources(ressource  string)
+  + IsRessourcesSellable(ressource  string)  bool
 }
 
 class Market {
-    
+  - Mutex
+  - transactions  []Transaction
+  - france  float32
+  - spain  float32
+  - england  float32
+  + NewMarket()  *Market
+  + France()  float32
+  + Spain()  float32
+  + England()  float32
+  + AddMoneyToCountry(ship  *Ship, tax  float32)
+  + Transactions()  []Transaction
+  + AddTransactions(transaction  Transaction)
+  + Sell(ship  *Ship, ressource  Ressource, step  int)
+  + CalculateRessourcePrice(step  int, ressource  Ressource)  float32
+  + RessourcePrice(step  int, ressource  Ressource)  (float32, float32)
 }
 
-class Agent {
-    env : * Environment
-    acuity : int
-    health : int
-
-    Percept()
-    Act()
-    Deliberate()
-    MoveTowards(Object)
+class Transaction {
+  - step  int
+  - ressource  Ressource
+  - quantity  int
+  - agentSeller  *Ship
+  + NewTransaction(step int, ressource Ressource, quantity int, agentSeller *Ship, price float32)  Transaction
 }
 
-
-class Kraken {
-    attack : int
-    speed : int
-    type : string
-
-    Attack()
+class Ressource {
+  - name  string
+  - initPrice  float32
+  - minPrice  float32
+  - hyperbolicDecay  float32
+  + GetRessource(name string)  Ressource, bool
+  
 }
 
-class Ship {
-    behaviourCrew : BehaviourCrew
-    statsShip : StatsShip
-    resources : []Resource
-    lifeMax : int
-    attack : int
-    defense : int
-    speed : int
-    level : int
-    type : string
-
-    IsLowLife()
+class Parameters {
+  - Mutex
+  - paused  bool
+  - step  int
+  - maxStep  int
+  - start  time.Time
+  - timeSpeed  int
+  + NewParameters(maxDuration  time.Duration, maxStep  int)  *Parameters
+  + GetRessource(name string)  Ressource, bool
+  + Paused()  bool
+  + SetPaused(paused  bool) 
+  + Step()  int
+  + AddStep() 
+  + MaxStep() 
+  + SetMaxStep(maxStep  int)
+  + Start()  time.Time
+  + SetStart(start  time.Time) 
+  + MaxDuration()  time.Duration
+  + SetMaxDuration(maxDuration  time.Duration)
+  + TimeSpeed()  int
+  + SetTimeSpeed(timeSpeed  int)
+  + IncreaseSpeed()
+  
 }
 
-class StatsShip {
-    Ship : * Ship
-
-    LevelUp()
-    initStatsShip(*Ship)
+class Coordinates  {
+  - x  int
+  - y  int
+  + X()  int
+  + Y()  int
+  + SetX(x  int) 
+  + SetY(y  int) 
+  
 }
 
-class StatsShip_Brick {
+interface Object  {
+  + Coordinates()  Coordinates
+  + SetCoordinates(coor  Coordinates)
+  
 }
 
-class StatsShip_Brigantin {
+class BaseObject  {
+  - Mutex 
+  - coordinates  Coordinates
+  + Coordinates()  Coordinates
+  + SetCoordinates(coor  Coordinates)
+  
 }
-
-class StatsShip_Goelette {
-}
-
-class StatsShip_TroisMatsCarres {
-}
-
-class BehaviourCrew {
-    Ship : *Ship
-
-    Percept()
-    Act()
-    Deliberate()
-    Attack()
-    ReceiveAttack()
-    BuyResource()
-    SellResource()
-    FixShip()
-}
-
-class BehaviourCrew_Pirate {
-}
-
-class BehaviourCrew_Privateer {
-}
-
-class BehaviourCrew_Merchant {
-}
-
-class BehaviourCrew_Army {
-}
-
-class BehaviourCrew_Filibusteer {
-}
-
-class BehaviourCrew_PirateHunter {
-}
-
-class BehaviourCrew_Zoro {
-}
+  
+  
 
 
-Environment *-- Simulation
+Simulation --* Environment
+Simulation --* Parameters
+Environment --o Harbour
+Environment --o Agent 
+Environment --* Market 
 
-Object *-- Simulation
-Object *-- Environment
-Object <|-- Agent
-Object <|-- Port
+Market --* Transaction
+Transaction -- Ressource
+Harbour -- Ressource
+Ship -- Ressource
 
-Agent *-- Simulation
-Agent <|-- Kraken
-Agent <|-- Ship
+BaseObject ..|> Object
+BaseObject -- Coordinates
+Harbour --|> BaseObject
+BaseAgent --|> BaseObject
 
-Ship <-- BehaviourCrew
-Ship <-- StatsShip
 
-BehaviourCrew o-- Ship
-BehaviourCrew <|--  BehaviourCrew_Army
-BehaviourCrew <|--  BehaviourCrew_PirateHunter
-BehaviourCrew <|--  BehaviourCrew_Privateer
-BehaviourCrew <|--  BehaviourCrew_Filibusteer
-BehaviourCrew <|--  BehaviourCrew_Merchant
-BehaviourCrew <|--  BehaviourCrew_Pirate
-BehaviourCrew <|--  BehaviourCrew_Zoro
+Ship --|> BaseAgent
+Kraken --|> BaseAgent
 
-StatsShip o-- Ship
-StatsShip <|-- StatsShip_Brick
-StatsShip <|-- StatsShip_Brigantin
-StatsShip <|-- StatsShip_Goelette
-StatsShip <|-- StatsShip_TroisMatsCarres
+BaseAgent ..|> Agent
+Ship --o Harbour
+
+
+
+
+BehaviourPirate -- Ship
+BehaviourMerchant -- Ship
+BehaviourPrivateer -- Ship
+BehaviourArmy -- Ship
+BehaviourZoro -- Ship
+BehaviourRackham -- Ship
 
 @enduml

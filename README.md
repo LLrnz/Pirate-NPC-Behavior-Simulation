@@ -10,18 +10,30 @@ Trois états parcourent les mers, cherchant à accumuler le plus de richesses : 
 TODO - conclusion sur nos itérations de simulations
 
 ## Lancer le projet
-TODO 
-
+Pour lancer le projet, il suffit d'utiliser la commande suivante :
+`go run .`
 
 ## Structure
 ### Agents
-TODO
+Les agents du projet interagissent entre eux et se déplacent dans l'environnement.
+
+- Navires marchands : les navires marchands sont affiliés à l'un des trois états (France, Espagne ou Angleterre) et ont pour objectif principal de faire du commerce (vente et achat de ressources). L'argent possédé par ces navires provient des marchandises qu'ils vendent. Lorsqu'ils repèrent un danger (navires pirates, navires corsaires d'une autre nationalité que la leur, Zoro, Rachkam le Rouge, kraken), les navires marchands fuient. Ces navires n'attaquent pas d'autres agents.
+- Navires de l'armée : les navires de l'armée sont affiliés à l'un des trois états. Ils ne pratiquent pas de commerce (ils n'achètent ni ne vendent de ressources). Leur argent est directement issu du trésor du pays auquel ils sont affiliés. Les navires de l'armée attaquent les ennemis qu'ils perçoivent (navires pirates, navires corsaires d'une autre nationalité, Zoro, Rckham le Rouge et kraken). Ces navires ont une attaque et un champ de vue plus haut que les autres navires.
+- Navires pirates : les navires pirates ne sont affiliés à aucun état. Ces navires pratiquent le commerce et peuvent acheter et vendre des ressources. Ces navires fuient face au kraken et aux bateaux de l'armée (qu'importe la nationalité). Ils peuvent attaquer tous les bateaux marchands, pirates et corsaires qu'ils perçoivent. Si les navires pirates attaquent et réussissent à battre un navire, ils peuvent récupérer 60% de ses biens ; le reste est considéré perdu lors de l'attaque...
+- Navires corsaires : le comportement des navires corsaires est sensiblement similaire à celui des navires pirates, à l'exception que ces-derniers sont affiliés à un pays, et n'attaquent pas les navires marchands et corsaires de la même nationalité qu'eux.
+- Zoro : Zoro s'est perdu. Il se déplace complètement au hasard sur la carte, et son champ de vision est extrêmement réduit. Il attaque tout agent dans son champ de vision. Son attaque est bien plus élevée que celles des autres agents.
+- Rachkam le Rouge : Rackham le Rouge est très fier et très cruel. Il n'hésite pas à attaquer tout navire entrant dans son champ de vision. Cela dit, son attaque est très basse, donc il ne fait pratiquement pas de dégâts... Mais il a la détermination. C'est au moins cela.
+- Kraken : le kraken est une créature mythique que peu peuvent se targer d'avoir rencontrée (et d'être encore en vie pour le raconter). Il arpente les mers, et attaque tout navire entrant dans son champ de vision.
+
+Note : Les agents peuvent poursuivre leurs cibles avant de les attaquer lorsqu'ils en sont suffisamment proches.
 
 ### Objets
-Les ports sont des objets avec lesquels les agents navires peuvent interagir. Les navires peuvent accoster dans un port pour y faire du commerce (vendre et acheter des ressources), peuvent se réparer (si le nombre de points de vie sont inférieur au nombre de points de vie maximum), et s'y réfugier. Lorsque les navires sont à quais, ils ne peuvent attaquer, ni être attaqués (que ce soit par d'autres navires, ou bien par le kraken).
+Les ports sont des objets avec lesquels les agents navires peuvent interagir. Les navires peuvent accoster dans un port pour y faire du commerce (vendre et acheter des ressources), peuvent se réparer (si le nombre de points de vie sont inférieur au nombre de points de vie maximum, et s'ils ont suffisamment d'argent pour effectuer lesdites réparations), et s'y réfugier. Lorsque les navires sont à quais, ils ne peuvent attaquer, ni être attaqués (que ce soit par d'autres navires, ou bien par le kraken).
+
+Lorsque les navires vendent des ressources dans un port, ils subissent une taxe. 50% du prix de vente est reversé à l'état auquel est affilié le navire qui effectue la vente (cette somme est perdue si le navire n'est affilié à aucun pays (cas des bateaux pirates)). Le reste est récupéré par le navire (cela constitue son trésor individuel, qu'il peut utiliser pour acheter d'autres ressources ou effectuer des réparations si besoin).
 
 ### Autres
-Marché
+TODO (marché, lister les ressources aussi)
 
 ## Point forts
 Les points forts de notre projet sont les suivants :
