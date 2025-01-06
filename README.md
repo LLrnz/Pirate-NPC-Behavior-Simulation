@@ -4,7 +4,8 @@
 
 ### Qu'aurait dû faire la France pour se propulser au sommet de la richesse pendant l'Âge d'or de la piraterie (1716 - 1726) ?
 
-Notre simulation se déroule lors de l'Âge d'or de la piraterie, entre 1716 et 1726. 
+Notre simulation se déroule lors de l'Âge d'or de la piraterie, entre 1716 et 1726.
+Trois états parcourent les mers, cherchant à accumuler le plus de richesses : le royaume de France, d'Espagne, et d'Angleterre.
 
 TODO - conclusion sur nos itérations de simulations
 

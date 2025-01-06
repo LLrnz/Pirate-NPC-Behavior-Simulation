@@ -751,12 +751,12 @@ func (ag *Kraken) SetKrakenState(krakenState KrakenState) {
 
 // Compute current KrakenState
 func (ag *Kraken) CurrentKrakenState() {
-	if ag.Action() == "rest" {
-		ag.SetKrakenState(Hidden)
+	if ag.Action() == "attack" {
+		ag.SetKrakenState(OutOfWater)
 		return
 	}
 
-	ag.SetKrakenState(OutOfWater)
+	ag.SetKrakenState(Hidden)
 }
 
 // Regain 10% of max health per step resting
