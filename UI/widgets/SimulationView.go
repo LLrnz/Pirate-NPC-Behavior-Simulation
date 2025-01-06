@@ -19,6 +19,8 @@ import (
 	"golang.org/x/image/font/opentype"
 )
 
+// Simulation panel shows the simulation, the agents, and combine the infopanel and controlview
+
 type SimulationView struct {
 	*widget.Container
 
@@ -53,22 +55,22 @@ func NewSimulationView(simu *simulation.Simulation, events chan Events, infoPane
 
 	fond, err := utils.NewImageFromPath(utils.MapImage)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	viewAgents, _, err1 := views.ConvertAllAgentsToView([]simulation.Agent{})
 	if err1 != nil {
-		log.Fatal(err1)
+		log.Println(err1)
 	}
 
 	fontData, err := utils.LoadFile("assets/font/money.otf")
 	if err != nil {
-		log.Fatal("Failed to load font file:", err)
+		log.Println("Failed to load font :", err)
 	}
 
 	parsedOT, err := opentype.Parse(fontData)
 	if err != nil {
-		log.Fatal("Failed to parse font data:", err)
+		log.Println("Failed to parse font :", err)
 	}
 
 	fontTitle, err := opentype.NewFace(parsedOT, &opentype.FaceOptions{
@@ -77,7 +79,7 @@ func NewSimulationView(simu *simulation.Simulation, events chan Events, infoPane
 		Hinting: font.HintingFull,
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	fontDate, err := opentype.NewFace(parsedOT, &opentype.FaceOptions{
@@ -86,7 +88,7 @@ func NewSimulationView(simu *simulation.Simulation, events chan Events, infoPane
 		Hinting: font.HintingFull,
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	fontMoney, err := opentype.NewFace(parsedOT, &opentype.FaceOptions{
@@ -95,7 +97,7 @@ func NewSimulationView(simu *simulation.Simulation, events chan Events, infoPane
 		Hinting: font.HintingFull,
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	startDate := time.Date(1716, time.January, 1, 0, 0, 0, 0, time.UTC)
@@ -132,7 +134,7 @@ func (s *SimulationView) Update(simu *simulation.Simulation) {
 
 	viewAgents, agentMapping, err := views.ConvertAllAgentsToView(simu.Agents())
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	s.objects = viewAgents
@@ -188,7 +190,7 @@ func (s *SimulationView) Render(screen *ebiten.Image) {
 
 	coinImg, err := utils.NewImageFromPath("assets/coin.png")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	flagWidth, flagHeight := 40.0, 30.0
@@ -200,7 +202,7 @@ func (s *SimulationView) Render(screen *ebiten.Image) {
 	for i, val := range moneyValues {
 		flag, err := utils.NewImageFromPath(flagPaths[i])
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 
 		flagOp := &ebiten.DrawImageOptions{}

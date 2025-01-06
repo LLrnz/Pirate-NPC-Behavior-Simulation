@@ -32,6 +32,34 @@ func (simu *Simulation) Agents() []Agent {
 	return simu.Environment().Agents()
 }
 
+func (simu *Simulation) CountAgents() map[string]int {
+	// Take all agents in the simulation
+	agents := simu.Environment().Agents()
+	agentCounts := make(map[string]int)
+
+	for _, agent := range agents {
+		key := ""
+		switch agent.AgtType() {
+		case "Ship": // If Ship type transform to ship
+			ship, _ := agent.(*Ship)
+			if ship.Nationality() != constants.Without {
+				// Include nationality in the key for ships with a nationality
+				key = fmt.Sprintf("%s[%s]", ship.ShipType(), ship.Nationality())
+			} else {
+				// Ships without nationality
+				key = ship.ShipType()
+			}
+		default:
+			key = agent.AgtType()
+		}
+
+		// Add one to the number of this type of agents
+		agentCounts[key]++
+	}
+
+	return agentCounts
+}
+
 // Getter Parameters
 func (simu *Simulation) Parameters() *Parameters {
 	return simu.parameters
@@ -40,6 +68,7 @@ func (simu *Simulation) Parameters() *Parameters {
 // NewRandomCoordinates generates random coordinates that is not land
 func NewRandomCoordinates() Coordinates {
 	for {
+		rand.Seed(uint64(time.Now().UnixNano()))
 		x := rand.Intn(96)
 		y := rand.Intn(54)
 
@@ -51,6 +80,54 @@ func NewRandomCoordinates() Coordinates {
 	}
 }
 
+// Add a kraken to the simulation
+func (simu *Simulation) AddKraken() {
+	krakenNum := simu.CountAgents()["Kraken"]
+	id := fmt.Sprintf("Kraken #%d", krakenNum+1)
+	coor := NewRandomCoordinates()
+	kraken := NewKraken(id, coor)
+	simu.env.AddAgent(kraken)
+}
+
+// Add a pirate to the simulation
+func (simu *Simulation) AddPirate() {
+	pirateNum := simu.CountAgents()["Pirate"]
+	id := fmt.Sprintf("Pirate Ship #%d", pirateNum+1)
+	coor := NewRandomCoordinates()
+	ship := NewShipPirate(id, coor, nil)
+	simu.env.AddAgent(ship)
+}
+
+// Add an Army ship with nationality to the simulation
+func (simu *Simulation) AddArmy(nationality constants.Nationality) {
+	num := fmt.Sprintf("Army[%s]", nationality)
+	armyNum := simu.CountAgents()[num]
+	id := fmt.Sprintf("Army Ship [%s] #%d", nationality, armyNum+1)
+	coor := NewRandomCoordinates()
+	ship := NewShipArmy(id, nationality, coor, nil)
+	simu.env.AddAgent(ship)
+}
+
+// Add a Merchant ship with nationality to the simulation
+func (simu *Simulation) AddMerchant(nationality constants.Nationality) {
+	num := fmt.Sprintf("Merchant[%s]", nationality)
+	merchantNum := simu.CountAgents()[num]
+	id := fmt.Sprintf("Merchant Ship [%s] #%d", nationality, merchantNum+1)
+	coor := NewRandomCoordinates()
+	ship := NewShipMerchant(id, nationality, coor, nil)
+	simu.env.AddAgent(ship)
+}
+
+// Add a Privateer ship with nationality to the simulation
+func (simu *Simulation) AddPrivateer(nationality constants.Nationality) {
+	num := fmt.Sprintf("Privateer[%s]", nationality)
+	privateerNum := simu.CountAgents()[num]
+	id := fmt.Sprintf("Privateer Ship [%s] #%d", nationality, privateerNum+1)
+	coor := NewRandomCoordinates()
+	ship := NewShipPrivateer(id, nationality, coor, nil)
+	simu.env.AddAgent(ship)
+}
+
 // NewSimulation initializes the Simulation
 func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	simu = &Simulation{}
@@ -60,13 +137,11 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	//-------------------------------------------------------------
 	// Californie (Coordinates{12, 24})
 	dockedHarbourCalifornie := NewHarbour("Californie", Coordinates{12, 24})
-	// Original
 	dockedHarbourCalifornie.AddAvailableRessources("Tobacco")
 	dockedHarbourCalifornie.AddAvailableRessources("Cotton")
 	dockedHarbourCalifornie.AddSellableRessources("Coffee")
 	dockedHarbourCalifornie.AddSellableRessources("Spices")
 	dockedHarbourCalifornie.AddSellableRessources("Ivory")
-	// ADDED from Haiti’s Available
 	dockedHarbourCalifornie.AddAvailableRessources("Tipiak")
 	simu.env.AddHarbour(dockedHarbourCalifornie)
 
@@ -97,7 +172,6 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	dockedHarbourMexique.AddAvailableRessources("Cotton")
 	dockedHarbourMexique.AddSellableRessources("Tobacco")
 	dockedHarbourMexique.AddSellableRessources("Coffee")
-	// ADDED from Haiti’s Sellable
 	dockedHarbourMexique.AddSellableRessources("Spices")
 	dockedHarbourMexique.AddSellableRessources("Sugar")
 	simu.env.AddHarbour(dockedHarbourMexique)
@@ -119,7 +193,6 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	dockedHarbourGuadeloupe.AddAvailableRessources("Spices")
 	dockedHarbourGuadeloupe.AddSellableRessources("Rum")
 	dockedHarbourGuadeloupe.AddSellableRessources("Tobacco")
-	// ADDED from Haiti’s Sellable
 	dockedHarbourGuadeloupe.AddSellableRessources("Cotton")
 	simu.env.AddHarbour(dockedHarbourGuadeloupe)
 
@@ -278,14 +351,6 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 
 	krakens := 2
 
-	// Create Pirate Ships (no nationality)
-	for i := 0; i < numPirates; i++ {
-		id := fmt.Sprintf("Pirate Ship #%d", i)
-		coor := NewRandomCoordinates()
-		ship := NewShipPirate(id, coor, nil)
-		simu.env.AddAgent(ship)
-	}
-
 	// Create Merchant Ships per nationality
 	for _, nat := range nationalities {
 		count := merchantCounts[nat]
@@ -319,14 +384,22 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	zoro := NewShipZoro("Zoro", NewRandomCoordinates(), nil)
 	simu.env.AddAgent(zoro)
 
-	//rackham := NewShipRackham("Rackham", NewRandomCoordinates(), nil)
-	//simu.env.AddAgent(rackham)
+	rackham := NewShipRackham("Rackham", NewRandomCoordinates(), nil)
+	simu.env.AddAgent(rackham)
 
 	for i := 0; i < krakens; i++ {
 		id := fmt.Sprintf("Kraken #%d", i)
 		coor := NewRandomCoordinates()
 		kraken := NewKraken(id, coor)
 		simu.env.AddAgent(kraken)
+	}
+
+	// Create Pirate Ships (no nationality)
+	for i := 0; i < numPirates; i++ {
+		id := fmt.Sprintf("Pirate Ship #%d", i)
+		coor := NewRandomCoordinates()
+		ship := NewShipPirate(id, coor, nil)
+		simu.env.AddAgent(ship)
 	}
 
 	return simu

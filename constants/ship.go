@@ -60,8 +60,8 @@ var ShipConfigs = map[ShipType]ShipConfig{
 	},
 	Rackham: {
 		Speed:    1,
-		Attack:   5,
-		Health:   400,
+		Attack:   1,
+		Health:   10000,
 		Capacity: 5,
 		FOV:      10,
 	},

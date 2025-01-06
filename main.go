@@ -14,8 +14,8 @@ import (
 
 func main() {
 	// Init the Model
-	simu := simulation.NewSimulation(600*time.Second, 0)
-	mw, controller := UI.NewMainWindow(simu, 2)
+	simu := simulation.NewSimulation(time.Hour, 3654)
+	mw, controller := UI.NewMainWindow(simu, 30)
 
 	// Ebiten setup
 	ebiten.SetWindowSize(utils.WindowWidth, utils.WindowHeight)
