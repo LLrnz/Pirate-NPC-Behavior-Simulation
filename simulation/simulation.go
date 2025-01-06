@@ -336,15 +336,15 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	}
 
 	privateerCounts := map[constants.Nationality]int{
-		constants.France:  10,
+		constants.France:  20,
 		constants.England: 10,
-		constants.Spain:   10,
+		constants.Spain:   5,
 	}
 
 	armyCounts := map[constants.Nationality]int{
-		constants.France:  1,
-		constants.England: 1,
-		constants.Spain:   1,
+		constants.France:  0,
+		constants.England: 5,
+		constants.Spain:   7,
 	}
 
 	numPirates := 50
@@ -384,7 +384,7 @@ func NewSimulation(maxDuration time.Duration, maxStep int) (simu *Simulation) {
 	zoro := NewShipZoro("Zoro", NewRandomCoordinates(), nil)
 	simu.env.AddAgent(zoro)
 
-	rackham := NewShipRackham("Rackham", NewRandomCoordinates(), nil)
+	rackham := NewShipRackham("Rackham", Coordinates{x: 0, y: 0}, nil)
 	simu.env.AddAgent(rackham)
 
 	for i := 0; i < krakens; i++ {
