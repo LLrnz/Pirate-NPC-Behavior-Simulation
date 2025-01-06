@@ -139,8 +139,8 @@ type ViewPrivateer struct {
 
 func getPrivateerSprites() ([]ebiten.Image, error) {
 	im, err := utils.NewImageFromPath("assets/privateership.png")
-	im1, err1 := utils.NewImageFromPath("assets/privateer_fire.png")
-	im2, err2 := utils.NewImageFromPath("assets/privateer_attack.png")
+	im1, err1 := utils.NewImageFromPath("assets/privateership_fire.png")
+	im2, err2 := utils.NewImageFromPath("assets/privateership_attack.png")
 
 	if err1 != nil {
 		return nil, err1
