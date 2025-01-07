@@ -943,7 +943,7 @@ func armyShipDeliberate(ship *Ship, env *Environment, step int) {
 	}
 
 	// if docked and not full life, fix
-	if ship.Docked() != nil && ship.Health() <= constants.ShipConfigs["Army"].Health {
+	if ship.Docked() != nil && ship.Health() < constants.ShipConfigs["Army"].Health {
 		ship.SetAction("repair")
 		return
 	}
