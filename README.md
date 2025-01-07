@@ -40,7 +40,7 @@ Note : Lorsqu'ils détectent une cible à attaquer, les agents peuvent poursuivr
 ### Objets
 Les ports sont des objets avec lesquels les agents navires peuvent interagir. Les navires peuvent accoster dans un port pour y faire du commerce (vendre et acheter des ressources), peuvent se réparer (si le nombre de points de vie est inférieur au nombre de points de vie maximum, et s'ils ont suffisamment d'argent pour effectuer lesdites réparations), et s'y réfugier. Lorsque les navires sont à quai, ils ne peuvent attaquer, ni être attaqués (que ce soit par d'autres navires, ou bien par le kraken).
 
-Lorsque les navires vendent des ressources dans un port, ils subissent une taxe. 50% du prix de vente est reversé à l'Etat auquel est affilié le navire qui effectue la vente (cette somme est perdue si le navire n'est affilié à aucun pays (cas des bateaux pirates)). Le reste est récupéré par le navire (cela constitue son trésor individuel, qu'il peut utiliser pour acheter d'autres ressources ou effectuer des réparations si besoin).
+Lorsque les navires vendent des ressources dans un port, ils subissent une taxe. 50% du prix de vente est reversé à l'Etat auquel est affilié le navire qui effectue la vente. Le reste est récupéré par le navire (cela constitue son trésor individuel, qu'il peut utiliser pour acheter d'autres ressources ou effectuer des réparations si besoin).
 
 ### Autres
 #### Ressources 
