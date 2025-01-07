@@ -45,14 +45,23 @@ Lorsque les navires vendent des ressources dans un port, ils subissent une taxe.
 ### Autres
 #### Ressources 
 Voici la liste des ressources disponibles dans les ports : 
-- Rhum
-- Perle
+- Or
+- Argent 
 - Café
-- Sucre
-- Épices
+- Epices 
+- Sucre 
+- Rhum 
+- Tabac 
+- Soie 
+- Cacao 
+- Perles
+- Cotton 
+- Ivoire 
+- Armes 
+- **Tipiak** 
 
 #### Marché 
-Ces différents types de ressources sont régis par les lois d’un marché qui vise à reproduire le fonctionnement du système d’offre et de demande tel que nous le connaissons aujourd’hui. Plus un produit est demandé, plus sa valeur augmente, et inversement.
+Ces différents types de ressources sont régis par les lois d’un marché qui vise à reproduire le fonctionnement du système d’offre et de demande tel que nous le connaissons aujourd’hui. Il a été simplifié par une fonction de décroissance hyperbolique. Plus un produit est vendu, plus sa valeur dimunue avec une mémoire de 2 ans.
 
 ## Point forts
 Les points forts de notre projet sont les suivants :
